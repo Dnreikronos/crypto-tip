@@ -1,0 +1,44 @@
+services:
+  crypto-tip:
+    container_name: crypto-tip
+    ports:
+      - 9090:9090
+    build:
+      context: .
+    volumes:
+      - .:/app
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      POSTGRES_TIME_ZONE: ${POSTGRES_TIME_ZONE}
+    depends_on:
+      - postgres
+
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgres
+
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgresDB:/var/lib/postgresql/data
+    env_file:
+      - .env
+
+volumes:
+  postgresDB:
