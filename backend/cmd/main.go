@@ -11,3 +11,10 @@
 	if err != nil {
 		panic(err)
 	}
+
+	r := gin.Default()
+
+	r.Use(func(c *gin.Context) {
+		c.Set("db", db)
+		c.Next()
+	})
