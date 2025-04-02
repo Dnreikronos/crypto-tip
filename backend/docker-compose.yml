@@ -30,3 +30,13 @@ services:
       - postgres
 
 
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgresDB:/var/lib/postgresql/data
+    env_file:
+      - .env
+
