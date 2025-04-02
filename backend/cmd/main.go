@@ -1,7 +1,21 @@
+package cmd
+
+import (
+	"fmt"
+	"net/http"
+
+	"github.com/Dnreikronos/crypto-tip/internal/config"
+	"github.com/Dnreikronos/crypto-tip/internal/storage/connection"
+	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
+)
+
+func main() {
 	err := godotenv.Load(".env")
 	if err != nil {
 		panic(err)
 	}
+
 	err = config.Load()
 	if err != nil {
 		panic(fmt.Sprintf("Failed to load configuration: %v", err))
@@ -18,3 +32,6 @@
 		c.Set("db", db)
 		c.Next()
 	})
+
+	http.ListenAndServe(fmt.Sprintf(":%s", config.GetServerPort()), r)
+}
