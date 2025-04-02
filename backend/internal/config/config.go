@@ -56,3 +56,9 @@ func Load() error {
 	log.Printf("Database config: %v", cfg.DB)
 	return nil
 }
+func GetDB() DBConfig {
+	if cfg == nil {
+		log.Fatal("Configuration is not initialized")
+	}
+	return cfg.DB
+}
