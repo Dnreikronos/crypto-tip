@@ -6,3 +6,8 @@
 	if err != nil {
 		panic(fmt.Sprintf("Failed to load configuration: %v", err))
 	}
+
+	db, err := connection.OpenConnection()
+	if err != nil {
+		panic(err)
+	}
