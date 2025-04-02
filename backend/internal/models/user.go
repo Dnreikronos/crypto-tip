@@ -15,3 +15,14 @@ type UserResponse struct {
 	CreatedAt time.Time `json:"created_at"`
 	Verified  bool      `json:"verified"`
 }
+
+type User struct {
+	ID        uuid.UUID `json:"id" gorm:"type:uuid;primaryKey;"`
+	Name      string    `json:"name"`
+	Email     string    `json:"email"`
+	Photo     string    `json:"photo"`
+	Verified  bool      `json:"verified"`
+	Password  string    `json:"password"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
