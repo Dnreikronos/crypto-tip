@@ -6,6 +6,7 @@ import (
 
 	"github.com/Dnreikronos/crypto-tip/internal/config"
 	"github.com/Dnreikronos/crypto-tip/internal/storage/connection"
+	"github.com/Dnreikronos/crypto-tip/internal/storage/migration"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -25,6 +26,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	migration.RunMigration(db)
 
 	r := gin.Default()
 
