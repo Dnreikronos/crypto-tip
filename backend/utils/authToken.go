@@ -56,9 +56,14 @@ func ValidateToken(token string, publicKey string) (interface{}, error) {
 		return nil, fmt.Errorf("validate: %w", err)
 	}
 
-	claims, ok := parsedToken.Claims.(jwt.MapClaims)
-	if !ok || !parsedToken.Valid {
-		return nil, fmt.Errorf("Validate: invalid token")
+	if !parsedToken.Valid {
+		return nil, fmt.Errorf("validate: invalid token")
 	}
+
+	claims, ok := parsedToken.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, fmt.Errorf("validate: cannot parse claims")
+	}
+
 	return claims["sub"], nil
 }
