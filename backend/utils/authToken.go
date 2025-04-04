@@ -11,12 +11,12 @@ import (
 func CreateToken(ttl time.Duration, payload interface{}, privateKey string) (string, error) {
 	decodedPrivateKey, err := base64.StdEncoding.DecodeString(privateKey)
 	if err != nil {
-		return "", fmt.Errorf("Could not decode key: %w", err)
+		return "", fmt.Errorf("could not decode key: %w", err)
 	}
 
 	key, err := jwt.ParseRSAPrivateKeyFromPEM(decodedPrivateKey)
 	if err != nil {
-		return "", fmt.Errorf("Create: parse key: %w", err)
+		return "", fmt.Errorf("create: parse key: %w", err)
 	}
 
 	now := time.Now().UTC()
