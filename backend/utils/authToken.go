@@ -41,7 +41,7 @@ func ValidateToken(token string, publicKey string) (interface{}, error) {
 		return nil, fmt.Errorf("could not decode: %w", err)
 	}
 
-	key, err := jwt.ParseRSAPrivateKeyFromPEM(decodedPublicKey)
+	key, err := jwt.ParseRSAPublicKeyFromPEM(decodedPublicKey)
 	if err != nil {
 		return "", fmt.Errorf("Validate: parse key: %w", err)
 	}
