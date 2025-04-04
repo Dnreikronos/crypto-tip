@@ -20,6 +20,12 @@ func CreateToken(ttl time.Duration, payload interface{}, privateKey string) (str
 	}
 
 	now := time.Now().UTC()
+	claims := jwt.MapClaims{
+		"sub": payload,
+		"exp": now.Add(ttl).Unix(),
+		"iat": now.Unix(),
+		"nbf": now.Unix(),
+	}
 
 	claims := make(jwt.MapClaims)
 	claims["sub"] = payload
