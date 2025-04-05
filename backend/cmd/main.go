@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Dnreikronos/crypto-tip/internal/config"
+	"github.com/Dnreikronos/crypto-tip/internal/handlers"
 	"github.com/Dnreikronos/crypto-tip/internal/storage/connection"
 	"github.com/Dnreikronos/crypto-tip/internal/storage/migration"
 	"github.com/gin-gonic/gin"
@@ -35,6 +36,13 @@ func main() {
 		c.Set("db", db)
 		c.Next()
 	})
+
+	r.POST("/register", handlers.CreateUserHandler)
+	r.POST("/login", handlers.LoginHandler)
+	authorized := r.Group("/", handlers.AuthMiddleware())
+	{
+		authorized.GET("/profile", handlers.ProfileHandler)
+	}
 
 	http.ListenAndServe(fmt.Sprintf(":%s", config.GetServerPort()), r)
 }

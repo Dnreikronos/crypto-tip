@@ -13,6 +13,7 @@ import (
 )
 
 var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
+var jwtMethod = jwt.SigningMethodES256
 
 func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
@@ -29,7 +30,7 @@ func GenereateToken(user models.User) (string, error) {
 		Subject:   user.ID.String(),
 		ExpiresAt: expirationTime.Unix(),
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
+	token := jwt.NewWithClaims(jwtMethod, claims)
 	return token.SignedString(jwtSecret)
 }
 
@@ -52,6 +53,7 @@ func CreateUserHandler(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 	if err := db.Create(&newUser).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+		return
 	}
 	c.JSON(http.StatusCreated, models.FilteredResponse(newUser))
 }
@@ -65,6 +67,10 @@ func LoginHandler(c *gin.Context) {
 	var existingUser models.User
 	db := c.MustGet("db").(*gorm.DB)
 	if err := db.Where("email = ?", input.Email).First(&existingUser).Error; err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Credentials"})
+		return
+	}
+	if err := VerifyPassword(existingUser.Password, input.Password); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Credentials"})
 		return
 	}
