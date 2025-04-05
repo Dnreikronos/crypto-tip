@@ -138,3 +138,20 @@ func TestLoginHandler(t *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
 	})
 }
+func TestProfileHandler(t *testing.T) {
+	router, db := setupRouter(t)
+	createTestUser(t, db, "test@example.com", "password123", true)
+
+	token := loginUser(t, router, "test@example.com", "password123")
+
+	reqProfile, err := http.NewRequest("GET", "/profile", nil)
+	if err != nil {
+		t.Fatalf("failed to create profile request: %v", err)
+	}
+	reqProfile.Header.Set("Authorization", token)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, reqProfile)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+}
