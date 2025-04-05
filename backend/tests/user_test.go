@@ -21,3 +21,16 @@ func setupRouter(t *testing.T) (*gin.Engine, *gorm.DB) {
 
 	return router, db
 }
+func createTestUser(t *testing.T, db *gorm.DB, email, password string, verified bool) {
+	t.Helper()
+
+	hashedPassword, err := handlers.HashPassword(password)
+	if err != nil {
+		t.Fatalf("failed to hash password: %v", err)
+	}
+
+	user := models.User{Email: email, Password: hashedPassword, Verified: verified}
+	if err := db.Create(&user).Error; err != nil {
+		t.Fatalf("failed to create test user: %v", err)
+	}
+}
