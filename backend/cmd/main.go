@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Dnreikronos/crypto-tip/internal/config"
+	"github.com/Dnreikronos/crypto-tip/internal/handlers"
 	"github.com/Dnreikronos/crypto-tip/internal/storage/connection"
 	"github.com/Dnreikronos/crypto-tip/internal/storage/migration"
 	"github.com/gin-gonic/gin"
