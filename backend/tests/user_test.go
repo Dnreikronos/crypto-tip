@@ -63,3 +63,28 @@ func loginUser(t *testing.T, router *gin.Engine, email, password string) string 
 
 	return resp["token"]
 }
+func TestCreateUserHandler(t *testing.T) {
+	router, db := setupRouter(t)
+
+	userInput := models.SignInInput{Email: "test@example.com", Password: "password123"}
+	body, err := json.Marshal(userInput)
+	if err != nil {
+		t.Fatalf("failed to marshal input: %v", err)
+	}
+
+	req, err := http.NewRequest("POST", "/create", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatalf("failed to create request: %v", err)
+	}
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusCreated, w.Code)
+
+	var user models.User
+	err = db.Where("email = ?", userInput.Email).First(&user).Error
+	assert.NoError(t, err)
+	assert.NotEmpty(t, user.ID)
+	assert.True(t, user.Verified)
+}
