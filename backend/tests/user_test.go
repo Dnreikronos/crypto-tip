@@ -1,3 +1,20 @@
+package tests
+
+import (
+	"bytes"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/Dnreikronos/budgetMannager---Back/handlers"
+	"github.com/Dnreikronos/budgetMannager---Back/models"
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+)
+
 func setupRouter(t *testing.T) (*gin.Engine, *gorm.DB) {
 	t.Helper()
 
@@ -21,6 +38,7 @@ func setupRouter(t *testing.T) (*gin.Engine, *gorm.DB) {
 
 	return router, db
 }
+
 func createTestUser(t *testing.T, db *gorm.DB, email, password string, verified bool) {
 	t.Helper()
 
@@ -34,6 +52,7 @@ func createTestUser(t *testing.T, db *gorm.DB, email, password string, verified 
 		t.Fatalf("failed to create test user: %v", err)
 	}
 }
+
 func loginUser(t *testing.T, router *gin.Engine, email, password string) string {
 	t.Helper()
 
@@ -63,6 +82,7 @@ func loginUser(t *testing.T, router *gin.Engine, email, password string) string 
 
 	return resp["token"]
 }
+
 func TestCreateUserHandler(t *testing.T) {
 	router, db := setupRouter(t)
 
@@ -88,6 +108,7 @@ func TestCreateUserHandler(t *testing.T) {
 	assert.NotEmpty(t, user.ID)
 	assert.True(t, user.Verified)
 }
+
 func TestCreateUserBadRequest(t *testing.T) {
 	router, _ := setupRouter(t)
 
@@ -102,6 +123,7 @@ func TestCreateUserBadRequest(t *testing.T) {
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
+
 func TestLoginHandler(t *testing.T) {
 	router, db := setupRouter(t)
 	createTestUser(t, db, "test@example.com", "password123", true)
@@ -138,6 +160,7 @@ func TestLoginHandler(t *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
 	})
 }
+
 func TestProfileHandler(t *testing.T) {
 	router, db := setupRouter(t)
 	createTestUser(t, db, "test@example.com", "password123", true)
@@ -154,4 +177,25 @@ func TestProfileHandler(t *testing.T) {
 	router.ServeHTTP(w, reqProfile)
 
 	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestAuthMiddleware(t *testing.T) {
+	router, _ := setupRouter(t)
+
+	t.Run("Missing token", func(t *testing.T) {
+		req, _ := http.NewRequest("GET", "/profile", nil)
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
+	})
+
+	t.Run("Invalid token", func(t *testing.T) {
+		req, _ := http.NewRequest("GET", "/profile", nil)
+		req.Header.Set("Authorization", "invalid-token")
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
+	})
 }
