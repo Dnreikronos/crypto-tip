@@ -102,3 +102,39 @@ func TestCreateUserBadRequest(t *testing.T) {
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
+func TestLoginHandler(t *testing.T) {
+	router, db := setupRouter(t)
+	createTestUser(t, db, "test@example.com", "password123", true)
+
+	t.Run("Valid login", func(t *testing.T) {
+		body, _ := json.Marshal(models.SignInInput{Email: "test@example.com", Password: "password123"})
+		req, _ := http.NewRequest("POST", "/login", bytes.NewBuffer(body))
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var response map[string]string
+		err := json.Unmarshal(w.Body.Bytes(), &response)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, response["token"])
+	})
+
+	t.Run("Invalid password", func(t *testing.T) {
+		body, _ := json.Marshal(models.SignInInput{Email: "test@example.com", Password: "wrong"})
+		req, _ := http.NewRequest("POST", "/login", bytes.NewBuffer(body))
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
+	})
+
+	t.Run("Non-existent user", func(t *testing.T) {
+		body, _ := json.Marshal(models.SignInInput{Email: "nouser@example.com", Password: "secret"})
+		req, _ := http.NewRequest("POST", "/login", bytes.NewBuffer(body))
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
+	})
+}
