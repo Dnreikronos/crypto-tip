@@ -88,3 +88,17 @@ func TestCreateUserHandler(t *testing.T) {
 	assert.NotEmpty(t, user.ID)
 	assert.True(t, user.Verified)
 }
+func TestCreateUserBadRequest(t *testing.T) {
+	router, _ := setupRouter(t)
+
+	body := []byte(`{"email": "test@example.com"}`) // Missing password
+	req, err := http.NewRequest("POST", "/create", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatalf("failed to create request: %v", err)
+	}
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
