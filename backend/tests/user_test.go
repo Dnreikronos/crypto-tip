@@ -34,3 +34,32 @@ func createTestUser(t *testing.T, db *gorm.DB, email, password string, verified 
 		t.Fatalf("failed to create test user: %v", err)
 	}
 }
+func loginUser(t *testing.T, router *gin.Engine, email, password string) string {
+	t.Helper()
+
+	loginInput := models.SignInInput{Email: email, Password: password}
+	body, err := json.Marshal(loginInput)
+	if err != nil {
+		t.Fatalf("failed to marshal login input: %v", err)
+	}
+
+	req, err := http.NewRequest("POST", "/login", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatalf("failed to create login request: %v", err)
+	}
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("login failed with code %d", w.Code)
+	}
+
+	var resp map[string]string
+	err = json.Unmarshal(w.Body.Bytes(), &resp)
+	if err != nil {
+		t.Fatalf("failed to parse login response: %v", err)
+	}
+
+	return resp["token"]
+}
