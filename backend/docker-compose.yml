@@ -52,5 +52,25 @@ services:
     dns:
       - 8.8.8.8
       - 8.8.4.4
+
+  logstash:
+    image: docker.elastic.com/logstash/logstash:8.5.1
+    container_name: logstash
+    volumes:
+      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+    environment:
+      - "LS_JAVA_OPTS=-Xmx256m -Xms256m"
+    depends_on:
+      - elasticsearch
+    ports:
+      - "5044:5044"
+      - "5000:5000"
+      - "9600:9600"
+    networks:
+      - elk-network
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+
 volumes:
   postgresDB:
