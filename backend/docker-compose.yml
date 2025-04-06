@@ -72,5 +72,18 @@ services:
       - 8.8.8.8
       - 8.8.4.4
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.5.1
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+    networks:
+      - elk-network
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
 volumes:
   postgresDB:
