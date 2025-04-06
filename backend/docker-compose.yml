@@ -16,7 +16,8 @@ services:
       POSTGRES_TIME_ZONE: ${POSTGRES_TIME_ZONE}
     depends_on:
       - postgres
-
+    networks:
+      - elk-network
 
   pgadmin:
     image: dpage/pgadmin4
@@ -28,7 +29,8 @@ services:
       - "8080:80"
     depends_on:
       - postgres
-
+    networks:
+      - elk-network
 
   postgres:
     image: postgres:latest
@@ -85,5 +87,11 @@ services:
     dns:
       - 8.8.8.8
       - 8.8.4.4
+
+networks:
+  elk-network:
+    driver: bridge
+
 volumes:
   postgresDB:
+
