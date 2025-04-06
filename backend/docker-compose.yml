@@ -40,5 +40,17 @@ services:
     env_file:
       - .env
 
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.5.1
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=HTTP://elasticsearch:9200
+    ports:
+      - "5001:5001"
+    networks:
+      - elk-network
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
 volumes:
   postgresDB:
