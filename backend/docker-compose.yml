@@ -16,7 +16,8 @@ services:
       POSTGRES_TIME_ZONE: ${POSTGRES_TIME_ZONE}
     depends_on:
       - postgres
-
+    networks:
+      - elk-network
 
   pgadmin:
     image: dpage/pgadmin4
@@ -28,7 +29,8 @@ services:
       - "8080:80"
     depends_on:
       - postgres
-
+    networks:
+      - elk-network
 
   postgres:
     image: postgres:latest
@@ -40,5 +42,56 @@ services:
     env_file:
       - .env
 
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.5.1
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=HTTP://elasticsearch:9200
+    ports:
+      - "5001:5001"
+    networks:
+      - elk-network
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+
+  logstash:
+    image: docker.elastic.com/logstash/logstash:8.5.1
+    container_name: logstash
+    volumes:
+      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+    environment:
+      - "LS_JAVA_OPTS=-Xmx256m -Xms256m"
+    depends_on:
+      - elasticsearch
+    ports:
+      - "5044:5044"
+      - "5000:5000"
+      - "9600:9600"
+    networks:
+      - elk-network
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.5.1
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+    networks:
+      - elk-network
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+
+networks:
+  elk-network:
+    driver: bridge
+
 volumes:
   postgresDB:
+
