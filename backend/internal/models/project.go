@@ -54,7 +54,7 @@ func ProjectToResponse(project Project, includeDonations bool) ProjectResponse {
 		Goal:        project.Goal,
 		Raised:      project.Raised,
 		WalletAddr:  project.WalletAddr,
-		Creator:     FilteredResponse(project.User), 
+		Creator:     FilteredResponse(project.User),
 		CreatedAt:   project.CreatedAt,
 		UpdatedAt:   project.UpdatedAt,
 	}
