@@ -9,16 +9,16 @@ import (
 
 type Project struct {
 	ID          uuid.UUID  `json:"id" gorm:"type:uuid;primaryKey;"`
-	Title       string     `json:"title"`
-	Description string     `json:"description"`
-	Goal        float64    `json:"goal"`
+	Title       string     `json:"title" gorm:"not null"`
+	Description string     `json:"description" gorm:"not null"`
+	Goal        float64    `json:"goal" gorm:"not null"`
 	Raised      float64    `json:"raised" gorm:"default:0"`
-	WalletAddr  string     `json:"wallet_addr"`
-	UserID      uuid.UUID  `json:"user_id" gorm:"type:uuid;"`
-	User        User       `json:"user" gorm:"foreignKey:UserID"`
+	WalletAddr  string     `json:"wallet_addr" gorm:"not null"`
+	UserID      uuid.UUID  `json:"user_id" gorm:"type:uuid;not null; index"`
+	User        User       `json:"user" gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Donations   []Donation `json:"donations,omitempty" gorm:"foreignKey:ProjectID"`
-	CreatedAt   time.Time  `json:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at"`
+	CreatedAt   time.Time  `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt   time.Time  `json:"updated_at" gorm:"autoUpdateTime"`
 }
 
 type ProjectInput struct {
