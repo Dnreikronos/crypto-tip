@@ -28,6 +28,13 @@ type ProjectInput struct {
 	WalletAddr  string  `json:"wallet_addr" binding:"required"`
 }
 
+type ProjectUpdate struct {
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
+	Goal        float64 `json:"goal"`
+	WalletAddr  string  `json:"wallet_addr"`
+}
+
 type ProjectResponse struct {
 	ID          uuid.UUID      `json:"id"`
 	Title       string         `json:"title"`
