@@ -109,3 +109,20 @@ func UpdateProjectHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, models.ProjectToResponse(existingProject, false))
 }
+
+func GetAllProjectHandler(c *gin.Context) {
+	db := c.MustGet("db").(*gorm.DB)
+
+	var projects []models.Project
+	if err := db.Preload("User").Preload("Donations").Find(&projects).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch projects"})
+		return
+	}
+
+	response := make([]models.ProjectResponse, 0, len(projects))
+	for _, project := range projects {
+		response = append(response, models.ProjectToResponse(project, false))
+	}
+
+	c.JSON(http.StatusOK, response)
+}
