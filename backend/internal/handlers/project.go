@@ -126,3 +126,16 @@ func GetAllProjectHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response)
 }
+
+func GetProjectByIDHandler(c *gin.Context) {
+	projectID := c.Param("id")
+	db := c.MustGet("db").(*gorm.DB)
+
+	var project models.Project
+	if err := db.Preload("User").Preload("Donations.Donor").
+		First(&project, "id = ?", projectID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Project not found"})
+		return
+	}
+	c.JSON(http.StatusOK, models.ProjectToResponse(project, true))
+}
