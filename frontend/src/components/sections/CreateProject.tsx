@@ -24,7 +24,6 @@ import { TipsInfoPanel } from './TipsInfoPanel'
 import AnimatedBackground from '../ui/AnimatedBackground'
 import { CryptoInfoPanel } from './CryptoInfoPanel'
 
-// Define a simplified form schema without zod dependency
 type FormValues = {
   title: string;
   description: string;
@@ -51,10 +50,8 @@ export default function CreateProjectPage() {
   
   async function onSubmit(values: FormValues) {
     try {
-      // This would be replaced with actual API call
       console.log('Project data:', values)
       
-      // Simulate API success
       toast.success('Project created successfully!')
       
       setTimeout(() => router.push('/creator-tip'), 1500)
@@ -87,7 +84,7 @@ export default function CreateProjectPage() {
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-          <div className={`transition-all duration-500 ${previewMode ? 'lg:col-span-2' : ''}`}>
+          <div className={`transition-all  duration-500 ${previewMode ? 'lg:col-span-2' : ''}`}>
             {previewMode ? (
               <ProjectPreview 
                 project={{
@@ -100,13 +97,13 @@ export default function CreateProjectPage() {
                 onBack={togglePreview}
               />
             ) : (
-              <div className="bg-card border border-primary/10 rounded-2xl p-6 md:p-8 shadow-lg animate-fade-in">
+              <div className="bg-cyan-900/10 border border-gray-700/50 rounded-2xl p-6 md:p-8 shadow-lg animate-fade-in">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-semibold text-card-foreground">Project Details</h2>
+                  <h2 className="text-2xl font-semibold text-white">Project Details</h2>
                   <Button 
                     onClick={togglePreview}
                     variant="ghost" 
-                    className="text-primary hover:bg-primary/5"
+                    className="text-white cursor-pointer"
                   >
                     Preview <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -119,7 +116,7 @@ export default function CreateProjectPage() {
                       name="title"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-card-foreground">Project Title</FormLabel>
+                          <FormLabel className="text-white">Project Title</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="e.g., My Web3 Game" 
@@ -140,7 +137,7 @@ export default function CreateProjectPage() {
                       name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-card-foreground">Project Description</FormLabel>
+                          <FormLabel className="text-white">Project Description</FormLabel>
                           <FormControl>
                             <Textarea 
                               placeholder="Describe your project, its goals, and why people should support it..." 
@@ -158,7 +155,7 @@ export default function CreateProjectPage() {
                       name="goal"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-card-foreground">Funding Goal (ETH)</FormLabel>
+                          <FormLabel className="text-white">Funding Goal</FormLabel>
                           <FormControl>
                             <div className="relative">
                               <Input 
@@ -187,7 +184,7 @@ export default function CreateProjectPage() {
                       name="walletAddr"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-card-foreground">Wallet Address</FormLabel>
+                          <FormLabel className="text-white">Wallet Address</FormLabel>
                           <FormControl>
                             <div className="relative">
                               <Input 
@@ -200,7 +197,6 @@ export default function CreateProjectPage() {
                                 variant="ghost" 
                                 className="absolute inset-y-0 right-0 px-3 text-muted-foreground hover:text-primary"
                                 onClick={() => {
-                                  // This would be implemented with actual clipboard functionality
                                   toast.info("Paste your wallet address from clipboard")
                                 }}
                               >
@@ -243,7 +239,7 @@ export default function CreateProjectPage() {
                     <div className="flex justify-end pt-4">
                       <Button 
                         type="submit"
-                        className="bg-gradient-to-r from-purple-600 to-cyan-400 text-white hover:shadow-lg transition-all px-8 py-2"
+                        className="bg-gradient-to-r from-purple-600 to-cyan-400 text-white hover:shadow-lg transition-all px-8 py-2 cursor-pointer"
                       >
                         Create Project
                       </Button>

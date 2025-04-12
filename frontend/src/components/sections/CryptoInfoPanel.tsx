@@ -2,15 +2,15 @@ import { Bitcoin, Coins } from 'lucide-react'
 
 export function CryptoInfoPanel() {
   return (
-    <div className="bg-card border border-primary/10 rounded-2xl p-6 shadow-lg animate-fade-in">
-      <h3 className="text-xl font-semibold mb-4 text-card-foreground">Supported Cryptocurrencies</h3>
+    <div className="bg-cyan-900/10 border border-gray-700/50 rounded-2xl p-6 shadow-lg animate-fade-in">
+      <h3 className="text-xl font-semibold mb-4 text-white">Supported Cryptocurrencies</h3>
       <div className="grid grid-cols-2 gap-4">
         <div className="flex items-center p-3 bg-muted rounded-lg border border-amber-500/20">
           <div className="h-8 w-8 rounded-full bg-amber-500/20 flex items-center justify-center mr-3">
             <Bitcoin className="h-4 w-4 text-amber-500" />
           </div>
           <div>
-            <h4 className="font-medium text-card-foreground">Bitcoin</h4>
+            <h4 className="font-medium text-black">Bitcoin</h4>
             <p className="text-xs text-muted-foreground">BTC</p>
           </div>
         </div>
@@ -24,7 +24,7 @@ export function CryptoInfoPanel() {
             </div>
           </div>
           <div>
-            <h4 className="font-medium text-card-foreground">Ethereum</h4>
+            <h4 className="font-medium text-black">Ethereum</h4>
             <p className="text-xs text-muted-foreground">ETH</p>
           </div>
         </div>
@@ -39,7 +39,7 @@ export function CryptoInfoPanel() {
             </div>
           </div>
           <div>
-            <h4 className="font-medium text-card-foreground">Solana</h4>
+            <h4 className="font-medium text-black">Solana</h4>
             <p className="text-xs text-muted-foreground">SOL</p>
           </div>
         </div>
@@ -48,7 +48,7 @@ export function CryptoInfoPanel() {
             <Coins className="h-4 w-4 text-accent-foreground" />
           </div>
           <div>
-            <h4 className="font-medium text-card-foreground">Others</h4>
+            <h4 className="font-medium text-black">Others</h4>
             <p className="text-xs text-muted-foreground">USDC, XRP, etc</p>
           </div>
         </div>

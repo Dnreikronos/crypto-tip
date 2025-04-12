@@ -29,19 +29,19 @@ export function ProjectPreview({ project, onBack }: ProjectPreviewProps) {
   }
   
   return (
-    <div className="bg-card border border-primary/10 rounded-2xl p-6 md:p-8 shadow-lg animate-fade-in">
+    <div className="bg-cyan-900/10 border border-gray-700/50 rounded-2xl p-6 md:p-8 shadow-lg animate-fade-in">
       <div className="flex justify-between items-center mb-6">
         <Button 
           onClick={onBack}
           variant="ghost" 
-          className="text-primary hover:text-primary-foreground hover:bg-primary/5"
+          className="text-white cursor-pointer"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Edit
+          <ArrowLeft className="mr-2 h-4 w-4 " /> Back to Edit
         </Button>
         
         <Button 
           variant="outline" 
-          className="text-muted-foreground border-border hover:bg-accent hover:text-accent-foreground"
+          className="text-muted-foreground border-border hover:bg-accent hover:text-accent-foreground cursor-pointer"
           onClick={() => {
             toast.info("Share link copied to clipboard")
           }}
@@ -51,7 +51,7 @@ export function ProjectPreview({ project, onBack }: ProjectPreviewProps) {
       </div>
       
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-4 text-card-foreground">{project.title}</h1>
+        <h1 className="text-3xl font-bold mb-4 text-white">{project.title}</h1>
         <div className="max-w-2xl mx-auto">
           <p className="text-muted-foreground mb-6 whitespace-pre-line">
             {project.description}
@@ -89,12 +89,12 @@ export function ProjectPreview({ project, onBack }: ProjectPreviewProps) {
       </div>
       
       <div className="mb-8">
-        <h3 className="text-xl font-semibold mb-4 text-card-foreground">Support This Project</h3>
+        <h3 className="text-xl font-semibold mb-4 text-white">Support This Project</h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[0.01, 0.05, 0.1, 0.5].map((amount) => (
             <button
               key={amount}
-              className="bg-muted border border-primary/20 rounded-lg py-3 px-4 text-card-foreground hover:bg-primary/10 hover:border-primary/40 transition-all"
+              className="bg-muted border border-primary/20 rounded-lg py-3 px-4 text-card-foreground cursor-pointer transition-all"
               onClick={() => {
                 toast.info(`Selected ${amount} ETH donation`)
               }}
@@ -106,7 +106,7 @@ export function ProjectPreview({ project, onBack }: ProjectPreviewProps) {
         </div>
         <div className="mt-4">
           <button 
-            className="w-full bg-gradient-to-r from-purple-600 to-cyan-400 text-white rounded-lg py-3 font-medium hover:shadow-lg transition-all"
+            className=" cursor-pointer w-full bg-gradient-to-r from-purple-600 to-cyan-400 text-white rounded-lg py-3 font-medium hover:shadow-lg transition-all"
             onClick={() => {
               toast.info("Donation process would start here")
             }}

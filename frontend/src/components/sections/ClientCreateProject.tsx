@@ -1,4 +1,3 @@
-// src/components/ClientCreateProject.tsx
 "use client"
 
 import dynamic from 'next/dynamic'
@@ -21,7 +20,6 @@ export default function ClientCreateProject() {
   )
 }
 
-// Mova a função PageSkeleton para aqui também
 function PageSkeleton() {
     return (
       <div className="min-h-screen w-full bg-crypto-dark-bg p-4">
