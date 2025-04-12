@@ -10,6 +10,7 @@ import (
 	"github.com/Dnreikronos/crypto-tip/internal/handlers"
 	"github.com/Dnreikronos/crypto-tip/internal/models"
 	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -87,4 +88,26 @@ func CreateTestProject(t *testing.T, router *gin.Engine, token string) string {
 	var res map[string]interface{}
 	_ = json.Unmarshal(w.Body.Bytes(), &res)
 	return res["id"].(string)
+}
+
+func TestCreateProjecHandler(t *testing.T) {
+	router, _ := setupRouterIntegration(t)
+	token := CreateLoginTest(t, router)
+
+	payload := models.ProjectInput{
+		Title:       "Project",
+		Description: "Testing",
+		Goal:        50.00,
+		WalletAddr:  "0xwallet",
+	}
+	body, _ := json.Marshal(payload)
+
+	req := httptest.NewRequest(http.MethodPost, "/projects", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusCreated, w.Code)
 }
