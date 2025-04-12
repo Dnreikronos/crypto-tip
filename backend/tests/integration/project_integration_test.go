@@ -1,3 +1,19 @@
+package integration
+
+import (
+	"bytes"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/Dnreikronos/crypto-tip/internal/handlers"
+	"github.com/Dnreikronos/crypto-tip/internal/models"
+	"github.com/gin-gonic/gin"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+)
+
 func setupRouterIntegration(t *testing.T) (*gin.Engine, *gorm.DB) {
 	t.Helper()
 
@@ -52,4 +68,23 @@ func CreateLoginTest(t *testing.T, router *gin.Engine) string {
 
 	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	return resp["token"]
+}
+
+func CreateTestProject(t *testing.T, router *gin.Engine, token string) string {
+	payload := models.ProjectInput{
+		Title:       "Test Project",
+		Description: "For Testing",
+		Goal:        100.00,
+		WalletAddr:  "0xwallet",
+	}
+	body, _ := json.Marshal(payload)
+	req := httptest.NewRequest(http.MethodPost, "/projects", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	var res map[string]interface{}
+	_ = json.Unmarshal(w.Body.Bytes(), &res)
+	return res["id"].(string)
 }
