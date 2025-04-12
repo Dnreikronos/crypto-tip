@@ -33,3 +33,23 @@ func setupRouterIntegration(t *testing.T) (*gin.Engine, *gorm.DB) {
 
 	return router, db
 }
+
+func CreateLoginTest(t *testing.T, router *gin.Engine) string {
+	user := models.SignInInput{Email: "project@example.com", Password: "123456"}
+	registerBody, _ := json.Marshal(user)
+	req := httptest.NewRequest(http.MethodPost, "/register", bytes.NewBuffer(registerBody))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	loginBody, _ := json.Marshal(user)
+	req = httptest.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(loginBody))
+	req.Header.Set("Content-Type", "application/json")
+	w = httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	var resp map[string]string
+
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
+	return resp["token"]
+}
