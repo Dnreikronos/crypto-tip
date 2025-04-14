@@ -31,3 +31,18 @@ func TestCreateProjectHandler_Success(t *testing.T) {
 
 	assert.Equal(t, http.StatusCreated, w.Code)
 }
+func TestCreateProjectHandler_InvalidJSON(t *testing.T) {
+	db := setupProjectTestDB()
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	c.Request, _ = http.NewRequest("POST", "/projects", bytes.NewBufferString("invalid json"))
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Set("db", db)
+
+	handlers.CreateProjectHandler(c)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
