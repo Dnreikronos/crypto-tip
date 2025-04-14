@@ -14,3 +14,20 @@ func createProjectRequestBody() []byte {
 	body, _ := json.Marshal(project)
 	return body
 }
+func TestCreateProjectHandler_Success(t *testing.T) {
+	db := setupProjectTestDB()
+
+	userID := uuid.New()
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	c.Request, _ = http.NewRequest("POST", "/projects", bytes.NewBuffer(createProjectRequestBody()))
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Set("userID", userID)
+	c.Set("db", db)
+
+	handlers.CreateProjectHandler(c)
+
+	assert.Equal(t, http.StatusCreated, w.Code)
+}
