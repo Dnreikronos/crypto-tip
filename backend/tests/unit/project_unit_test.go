@@ -1,3 +1,21 @@
+package unit_test
+
+import (
+	"bytes"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/Dnreikronos/crypto-tip/internal/handlers"
+	"github.com/Dnreikronos/crypto-tip/internal/models"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+)
+
 func setupProjectTestDB() *gorm.DB {
 	db, _ := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	_ = db.AutoMigrate(&models.Project{}, &models.User{})
@@ -14,6 +32,7 @@ func createProjectRequestBody() []byte {
 	body, _ := json.Marshal(project)
 	return body
 }
+
 func TestCreateProjectHandler_Success(t *testing.T) {
 	db := setupProjectTestDB()
 
@@ -31,6 +50,7 @@ func TestCreateProjectHandler_Success(t *testing.T) {
 
 	assert.Equal(t, http.StatusCreated, w.Code)
 }
+
 func TestCreateProjectHandler_InvalidJSON(t *testing.T) {
 	db := setupProjectTestDB()
 
@@ -46,3 +66,17 @@ func TestCreateProjectHandler_InvalidJSON(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
+func TestCreateProjectHandler_Unauthorized(t *testing.T) {
+	db := setupProjectTestDB()
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	c.Request, _ = http.NewRequest("POST", "/projects", bytes.NewBuffer(createProjectRequestBody()))
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Set("db", db)
+
+	handlers.CreateProjectHandler(c)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
