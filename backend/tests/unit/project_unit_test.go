@@ -161,6 +161,25 @@ func TestDeleteProjectHandler_NotFound(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, w.Code)
 }
 
+func TestGetProjectByIDHandler_Success(t *testing.T) {
+	db := setupProjectTestDB()
+	project := models.Project{
+		ID:         uuid.New(),
+		Title:      "Single Project",
+		WalletAddr: "0x123",
+	}
+	db.Create(&project)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request, _ = http.NewRequest("GET", "/projects/"+project.ID.String(), nil)
+	c.Set("db", db)
+	c.Params = gin.Params{{Key: "id", Value: project.ID.String()}}
+
+	handlers.GetProjectByIDHandler(c)
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
 func TestGetProjectByIDHandler_NotFound(t *testing.T) {
 	db := setupProjectTestDB()
 
