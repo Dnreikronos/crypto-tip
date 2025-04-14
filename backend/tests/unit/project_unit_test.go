@@ -126,3 +126,24 @@ func TestUpdateProjectHandler_NotFound(t *testing.T) {
 	handlers.UpdateProjectHandler(c)
 	assert.Equal(t, http.StatusNotFound, w.Code)
 }
+func TestDeleteProjectHandler_Success(t *testing.T) {
+	db := setupProjectTestDB()
+	userID := uuid.New()
+	project := models.Project{
+		ID:         uuid.New(),
+		Title:      "To be deleted",
+		UserID:     userID,
+		WalletAddr: "0xabc",
+	}
+	db.Create(&project)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request, _ = http.NewRequest("DELETE", "/projects/"+project.ID.String(), nil)
+	c.Set("UserID", userID)
+	c.Set("db", db)
+	c.Params = gin.Params{{Key: "id", Value: project.ID.String()}}
+
+	handlers.DeleteProjectHandler(c)
+	assert.Equal(t, http.StatusOK, w.Code)
+}
