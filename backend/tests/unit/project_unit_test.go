@@ -27,7 +27,7 @@ func createProjectRequestBody() []byte {
 		Title:       "Test Project",
 		Description: "This is a test project",
 		Goal:        100.0,
-		WalletAddr:  "0x123456",
+		WalletAddr:  "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
 	}
 	body, _ := json.Marshal(project)
 	return body
@@ -80,3 +80,5 @@ func TestCreateProjectHandler_Unauthorized(t *testing.T) {
 
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 }
+
+
