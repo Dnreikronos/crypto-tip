@@ -48,7 +48,7 @@ func DeleteProjectHandler(c *gin.Context) {
 	}
 
 	id := c.Param("id")
-	db := c.MustGet("db").(gorm.DB)
+	db := c.MustGet("db").(*gorm.DB)
 
 	var project models.Project
 	if err := db.First(&project, "id = ? AND user_id = ?", id, userID).Error; err != nil {
@@ -71,7 +71,7 @@ func UpdateProjectHandler(c *gin.Context) {
 	}
 
 	id := c.Param("id")
-	db := c.MustGet("db").(gorm.DB)
+	db := c.MustGet("db").(*gorm.DB)
 
 	var existingProject models.Project
 	if err := db.First(&existingProject, "id = ? AND user_id = ?", id, userID).Error; err != nil {
