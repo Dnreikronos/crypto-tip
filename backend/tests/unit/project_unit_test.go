@@ -113,3 +113,16 @@ func TestUpdateProjectHandler(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
+func TestUpdateProjectHandler_NotFound(t *testing.T) {
+	db := setupProjectTestDB()
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request, _ = http.NewRequest("PUT", "/projects/invalid-id", nil)
+	c.Set("UserID", uuid.New())
+	c.Set("db", db)
+	c.Params = gin.Params{{Key: "id", Value: uuid.New().String()}}
+
+	handlers.UpdateProjectHandler(c)
+	assert.Equal(t, http.StatusNotFound, w.Code)
+}
