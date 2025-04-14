@@ -81,4 +81,35 @@ func TestCreateProjectHandler_Unauthorized(t *testing.T) {
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 }
 
+func TestUpdateProjectHandler(t *testing.T) {
+	db := setupProjectTestDB()
+	userID := uuid.New()
+	project := models.Project{
+		ID:          uuid.New(),
+		Title:       "Old Title",
+		Description: "Old Desc",
+		Goal:        100,
+		WalletAddr:  "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+		UserID:      userID,
+	}
+	db.Create(&project)
+
+	update := models.ProjectUpdate{
+		Title:       "New Title",
+		Description: "New Desc",
+		Goal:        200,
+		WalletAddr:  "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+	}
+	body, _ := json.Marshal(update)
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request, _ = http.NewRequest("PUT", "/projects/"+project.ID.String(), bytes.NewBuffer(body))
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Set("UserID", userID)
+	c.Set("db", db)
+	c.Params = gin.Params{{Key: "id", Value: project.ID.String()}}
+
+	handlers.UpdateProjectHandler(c)
+	assert.Equal(t, http.StatusOK, w.Code)
+}
 
