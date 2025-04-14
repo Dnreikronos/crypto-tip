@@ -1,0 +1,10 @@
+[api]
+port = "9090"
+
+
+[database]
+host = "${DB_HOST}"
+port = "${DB_PORT}"
+user = "${DB_USER}"
+pass = "${DB_PASSWORD}"
+name = "${POSTGRES_DB}"

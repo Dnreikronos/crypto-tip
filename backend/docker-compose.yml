@@ -1,0 +1,90 @@
+services:
+  crypto-tip:
+    container_name: crypto-tip
+    ports:
+      - 9090:9090
+    build:
+      context: .
+    volumes:
+      - .:/app
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      POSTGRES_TIME_ZONE: ${POSTGRES_TIME_ZONE}
+    depends_on:
+      - postgres
+    networks:
+      - elk-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgres
+    networks:
+      - elk-network
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgresDB:/var/lib/postgresql/data
+    env_file:
+      - .env
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.5.1
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    ports:
+      - "5601:5601"
+    networks:
+      - elk-network
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.5.1
+    container_name: logstash
+    volumes:
+      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+    environment:
+      - "LS_JAVA_OPTS=-Xmx256m -Xms256m"
+    depends_on:
+      - elasticsearch
+    ports:
+      - "5044:5044"
+      - "5000:5000"
+      - "9600:9600"
+    networks:
+      - elk-network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.5.1
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+    networks:
+      - elk-network
+
+networks:
+  elk-network:
+    driver: bridge
+
+volumes:
+  postgresDB:
+
