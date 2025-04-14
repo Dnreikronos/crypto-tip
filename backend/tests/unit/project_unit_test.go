@@ -126,6 +126,7 @@ func TestUpdateProjectHandler_NotFound(t *testing.T) {
 	handlers.UpdateProjectHandler(c)
 	assert.Equal(t, http.StatusNotFound, w.Code)
 }
+
 func TestDeleteProjectHandler_Success(t *testing.T) {
 	db := setupProjectTestDB()
 	userID := uuid.New()
@@ -147,6 +148,7 @@ func TestDeleteProjectHandler_Success(t *testing.T) {
 	handlers.DeleteProjectHandler(c)
 	assert.Equal(t, http.StatusOK, w.Code)
 }
+
 func TestDeleteProjectHandler_NotFound(t *testing.T) {
 	db := setupProjectTestDB()
 
