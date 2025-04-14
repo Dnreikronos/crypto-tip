@@ -161,3 +161,18 @@ func TestDeleteProjectHandler_NotFound(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, w.Code)
 }
 
+func TestGetUserProjectsHandler_Success(t *testing.T) {
+	db := setupProjectTestDB()
+	userID := uuid.New()
+	db.Create(&models.Project{ID: uuid.New(), Title: "U1", UserID: userID, WalletAddr: "0xaaa"})
+	db.Create(&models.Project{ID: uuid.New(), Title: "U2", UserID: uuid.New(), WalletAddr: "0xbbb"})
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request, _ = http.NewRequest("GET", "/projects/user", nil)
+	c.Set("db", db)
+	c.Set("userID", userID)
+
+	handlers.GetUserProjectsHandler(c)
+	assert.Equal(t, http.StatusOK, w.Code)
+}
