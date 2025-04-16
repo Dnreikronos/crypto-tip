@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState } from 'react'
@@ -65,8 +64,7 @@ export default function CreateProjectPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 relative overflow-hidden w-full">
-      <div className="absolute w-96 h-96 bg-cyan-900/20 rounded-full blur-3xl -z-10 animate-pulse" />
+    <div className="min-h-screen text-gray-100 relative overflow-hidden w-full">
       
       <div className="container max-w-6xl mx-auto px-4 py-16 relative z-10">
         <div className="text-center mb-12">

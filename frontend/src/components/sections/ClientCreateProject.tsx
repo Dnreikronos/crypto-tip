@@ -22,7 +22,7 @@ export default function ClientCreateProject() {
 
 function PageSkeleton() {
     return (
-      <div className="min-h-screen w-full bg-crypto-dark-bg p-4">
+      <div className="min-h-screen w-full bg-black p-4">
         <div className="container max-w-6xl mx-auto py-16">
           <div className="text-center mb-12">
             <Skeleton className="h-16 w-16 rounded-full mx-auto mb-6" />
