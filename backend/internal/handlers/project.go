@@ -28,7 +28,7 @@ func CreateProjectHandler(c *gin.Context) {
 		Description: input.Description,
 		Goal:        input.Goal,
 		WalletAddr:  input.WalletAddr,
-		UserID:      userID.(uuid.UUID),
+		UserID:      uuid.MustParse(userID.(string)),
 	}
 
 	db := c.MustGet("db").(*gorm.DB)
