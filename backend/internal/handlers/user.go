@@ -3,11 +3,13 @@ package handlers
 import (
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/Dnreikronos/crypto-tip/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -83,21 +85,39 @@ func LoginHandler(c *gin.Context) {
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if c.Request.Method == "OPTIONS" {
+			c.Next()
+			return
+		}
+
 		tokenString := c.Request.Header.Get("Authorization")
+
+		if len(tokenString) > 7 && strings.ToUpper(tokenString[0:7]) == "BEARER " {
+			tokenString = tokenString[7:]
+		}
+
 		if tokenString == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "No token provided"})
 			c.Abort()
 			return
 		}
+
 		claims := &jwt.StandardClaims{}
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 			return jwtSecret, nil
 		})
+
 		if err != nil || !token.Valid {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 			c.Abort()
 			return
 		}
+
+		if _, err := uuid.Parse(claims.Subject); err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID format in token"})
+			return
+		}
+
 		c.Set("userID", claims.Subject)
 		c.Next()
 	}
