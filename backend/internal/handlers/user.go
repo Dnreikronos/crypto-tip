@@ -29,7 +29,7 @@ func GenereateToken(user models.User) (string, error) {
 		Subject:   user.ID.String(),
 		ExpiresAt: expirationTime.Unix(),
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(jwtSecret)
 }
 
@@ -45,6 +45,7 @@ func CreateUserHandler(c *gin.Context) {
 		return
 	}
 	newUser := models.User{
+		Name:     input.Name,
 		Email:    input.Email,
 		Password: hashedPassword,
 		Verified: true,
@@ -65,12 +66,16 @@ func LoginHandler(c *gin.Context) {
 	var existingUser models.User
 	db := c.MustGet("db").(*gorm.DB)
 	if err := db.Where("email = ?", input.Email).First(&existingUser).Error; err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Credentials"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		return
+	}
+	if err := VerifyPassword(existingUser.Password, input.Password); err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
 	token, err := GenereateToken(existingUser)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not generate token"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"token": token})
