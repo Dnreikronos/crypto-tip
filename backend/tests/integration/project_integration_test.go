@@ -174,3 +174,22 @@ func TestDeleteProjectHandler(t *testing.T) {
 	assert.Equal(t, "Project deleted sucessfulyy", res["message"])
 }
 
+func TestGetUserProjectsHandler(t *testing.T) {
+	router, _ := setupRouterIntegration(t)
+	token := CreateLoginTest(t, router)
+	CreateTestProject(t, router, token)
+
+	req := httptest.NewRequest(http.MethodGet, "/user/projects", nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var projects []map[string]interface{}
+	err := json.Unmarshal(w.Body.Bytes(), &projects)
+	assert.NoError(t, err)
+	assert.Len(t, projects, 1)
+}
+
