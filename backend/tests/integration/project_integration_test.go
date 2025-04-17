@@ -23,7 +23,7 @@ func setupRouterIntegration(t *testing.T) (*gin.Engine, *gorm.DB) {
 		t.Fatalf("failed to open DB: %v", err)
 	}
 
-	err = db.AutoMigrate(&models.User{})
+	err = db.AutoMigrate(&models.User{}, &models.Project{}, &models.Donation{})
 	if err != nil {
 		t.Fatalf("failed to migrate DB: %v", err)
 	}
