@@ -113,3 +113,19 @@ func TestCreateProjecHandler(t *testing.T) {
 
 	assert.Equal(t, http.StatusCreated, w.Code)
 }
+func TestGetProjectByIDHandler(t *testing.T) {
+	router, _ := setupRouterIntegration(t)
+	token := CreateLoginTest(t, router)
+	projectID := CreateTestProject(t, router, token)
+
+	req := httptest.NewRequest(http.MethodGet, "/projects/"+projectID, nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var body map[string]interface{}
+	err := json.Unmarshal(w.Body.Bytes(), &body)
+	assert.NoError(t, err)
+	assert.Equal(t, projectID, body["id"])
+}
