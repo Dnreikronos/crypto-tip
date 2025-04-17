@@ -129,3 +129,29 @@ func TestGetProjectByIDHandler(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, projectID, body["id"])
 }
+func TestUpdateProjectHandler(t *testing.T) {
+	router, _ := setupRouterIntegration(t)
+	token := CreateLoginTest(t, router)
+	projectID := CreateTestProject(t, router, token)
+
+	updatePayload := models.ProjectUpdate{
+		Title: "Updated Title",
+		Goal:  200.0,
+	}
+	body, _ := json.Marshal(updatePayload)
+
+	req := httptest.NewRequest(http.MethodPut, "/projects/"+projectID, bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var res map[string]interface{}
+	err := json.Unmarshal(w.Body.Bytes(), &res)
+	assert.NoError(t, err)
+	assert.Equal(t, "Updated Title", res["title"])
+}
+
