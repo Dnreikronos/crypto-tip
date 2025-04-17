@@ -15,8 +15,9 @@ import (
 	"gorm.io/gorm"
 )
 
-func setupRouterIntegration(t *testing.T) (*gin.Engine, *gorm.DB) {
-	t.Helper()
+func init() {
+	os.Setenv("JWT_SECRET", "testsecret")
+}
 
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	if err != nil {
