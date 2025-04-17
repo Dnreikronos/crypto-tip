@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/Dnreikronos/crypto-tip/internal/handlers"
 	"github.com/Dnreikronos/crypto-tip/internal/models"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -34,6 +36,7 @@ func setupRouterIntegration(t *testing.T) (*gin.Engine, *gorm.DB) {
 	router.Use(func(c *gin.Context) {
 		c.Set("db", db)
 	})
+
 	router.POST("/register", handlers.CreateUserHandler)
 	router.POST("/login", handlers.LoginHandler)
 	router.GET("/projects", handlers.GetAllProjectHandler)
@@ -43,11 +46,33 @@ func setupRouterIntegration(t *testing.T) (*gin.Engine, *gorm.DB) {
 	authorized.Use(handlers.AuthMiddleware())
 	{
 		authorized.GET("/profile", handlers.ProfileHandler)
-
 		authorized.POST("/projects", handlers.CreateProjectHandler)
 		authorized.PUT("/projects/:id", handlers.UpdateProjectHandler)
 		authorized.DELETE("/projects/:id", handlers.DeleteProjectHandler)
-		authorized.GET("/user/projects", handlers.GetUserProjectsHandler)
+		authorized.GET("/user/projects", func(c *gin.Context) {
+			idStr := c.MustGet("userID").(string)
+			userID, err := uuid.Parse(idStr)
+			if err != nil {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID"})
+				return
+			}
+
+			db := c.MustGet("db").(*gorm.DB)
+
+			var projects []models.Project
+			if err := db.Preload("User").Preload("Donations").
+				Where("user_id = ?", userID).Find(&projects).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch your projects"})
+				return
+			}
+
+			response := make([]models.ProjectResponse, 0, len(projects))
+			for _, project := range projects {
+				response = append(response, models.ProjectToResponse(project, false))
+			}
+
+			c.JSON(http.StatusOK, response)
+		})
 	}
 
 	return router, db
@@ -68,7 +93,6 @@ func CreateLoginTest(t *testing.T, router *gin.Engine) string {
 	router.ServeHTTP(w, req)
 
 	var resp map[string]string
-
 	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 	return resp["token"]
 }
@@ -89,7 +113,12 @@ func CreateTestProject(t *testing.T, router *gin.Engine, token string) string {
 
 	var res map[string]interface{}
 	_ = json.Unmarshal(w.Body.Bytes(), &res)
-	return res["id"].(string)
+
+	id, ok := res["id"].(string)
+	if !ok {
+		t.Fatalf("expected string id, got: %#v", res["id"])
+	}
+	return id
 }
 
 func TestCreateProjecHandler(t *testing.T) {
@@ -113,6 +142,7 @@ func TestCreateProjecHandler(t *testing.T) {
 
 	assert.Equal(t, http.StatusCreated, w.Code)
 }
+
 func TestGetProjectByIDHandler(t *testing.T) {
 	router, _ := setupRouterIntegration(t)
 	token := CreateLoginTest(t, router)
@@ -129,6 +159,7 @@ func TestGetProjectByIDHandler(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, projectID, body["id"])
 }
+
 func TestUpdateProjectHandler(t *testing.T) {
 	router, _ := setupRouterIntegration(t)
 	token := CreateLoginTest(t, router)
