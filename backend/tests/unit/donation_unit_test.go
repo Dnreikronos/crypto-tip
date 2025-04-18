@@ -95,3 +95,20 @@ func TestCreateDonationHandler_Unauthorized(t *testing.T) {
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 }
 
+func TestCreateDonationHandler_ProjectNotFound(t *testing.T) {
+	db := setupDonationTestDB()
+	user := models.User{ID: uuid.New(), Name: "Test User", Email: "test@example.com"}
+	db.Create(&user)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	c.Request, _ = http.NewRequest("POST", "/donations", bytes.NewBuffer(createDonationRequestBody(uuid.New())))
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Set("userID", user.ID.String())
+	c.Set("db", db)
+
+	handlers.CreateDonationHandler(c)
+
+	assert.Equal(t, http.StatusNotFound, w.Code)
+}
