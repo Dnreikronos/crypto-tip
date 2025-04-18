@@ -160,3 +160,40 @@ func TestGetUserDonationsHandler_Success(t *testing.T) {
 	assert.Equal(t, donation.Amount, response[0].Amount)
 }
 
+func TestGetDonationByIDHandler_Success(t *testing.T) {
+	testUserID := uuid.New()
+	router, db := setupDonationTestRouter(t, testUserID)
+
+	user := models.User{ID: testUserID, Name: "Test User", Email: "test@example.com"}
+	project := models.Project{
+		ID:         uuid.New(),
+		Title:      "Test Project",
+		Goal:       1000.0,
+		WalletAddr: "0xdef",
+		UserID:     testUserID,
+	}
+	db.Create(&user)
+	db.Create(&project)
+
+	donation := models.Donation{
+		ID:         uuid.New(),
+		Amount:     100.0,
+		CryptoType: "ETH",
+		ProjectID:  project.ID,
+		DonorID:    testUserID,
+	}
+	db.Create(&donation)
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/donations/"+donation.ID.String(), nil)
+
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response models.Donation
+	err := json.Unmarshal(w.Body.Bytes(), &response)
+	assert.NoError(t, err)
+	assert.Equal(t, donation.ID, response.ID)
+	assert.Equal(t, donation.Amount, response.Amount)
+}
