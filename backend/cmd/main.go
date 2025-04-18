@@ -42,6 +42,8 @@ func main() {
 
 	r.GET("/projects", handlers.GetAllProjectHandler)
 	r.GET("/projects/:id", handlers.GetProjectByIDHandler)
+	r.GET("/projects/:id/donations", handlers.GetProjectDonationsHandler)
+	r.GET("/donations/:id", handlers.GetDonationByIDHandler)
 
 	authorized := r.Group("/", handlers.AuthMiddleware())
 	{
@@ -51,6 +53,9 @@ func main() {
 		authorized.PUT("/projects/:id", handlers.UpdateProjectHandler)
 		authorized.DELETE("/projects/:id", handlers.DeleteProjectHandler)
 		authorized.GET("/user/projects", handlers.GetUserProjectsHandler)
+
+		authorized.POST("/donations", handlers.CreateDonationHandler)
+		authorized.GET("/user/donations", handlers.GetUserDonationsHandler)
 	}
 
 	http.ListenAndServe(fmt.Sprintf(":%s", config.GetServerPort()), r)
