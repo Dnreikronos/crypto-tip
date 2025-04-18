@@ -21,3 +21,18 @@ func setupDonationTestDB() *gorm.DB {
 	_ = db.AutoMigrate(&models.User{}, &models.Project{}, &models.Donation{})
 	return db
 }
+
+func createDonationRequestBody(projectID uuid.UUID) []byte {
+	donation := models.DonationInput{
+		Amount:     100.0,
+		CryptoType: "ETH",
+		TxHash:     "0x123",
+		FromAddr:   "0xabc",
+		Message:    "Test donation",
+		ProjectID:  projectID,
+		Anonymous:  false,
+	}
+	body, _ := json.Marshal(donation)
+	return body
+}
+
