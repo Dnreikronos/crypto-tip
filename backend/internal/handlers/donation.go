@@ -74,3 +74,21 @@ func GetProjectDonationsHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, donationInfos)
 }
+
+func GetUserDonationsHandler(c *gin.Context) {
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	db := c.MustGet("db").(*gorm.DB)
+
+	var donations []models.Donation
+	if err := db.Preload("Project").Where("donor_id = ?", userID).Find(&donations).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch donations"})
+		return
+	}
+
+	c.JSON(http.StatusOK, donations)
+}
