@@ -1,3 +1,14 @@
+package handlers
+
+import (
+	"net/http"
+
+	"github.com/Dnreikronos/crypto-tip/internal/models"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
+
 func CreateDonationHandler(c *gin.Context) {
 	var input models.DonationInput
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -91,4 +102,17 @@ func GetUserDonationsHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, donations)
+}
+
+func GetDonationByIDHandler(c *gin.Context) {
+	donationID := c.Param("id")
+	db := c.MustGet("db").(*gorm.DB)
+
+	var donation models.Donation
+	if err := db.Preload("Donor").Preload("Project").First(&donation, "id = ?", donationID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Donation not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, donation)
 }
