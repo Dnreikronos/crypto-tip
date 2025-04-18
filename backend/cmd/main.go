@@ -51,6 +51,9 @@ func main() {
 		authorized.PUT("/projects/:id", handlers.UpdateProjectHandler)
 		authorized.DELETE("/projects/:id", handlers.DeleteProjectHandler)
 		authorized.GET("/user/projects", handlers.GetUserProjectsHandler)
+
+		authorized.POST("/donations", handlers.CreateDonationHandler)
+		authorized.GET("/user/donations", handlers.GetUserDonationsHandler)
 	}
 
 	http.ListenAndServe(fmt.Sprintf(":%s", config.GetServerPort()), r)
