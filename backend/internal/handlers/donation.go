@@ -51,3 +51,26 @@ func GetProjectDonationsHandler(c *gin.Context) {
 	if err := db.Preload("Donor").Where("project_id = ?", projectID).Find(&donations).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch donations"})
 		return
+	}
+
+	donationInfos := make([]models.DonationInfo, 0, len(donations))
+	for _, donation := range donations {
+		donationInfo := models.DonationInfo{
+			ID:         donation.ID,
+			Amount:     donation.Amount,
+			CryptoType: donation.CryptoType,
+			FromAddr:   donation.FromAddr,
+			Message:    donation.Message,
+			CreatedAt:  donation.CreatedAt,
+		}
+
+		if !donation.Anonymous && donation.DonorID != uuid.Nil {
+			userResponse := models.FilteredResponse(donation.Donor)
+			donationInfo.Donor = &userResponse
+		}
+
+		donationInfos = append(donationInfos, donationInfo)
+	}
+
+	c.JSON(http.StatusOK, donationInfos)
+}
