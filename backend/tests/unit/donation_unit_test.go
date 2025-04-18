@@ -149,3 +149,41 @@ func TestGetProjectDonationsHandler_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, response, 1)
 }
+
+func TestGetUserDonationsHandler_Success(t *testing.T) {
+	db := setupDonationTestDB()
+	user := models.User{ID: uuid.New(), Name: "Test User", Email: "test@example.com"}
+	project := models.Project{
+		ID:         uuid.New(),
+		Title:      "Test Project",
+		Goal:       1000.0,
+		WalletAddr: "0xdef",
+		UserID:     user.ID,
+	}
+	db.Create(&user)
+	db.Create(&project)
+
+	donation := models.Donation{
+		ID:         uuid.New(),
+		Amount:     100.0,
+		CryptoType: "ETH",
+		ProjectID:  project.ID,
+		DonorID:    user.ID,
+	}
+	db.Create(&donation)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request, _ = http.NewRequest("GET", "/user/donations", nil)
+	c.Set("userID", user.ID.String())
+	c.Set("db", db)
+
+	handlers.GetUserDonationsHandler(c)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response []models.Donation
+	err := json.Unmarshal(w.Body.Bytes(), &response)
+	assert.NoError(t, err)
+	assert.Len(t, response, 1)
+}
