@@ -62,3 +62,18 @@ func TestCreateDonationHandler_Success(t *testing.T) {
 
 	assert.Equal(t, http.StatusCreated, w.Code)
 }
+
+func TestCreateDonationHandler_InvalidJSON(t *testing.T) {
+	db := setupDonationTestDB()
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	c.Request, _ = http.NewRequest("POST", "/donations", bytes.NewBufferString("invalid json"))
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Set("db", db)
+
+	handlers.CreateDonationHandler(c)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
