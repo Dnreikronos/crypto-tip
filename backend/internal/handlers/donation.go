@@ -1,0 +1,53 @@
+func CreateDonationHandler(c *gin.Context) {
+	var input models.DonationInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	db := c.MustGet("db").(*gorm.DB)
+
+	var project models.Project
+	if err := db.First(&project, "id = ?", input.ProjectID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Project not found"})
+		return
+	}
+
+	donation := models.Donation{
+		Amount:     input.Amount,
+		CryptoType: input.CryptoType,
+		TxHash:     input.TxHash,
+		FromAddr:   input.FromAddr,
+		Message:    input.Message,
+		ProjectID:  input.ProjectID,
+		DonorID:    uuid.MustParse(userID.(string)),
+		Anonymous:  input.Anonymous,
+	}
+
+	if err := db.Create(&donation).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create donation"})
+		return
+	}
+
+	if err := db.Model(&project).Update("raised", project.Raised+donation.Amount).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update project's raised amount"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, donation)
+}
+
+func GetProjectDonationsHandler(c *gin.Context) {
+	projectID := c.Param("id")
+	db := c.MustGet("db").(*gorm.DB)
+
+	var donations []models.Donation
+	if err := db.Preload("Donor").Where("project_id = ?", projectID).Find(&donations).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch donations"})
+		return
