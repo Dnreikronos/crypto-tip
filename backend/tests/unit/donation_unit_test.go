@@ -77,3 +77,21 @@ func TestCreateDonationHandler_InvalidJSON(t *testing.T) {
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
+
+func TestCreateDonationHandler_Unauthorized(t *testing.T) {
+	db := setupDonationTestDB()
+	project := models.Project{ID: uuid.New(), Title: "Test Project", WalletAddr: "0xdef"}
+	db.Create(&project)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	c.Request, _ = http.NewRequest("POST", "/donations", bytes.NewBuffer(createDonationRequestBody(project.ID)))
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Set("db", db)
+
+	handlers.CreateDonationHandler(c)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
