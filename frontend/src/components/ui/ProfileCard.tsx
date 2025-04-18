@@ -34,9 +34,11 @@ export default function ProfileCard() {
           <span>245 ETH</span>
           <span>of 500 ETH</span>
         </div>
-        <Progress value={49} className="h-2 bg-gray-800">
-          <div className="h-full bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full" />
-        </Progress>
+        <Progress 
+          value={49} 
+          className="h-2 bg-gray-800" 
+          indicatorClassName="bg-gradient-to-r from-purple-500 to-cyan-500"
+        />
         <p className="text-xs text-gray-400">49% funded of monthly goal</p>
       </div>
     </div>

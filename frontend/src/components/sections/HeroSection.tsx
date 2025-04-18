@@ -51,14 +51,14 @@ export default function HeroSection() {
         </motion.div>
 
         <motion.h1 
-          className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600"
+          className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 text-balance"
           variants={fadeInUp}
         >
           Get Crypto Funding for Your Code
         </motion.h1>
 
         <motion.h2 
-          className="text-xl sm:text-2xl text-gray-300 mb-8"
+          className="text-xl sm:text-2xl text-gray-300 mb-8 text-balance"
           variants={fadeInUp}
         >
           The developer-first platform to receive cryptocurrency

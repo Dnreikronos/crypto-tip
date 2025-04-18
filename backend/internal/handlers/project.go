@@ -28,7 +28,7 @@ func CreateProjectHandler(c *gin.Context) {
 		Description: input.Description,
 		Goal:        input.Goal,
 		WalletAddr:  input.WalletAddr,
-		UserID:      userID.(uuid.UUID),
+		UserID:      uuid.MustParse(userID.(string)),
 	}
 
 	db := c.MustGet("db").(*gorm.DB)
@@ -41,7 +41,7 @@ func CreateProjectHandler(c *gin.Context) {
 }
 
 func DeleteProjectHandler(c *gin.Context) {
-	userID, exists := c.Get("UserID")
+	userID, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
 		return
@@ -64,7 +64,7 @@ func DeleteProjectHandler(c *gin.Context) {
 }
 
 func UpdateProjectHandler(c *gin.Context) {
-	userID, exists := c.Get("UserID")
+	userID, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
 		return
