@@ -36,3 +36,29 @@ func createDonationRequestBody(projectID uuid.UUID) []byte {
 	return body
 }
 
+func TestCreateDonationHandler_Success(t *testing.T) {
+	db := setupDonationTestDB()
+
+	user := models.User{ID: uuid.New(), Name: "Test User", Email: "test@example.com"}
+	project := models.Project{
+		ID:         uuid.New(),
+		Title:      "Test Project",
+		Goal:       1000.0,
+		WalletAddr: "0xdef",
+		UserID:     user.ID,
+	}
+	db.Create(&user)
+	db.Create(&project)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	c.Request, _ = http.NewRequest("POST", "/donations", bytes.NewBuffer(createDonationRequestBody(project.ID)))
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Set("userID", user.ID.String())
+	c.Set("db", db)
+
+	handlers.CreateDonationHandler(c)
+
+	assert.Equal(t, http.StatusCreated, w.Code)
+}
