@@ -112,6 +112,7 @@ func TestCreateDonationHandler_ProjectNotFound(t *testing.T) {
 
 	assert.Equal(t, http.StatusNotFound, w.Code)
 }
+
 func TestGetProjectDonationsHandler_Success(t *testing.T) {
 	db := setupDonationTestDB()
 	user := models.User{ID: uuid.New(), Name: "Test User", Email: "test@example.com"}
@@ -187,6 +188,7 @@ func TestGetUserDonationsHandler_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, response, 1)
 }
+
 func TestGetUserDonationsHandler_Unauthorized(t *testing.T) {
 	db := setupDonationTestDB()
 
@@ -238,3 +240,16 @@ func TestGetDonationByIDHandler_Success(t *testing.T) {
 	assert.Equal(t, donation.ID, response.ID)
 }
 
+func TestGetDonationByIDHandler_NotFound(t *testing.T) {
+	db := setupDonationTestDB()
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request, _ = http.NewRequest("GET", "/donations/"+uuid.New().String(), nil)
+	c.Params = gin.Params{{Key: "id", Value: uuid.New().String()}}
+	c.Set("db", db)
+
+	handlers.GetDonationByIDHandler(c)
+
+	assert.Equal(t, http.StatusNotFound, w.Code)
+}
