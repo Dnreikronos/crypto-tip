@@ -35,12 +35,10 @@ func createProjectRequestBody() []byte {
 
 func TestCreateProjectHandler_Success(t *testing.T) {
 	db := setupProjectTestDB()
-
 	userID := uuid.New()
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
-
 	c.Request, _ = http.NewRequest("POST", "/projects", bytes.NewBuffer(createProjectRequestBody()))
 	c.Request.Header.Set("Content-Type", "application/json")
 	c.Set("userID", userID.String())
@@ -56,7 +54,6 @@ func TestCreateProjectHandler_InvalidJSON(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
-
 	c.Request, _ = http.NewRequest("POST", "/projects", bytes.NewBufferString("invalid json"))
 	c.Request.Header.Set("Content-Type", "application/json")
 	c.Set("db", db)
@@ -71,7 +68,6 @@ func TestCreateProjectHandler_Unauthorized(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
-
 	c.Request, _ = http.NewRequest("POST", "/projects", bytes.NewBuffer(createProjectRequestBody()))
 	c.Request.Header.Set("Content-Type", "application/json")
 	c.Set("db", db)
@@ -105,7 +101,7 @@ func TestUpdateProjectHandler(t *testing.T) {
 	c, _ := gin.CreateTestContext(w)
 	c.Request, _ = http.NewRequest("PUT", "/projects/"+project.ID.String(), bytes.NewBuffer(body))
 	c.Request.Header.Set("Content-Type", "application/json")
-	c.Set("UserID", userID)
+	c.Set("userID", userID)
 	c.Set("db", db)
 	c.Params = gin.Params{{Key: "id", Value: project.ID.String()}}
 
@@ -119,7 +115,7 @@ func TestUpdateProjectHandler_NotFound(t *testing.T) {
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 	c.Request, _ = http.NewRequest("PUT", "/projects/invalid-id", nil)
-	c.Set("UserID", uuid.New())
+	c.Set("userID", uuid.New())
 	c.Set("db", db)
 	c.Params = gin.Params{{Key: "id", Value: uuid.New().String()}}
 
@@ -141,7 +137,7 @@ func TestDeleteProjectHandler_Success(t *testing.T) {
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 	c.Request, _ = http.NewRequest("DELETE", "/projects/"+project.ID.String(), nil)
-	c.Set("UserID", userID)
+	c.Set("userID", userID)
 	c.Set("db", db)
 	c.Params = gin.Params{{Key: "id", Value: project.ID.String()}}
 
@@ -155,7 +151,7 @@ func TestDeleteProjectHandler_NotFound(t *testing.T) {
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 	c.Request, _ = http.NewRequest("DELETE", "/projects/invalid-id", nil)
-	c.Set("UserID", uuid.New())
+	c.Set("userID", uuid.New())
 	c.Set("db", db)
 	c.Params = gin.Params{{Key: "id", Value: uuid.New().String()}}
 
@@ -208,6 +204,7 @@ func TestGetProjectByIDHandler_NotFound(t *testing.T) {
 	handlers.GetProjectByIDHandler(c)
 	assert.Equal(t, http.StatusNotFound, w.Code)
 }
+
 func TestGetUserProjectsHandler_Success(t *testing.T) {
 	db := setupProjectTestDB()
 	userID := uuid.New()
