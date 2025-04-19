@@ -9,3 +9,6 @@ test-integration:
 
 test-unit:
 	@go test -v ./tests/unit/...
+
+test-all:
+	@go test -v ./tests/...
