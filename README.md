@@ -61,7 +61,7 @@ Before you start, ensure you have `node` and `npm` installed on your machine.
    - For Backend:
 
      ```bash
-     
+      cd backend && docker-compose up --build
      ```
 
 ## Running the Application
@@ -77,10 +77,10 @@ Before you start, ensure you have `node` and `npm` installed on your machine.
 - **To run the backend**:
 
   ```bash
-  
+   docker-compose up
   ```
 
-  This initializes the Go server, typically on `http://localhost:3000`.
+  This initializes the Go server, typically on `http://localhost:9090`.
 
 
 ---
