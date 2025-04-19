@@ -43,7 +43,7 @@ func TestCreateProjectHandler_Success(t *testing.T) {
 
 	c.Request, _ = http.NewRequest("POST", "/projects", bytes.NewBuffer(createProjectRequestBody()))
 	c.Request.Header.Set("Content-Type", "application/json")
-	c.Set("userID", userID)
+	c.Set("userID", userID.String())
 	c.Set("db", db)
 
 	handlers.CreateProjectHandler(c)
