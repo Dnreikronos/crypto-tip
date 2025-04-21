@@ -50,6 +50,7 @@ type ProjectResponse struct {
 	Creator     UserResponse `json:"creator"`
 	CreatedAt   time.Time    `json:"created_at"`
 	UpdatedAt   time.Time    `json:"updated_at"`
+	ProjectLink string       `json:"project_link"`
 	RepoLink    string       `json:"repo_link"`
 }
 
@@ -69,6 +70,7 @@ func ProjectToResponse(project Project, includeDonations bool) ProjectResponse {
 		Creator:     FilteredResponse(project.User),
 		CreatedAt:   project.CreatedAt,
 		UpdatedAt:   project.UpdatedAt,
+		ProjectLink: project.ProjectLink,
 		RepoLink:    project.RepoLink,
 	}
 
