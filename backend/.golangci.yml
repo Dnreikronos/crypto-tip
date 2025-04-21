@@ -35,4 +35,4 @@ linters-settings:
     simplify: true
   gosec:
     excludes:
-      - G104 
+      - G104
