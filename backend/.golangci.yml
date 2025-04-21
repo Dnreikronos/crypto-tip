@@ -1,3 +1,5 @@
+version: 1
+
 run:
   deadline: 5m
   tests: true
