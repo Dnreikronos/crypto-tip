@@ -27,7 +27,7 @@ func setupRouterIntegration(t *testing.T) (*gin.Engine, *gorm.DB) {
 		t.Fatalf("failed to open DB: %v", err)
 	}
 
-	err = db.AutoMigrate(&models.User{}, &models.Project{}, &models.Donation{})
+	err = db.AutoMigrate(&models.User{}, &models.Project{})
 	if err != nil {
 		t.Fatalf("failed to migrate DB: %v", err)
 	}
@@ -60,7 +60,7 @@ func setupRouterIntegration(t *testing.T) (*gin.Engine, *gorm.DB) {
 			db := c.MustGet("db").(*gorm.DB)
 
 			var projects []models.Project
-			if err := db.Preload("User").Preload("Donations").
+			if err := db.Preload("User").
 				Where("user_id = ?", userID).Find(&projects).Error; err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch your projects"})
 				return
@@ -103,6 +103,7 @@ func CreateTestProject(t *testing.T, router *gin.Engine, token string) string {
 		Description: "For Testing",
 		Goal:        100.00,
 		WalletAddr:  "0xwallet",
+		ProjectLink: "github/test",
 	}
 	body, _ := json.Marshal(payload)
 	req := httptest.NewRequest(http.MethodPost, "/projects", bytes.NewBuffer(body))
@@ -130,6 +131,7 @@ func TestCreateProjecHandler(t *testing.T) {
 		Description: "Testing",
 		Goal:        50.00,
 		WalletAddr:  "0xwallet",
+		ProjectLink: "github/test",
 	}
 	body, _ := json.Marshal(payload)
 
@@ -223,4 +225,3 @@ func TestGetUserProjectsHandler(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, projects, 1)
 }
-

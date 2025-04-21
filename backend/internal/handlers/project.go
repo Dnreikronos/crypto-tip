@@ -28,6 +28,8 @@ func CreateProjectHandler(c *gin.Context) {
 		Description: input.Description,
 		Goal:        input.Goal,
 		WalletAddr:  input.WalletAddr,
+		ProjectLink: input.ProjectLink,
+		RepoLink:    input.RepoLink,
 		UserID:      uuid.MustParse(userID.(string)),
 	}
 
@@ -101,6 +103,12 @@ func UpdateProjectHandler(c *gin.Context) {
 	if input.Goal != 0 {
 		updates["goal"] = input.Goal
 	}
+	if input.ProjectLink != "" {
+		updates["project_link"] = input.ProjectLink
+	}
+	if input.RepoLink != "" {
+		updates["repo_link"] = input.RepoLink
+	}
 
 	if err := db.Model(&existingProject).Updates(updates).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update project"})
@@ -114,7 +122,7 @@ func GetAllProjectHandler(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
 	var projects []models.Project
-	if err := db.Preload("User").Preload("Donations").Find(&projects).Error; err != nil {
+	if err := db.Preload("User").Find(&projects).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch projects"})
 		return
 	}
@@ -132,7 +140,7 @@ func GetProjectByIDHandler(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
 	var project models.Project
-	if err := db.Preload("User").Preload("Donations.Donor").
+	if err := db.Preload("User").
 		First(&project, "id = ?", projectID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Project not found"})
 		return
@@ -145,7 +153,7 @@ func GetUserProjectsHandler(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
 	var projects []models.Project
-	if err := db.Preload("User").Preload("Donations").
+	if err := db.Preload("User").
 		Where("user_id = ?", userID).Find(&projects).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch your projects"})
 		return
