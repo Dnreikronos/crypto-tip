@@ -21,7 +21,6 @@ linters:
   disable:
     - golint
 
-
 linters-settings:
   errcheck:
     check-type-assertions: true
