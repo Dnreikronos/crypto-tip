@@ -19,6 +19,7 @@ type Project struct {
 	Donations   []Donation `json:"donations,omitempty" gorm:"foreignKey:ProjectID"`
 	CreatedAt   time.Time  `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt   time.Time  `json:"updated_at" gorm:"autoUpdateTime"`
+	ProjectLink string    `json:"project_link" gorm:"not null"`
 }
 
 type ProjectInput struct {
@@ -26,6 +27,7 @@ type ProjectInput struct {
 	Description string  `json:"description" binding:"required"`
 	Goal        float64 `json:"goal" binding:"required"`
 	WalletAddr  string  `json:"wallet_addr" binding:"required"`
+	ProjectLink string  `json:"project_link" binding:"required"`
 }
 
 type ProjectUpdate struct {
@@ -33,6 +35,7 @@ type ProjectUpdate struct {
 	Description string  `json:"description"`
 	Goal        float64 `json:"goal"`
 	WalletAddr  string  `json:"wallet_addr"`
+	ProjectLink string  `json:"project_link"`
 }
 
 type ProjectResponse struct {
