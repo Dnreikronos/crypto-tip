@@ -1,7 +1,12 @@
+run:
+  deadline: 5m
+  tests: true
+  skip-dirs:
+    - vendor/
+
 linters:
   enable:
-    - gofmt
-    - golint
+    - revive
     - govet
     - errcheck
     - staticcheck
@@ -11,12 +16,9 @@ linters:
     - misspell
     - prealloc
     - gosec
-
-run:
-  deadline: 5m
-  tests: true
-  skip-dirs:
-    - vendor/
+  disable:
+    - golint
+    - goanalysis_metalinter
 
 issues:
   exclude-rules:
@@ -29,10 +31,11 @@ linters-settings:
     check-type-assertions: true
   govet:
     check-shadowing: true
-  golint:
-    min-confidence: 0.8
   gofmt:
     simplify: true
   gosec:
     excludes:
       - G104
+  revive:
+    severity: warning
+
