@@ -28,6 +28,7 @@ func createProjectRequestBody() []byte {
 		Description: "This is a test project",
 		Goal:        100.0,
 		WalletAddr:  "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+		ProjectLink: "github/test",
 	}
 	body, _ := json.Marshal(project)
 	return body
@@ -86,6 +87,7 @@ func TestUpdateProjectHandler(t *testing.T) {
 		Description: "Old Desc",
 		Goal:        100,
 		WalletAddr:  "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+		ProjectLink: "github/test",
 		UserID:      userID,
 	}
 	db.Create(&project)
@@ -95,6 +97,7 @@ func TestUpdateProjectHandler(t *testing.T) {
 		Description: "New Desc",
 		Goal:        200,
 		WalletAddr:  "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+		ProjectLink: "github/test",
 	}
 	body, _ := json.Marshal(update)
 	w := httptest.NewRecorder()
@@ -127,10 +130,11 @@ func TestDeleteProjectHandler_Success(t *testing.T) {
 	db := setupProjectTestDB()
 	userID := uuid.New()
 	project := models.Project{
-		ID:         uuid.New(),
-		Title:      "To be deleted",
-		UserID:     userID,
-		WalletAddr: "0xabc",
+		ID:          uuid.New(),
+		Title:       "To be deleted",
+		UserID:      userID,
+		WalletAddr:  "0xabc",
+		ProjectLink: "github/test",
 	}
 	db.Create(&project)
 
@@ -161,8 +165,8 @@ func TestDeleteProjectHandler_NotFound(t *testing.T) {
 
 func TestGetAllProjectHandler_Success(t *testing.T) {
 	db := setupProjectTestDB()
-	db.Create(&models.Project{ID: uuid.New(), Title: "P1", WalletAddr: "0xabc", Goal: 100})
-	db.Create(&models.Project{ID: uuid.New(), Title: "P2", WalletAddr: "0xdef", Goal: 200})
+	db.Create(&models.Project{ID: uuid.New(), Title: "P1", WalletAddr: "0xabc", Goal: 100, ProjectLink: "github/test"})
+	db.Create(&models.Project{ID: uuid.New(), Title: "P2", WalletAddr: "0xdef", Goal: 200, ProjectLink: "github/test"})
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -176,9 +180,10 @@ func TestGetAllProjectHandler_Success(t *testing.T) {
 func TestGetProjectByIDHandler_Success(t *testing.T) {
 	db := setupProjectTestDB()
 	project := models.Project{
-		ID:         uuid.New(),
-		Title:      "Single Project",
-		WalletAddr: "0x123",
+		ID:          uuid.New(),
+		Title:       "Single Project",
+		WalletAddr:  "0x123",
+		ProjectLink: "github/test",
 	}
 	db.Create(&project)
 
@@ -208,8 +213,8 @@ func TestGetProjectByIDHandler_NotFound(t *testing.T) {
 func TestGetUserProjectsHandler_Success(t *testing.T) {
 	db := setupProjectTestDB()
 	userID := uuid.New()
-	db.Create(&models.Project{ID: uuid.New(), Title: "U1", UserID: userID, WalletAddr: "0xaaa"})
-	db.Create(&models.Project{ID: uuid.New(), Title: "U2", UserID: uuid.New(), WalletAddr: "0xbbb"})
+	db.Create(&models.Project{ID: uuid.New(), Title: "U1", UserID: userID, WalletAddr: "0xaaa", ProjectLink: "github/test"})
+	db.Create(&models.Project{ID: uuid.New(), Title: "U2", UserID: uuid.New(), WalletAddr: "0xbbb", ProjectLink: "github/test"})
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
