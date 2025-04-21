@@ -103,6 +103,7 @@ func CreateTestProject(t *testing.T, router *gin.Engine, token string) string {
 		Description: "For Testing",
 		Goal:        100.00,
 		WalletAddr:  "0xwallet",
+		ProjectLink: "github/test",
 	}
 	body, _ := json.Marshal(payload)
 	req := httptest.NewRequest(http.MethodPost, "/projects", bytes.NewBuffer(body))
@@ -130,6 +131,7 @@ func TestCreateProjecHandler(t *testing.T) {
 		Description: "Testing",
 		Goal:        50.00,
 		WalletAddr:  "0xwallet",
+		ProjectLink: "github/test",
 	}
 	body, _ := json.Marshal(payload)
 
@@ -223,4 +225,3 @@ func TestGetUserProjectsHandler(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, projects, 1)
 }
-
