@@ -10,7 +10,6 @@ linters:
   enable:
     - revive
     - govet
-    - shadow
     - errcheck
     - staticcheck
     - gosimple
