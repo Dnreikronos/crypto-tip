@@ -28,6 +28,8 @@ func CreateProjectHandler(c *gin.Context) {
 		Description: input.Description,
 		Goal:        input.Goal,
 		WalletAddr:  input.WalletAddr,
+		ProjectLink: input.ProjectLink,
+		RepoLink:    input.RepoLink,
 		UserID:      uuid.MustParse(userID.(string)),
 	}
 
@@ -100,6 +102,12 @@ func UpdateProjectHandler(c *gin.Context) {
 	}
 	if input.Goal != 0 {
 		updates["goal"] = input.Goal
+	}
+	if input.ProjectLink != "" {
+		updates["project_link"] = input.ProjectLink
+	}
+	if input.RepoLink != "" {
+		updates["repo_link"] = input.RepoLink
 	}
 
 	if err := db.Model(&existingProject).Updates(updates).Error; err != nil {
