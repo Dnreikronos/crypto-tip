@@ -19,7 +19,7 @@ type Project struct {
 	CreatedAt   time.Time `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt   time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 	ProjectLink string    `json:"project_link" gorm:"not null"`
-	RepoLink    string    `json:"repo_link" gorm:"not null"`
+	RepoLink    string    `json:"repo_link"`
 }
 
 type ProjectInput struct {
@@ -28,7 +28,7 @@ type ProjectInput struct {
 	Goal        float64 `json:"goal" binding:"required"`
 	WalletAddr  string  `json:"wallet_addr" binding:"required"`
 	ProjectLink string  `json:"project_link" binding:"required"`
-	RepoLink    string  `json:"repo_link" binding:"required"`
+	RepoLink    string  `json:"repo_link"`
 }
 
 type ProjectUpdate struct {
