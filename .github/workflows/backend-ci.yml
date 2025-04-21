@@ -2,11 +2,11 @@ name: Backend CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
     paths:
       - 'backend/**'
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop]
     paths:
       - 'backend/**'
 
@@ -73,4 +73,4 @@ jobs:
           cache: true
 
       - name: Build
-        run: go build -v ./... 
+        run: go build -v ./...
