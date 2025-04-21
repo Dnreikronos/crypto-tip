@@ -1,13 +1,16 @@
 run:
   deadline: 5m
   tests: true
-  skip-dirs:
+
+issues:
+  exclude-dirs:
     - vendor/
 
 linters:
   enable:
     - revive
     - govet
+    - shadow
     - errcheck
     - staticcheck
     - gosimple
@@ -18,19 +21,11 @@ linters:
     - gosec
   disable:
     - golint
-    - goanalysis_metalinter
 
-issues:
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - gosec
 
 linters-settings:
   errcheck:
     check-type-assertions: true
-  govet:
-    check-shadowing: true
   gofmt:
     simplify: true
   gosec:
