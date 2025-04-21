@@ -60,7 +60,7 @@ func setupRouterIntegration(t *testing.T) (*gin.Engine, *gorm.DB) {
 			db := c.MustGet("db").(*gorm.DB)
 
 			var projects []models.Project
-			if err := db.Preload("User").Preload("Donations").
+			if err := db.Preload("User").
 				Where("user_id = ?", userID).Find(&projects).Error; err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch your projects"})
 				return
