@@ -6,7 +6,7 @@ on:
     paths:
       - 'backend/**'
   pull_request:
-    branches: [ main, develop]
+    branches: [ main, develop ]
     paths:
       - 'backend/**'
 
@@ -26,8 +26,13 @@ jobs:
           go-version: '1.21'
           cache: true
 
+      - name: Build
+        run: go build ./...
+
       - name: Install golangci-lint
-        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.55.2
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
+            | sh -s -- -b $(go env GOPATH)/bin v1.57.1
 
       - name: Run golangci-lint
         run: golangci-lint run ./...
@@ -74,3 +79,4 @@ jobs:
 
       - name: Build
         run: go build -v ./...
+
