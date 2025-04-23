@@ -35,7 +35,7 @@ jobs:
             | sh -s -- -b $(go env GOPATH)/bin
 
       - name: Run golangci-lint
-        run: golangci-lint run ./...
+        run: golangci-lint run --config=../.golangci.yml --timeout=5m ./...
 
   test:
     name: Test
@@ -79,4 +79,3 @@ jobs:
 
       - name: Build
         run: go build -v ./...
-

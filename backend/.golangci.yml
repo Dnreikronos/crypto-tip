@@ -1,5 +1,3 @@
-version: 1
-
 run:
   deadline: 5m
   tests: true
@@ -33,4 +31,3 @@ linters-settings:
       - G104
   revive:
     severity: warning
-
