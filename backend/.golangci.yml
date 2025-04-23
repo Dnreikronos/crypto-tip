@@ -2,6 +2,9 @@ run:
   deadline: 5m
   tests: true
 
+
+version: "1.55.2"
+
 issues:
   exclude-dirs:
     - vendor/
