@@ -3,7 +3,7 @@ run:
   tests: true
 
 
-version: "1.55.2"
+version: "1.54.2"
 
 issues:
   exclude-dirs:
