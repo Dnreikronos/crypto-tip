@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/Dnreikronos/crypto-tip/internal/models"
@@ -12,6 +13,7 @@ import (
 func CreateDonationHandler(c *gin.Context) {
 	var input models.DonationInput
 	if err := c.ShouldBindJSON(&input); err != nil {
+		log.Printf("error binding input json, %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -26,6 +28,7 @@ func CreateDonationHandler(c *gin.Context) {
 
 	var project models.Project
 	if err := db.First(&project, "id = ?", input.ProjectID).Error; err != nil {
+		log.Printf("Error trying to GET project, %v", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "Project not found"})
 		return
 	}
@@ -42,11 +45,13 @@ func CreateDonationHandler(c *gin.Context) {
 	}
 
 	if err := db.Create(&donation).Error; err != nil {
+		log.Printf("error creating donation, %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create donation"})
 		return
 	}
 
 	if err := db.Model(&project).Update("raised", project.Raised+donation.Amount).Error; err != nil {
+		log.Printf("Failed to updated the raised value of project with the dontion values", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update project's raised amount"})
 		return
 	}
