@@ -13,7 +13,7 @@ import (
 func CreateDonationHandler(c *gin.Context) {
 	var input models.DonationInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		log.Printf("error binding input json, %v", err)
+		log.Printf("error binding input json: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -28,7 +28,7 @@ func CreateDonationHandler(c *gin.Context) {
 
 	var project models.Project
 	if err := db.First(&project, "id = ?", input.ProjectID).Error; err != nil {
-		log.Printf("Error trying to GET project, %v", err)
+		log.Printf("Error trying to GET project: %v", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "Project not found"})
 		return
 	}
@@ -45,13 +45,13 @@ func CreateDonationHandler(c *gin.Context) {
 	}
 
 	if err := db.Create(&donation).Error; err != nil {
-		log.Printf("error creating donation, %v", err)
+		log.Printf("error creating donation: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create donation"})
 		return
 	}
 
 	if err := db.Model(&project).Update("raised", project.Raised+donation.Amount).Error; err != nil {
-		log.Printf("Failed to updated the raised value of project with the dontion values", err)
+		log.Printf("Failed to updated the raised value of project with the dontion values: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update project's raised amount"})
 		return
 	}
@@ -65,7 +65,7 @@ func GetProjectDonationsHandler(c *gin.Context) {
 
 	var donations []models.Donation
 	if err := db.Preload("Donor").Where("project_id = ?", projectID).Find(&donations).Error; err != nil {
-		log.Printf("error trying to get the donation of the project, %v", err)
+		log.Printf("error trying to get the donation of the project: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch donations"})
 		return
 	}
@@ -103,7 +103,7 @@ func GetUserDonationsHandler(c *gin.Context) {
 
 	var donations []models.Donation
 	if err := db.Preload("Project").Where("donor_id = ?", userID).Find(&donations).Error; err != nil {
-		log.Printf("error trying to get the donations of the specific user, %v", err)
+		log.Printf("error trying to get the donations of the specific user: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch donations"})
 		return
 	}
@@ -117,7 +117,7 @@ func GetDonationByIDHandler(c *gin.Context) {
 
 	var donation models.Donation
 	if err := db.Preload("Donor").Preload("Project").First(&donation, "id = ?", donationID).Error; err != nil {
-		log.Printf("error trying to get the specific donation, %v", err)
+		log.Printf("error trying to get the specific donation: %v", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "Donation not found"})
 		return
 	}
