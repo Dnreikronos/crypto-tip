@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -38,11 +39,13 @@ func GenereateToken(user models.User) (string, error) {
 func CreateUserHandler(c *gin.Context) {
 	var input models.RegisterInput
 	if err := c.ShouldBindJSON(&input); err != nil {
+		log.Printf("Error trying to bind json: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	hashedPassword, err := HashPassword(input.Password)
 	if err != nil {
+		log.Printf("error trying to hash user password: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 		return
 	}
@@ -54,6 +57,7 @@ func CreateUserHandler(c *gin.Context) {
 	}
 	db := c.MustGet("db").(*gorm.DB)
 	if err := db.Create(&newUser).Error; err != nil {
+		log.Printf("error trying to create user: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
 	}
 	c.JSON(http.StatusCreated, models.FilteredResponse(newUser))
@@ -62,21 +66,25 @@ func CreateUserHandler(c *gin.Context) {
 func LoginHandler(c *gin.Context) {
 	var input models.SignInInput
 	if err := c.ShouldBindJSON(&input); err != nil {
+		log.Printf("error trying to bind json: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	var existingUser models.User
 	db := c.MustGet("db").(*gorm.DB)
 	if err := db.Where("email = ?", input.Email).First(&existingUser).Error; err != nil {
+		log.Printf("invalid user e-mail: %v", err)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
 	if err := VerifyPassword(existingUser.Password, input.Password); err != nil {
+		log.Printf("invalid user password: %v", err)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
 	token, err := GenereateToken(existingUser)
 	if err != nil {
+		log.Printf("error trying to genereate JWT token: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not generate token"})
 		return
 	}
@@ -108,12 +116,14 @@ func AuthMiddleware() gin.HandlerFunc {
 		})
 
 		if err != nil || !token.Valid {
+			log.Printf("invalid JWT token: %v", err)
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 			c.Abort()
 			return
 		}
 
 		if _, err := uuid.Parse(claims.Subject); err != nil {
+			log.Printf("error invalid user id in JWT token: %v", err)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID format in token"})
 			return
 		}
@@ -130,8 +140,10 @@ func ProfileHandler(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 	if err := db.First(&u, "id = ?", userID).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
+			log.Printf("error, user not found: %v", err)
 			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		} else {
+			log.Printf("error!!: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		}
 		return
