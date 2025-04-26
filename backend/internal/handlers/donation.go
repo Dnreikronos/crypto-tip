@@ -117,6 +117,7 @@ func GetDonationByIDHandler(c *gin.Context) {
 
 	var donation models.Donation
 	if err := db.Preload("Donor").Preload("Project").First(&donation, "id = ?", donationID).Error; err != nil {
+		log.Printf("error trying to get the specific donation, %v", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "Donation not found"})
 		return
 	}
