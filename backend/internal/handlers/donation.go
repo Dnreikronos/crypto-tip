@@ -103,6 +103,7 @@ func GetUserDonationsHandler(c *gin.Context) {
 
 	var donations []models.Donation
 	if err := db.Preload("Project").Where("donor_id = ?", userID).Find(&donations).Error; err != nil {
+		log.Printf("error trying to get the donations of the specific user, %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch donations"})
 		return
 	}
