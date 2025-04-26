@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 func CreateProjectHandler(c *gin.Context) {
 	var input models.ProjectInput
 	if err := c.ShouldBindJSON(&input); err != nil {
+		log.Printf("error trying to bind de input into json struct: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -35,6 +37,7 @@ func CreateProjectHandler(c *gin.Context) {
 
 	db := c.MustGet("db").(*gorm.DB)
 	if err := db.Create(&newProject).Error; err != nil {
+		log.Printf("error trying to create specific project: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create project"})
 		return
 	}
@@ -54,11 +57,13 @@ func DeleteProjectHandler(c *gin.Context) {
 
 	var project models.Project
 	if err := db.First(&project, "id = ? AND user_id = ?", id, userID).Error; err != nil {
+		log.Printf("error trying to get the project of a specific user: %v", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "Project not found or not owned by any user"})
 		return
 	}
 
 	if err := db.Delete(&project).Error; err != nil {
+		log.Printf("error trying to delete a specific project: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete project"})
 		return
 	}
@@ -77,6 +82,7 @@ func UpdateProjectHandler(c *gin.Context) {
 
 	var existingProject models.Project
 	if err := db.First(&existingProject, "id = ? AND user_id = ?", id, userID).Error; err != nil {
+		log.Printf("error trying to get project from specific user: %v", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "Project not found or not owned by any user"})
 		return
 	}
@@ -111,6 +117,7 @@ func UpdateProjectHandler(c *gin.Context) {
 	}
 
 	if err := db.Model(&existingProject).Updates(updates).Error; err != nil {
+		log.Printf("error trying to update project")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update project"})
 		return
 	}
@@ -123,6 +130,7 @@ func GetAllProjectHandler(c *gin.Context) {
 
 	var projects []models.Project
 	if err := db.Preload("User").Find(&projects).Error; err != nil {
+		log.Printf("error trying to get all projects: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch projects"})
 		return
 	}
@@ -142,6 +150,7 @@ func GetProjectByIDHandler(c *gin.Context) {
 	var project models.Project
 	if err := db.Preload("User").
 		First(&project, "id = ?", projectID).Error; err != nil {
+		log.Printf("error trying to get specific project: %v", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "Project not found"})
 		return
 	}
@@ -155,6 +164,7 @@ func GetUserProjectsHandler(c *gin.Context) {
 	var projects []models.Project
 	if err := db.Preload("User").
 		Where("user_id = ?", userID).Find(&projects).Error; err != nil {
+		log.Printf("error trying to get user project: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch your projects"})
 		return
 	}
