@@ -65,6 +65,7 @@ func GetProjectDonationsHandler(c *gin.Context) {
 
 	var donations []models.Donation
 	if err := db.Preload("Donor").Where("project_id = ?", projectID).Find(&donations).Error; err != nil {
+		log.Printf("error trying to get the donation of the project, %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch donations"})
 		return
 	}
