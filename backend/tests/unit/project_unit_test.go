@@ -106,7 +106,7 @@ func TestUpdateProjectHandler(t *testing.T) {
 	c.Request.Header.Set("Content-Type", "application/json")
 	c.Set("userID", userID)
 	c.Set("db", db)
-	c.Params = gin.Params{{Key: "id", Value: project.ID.String()}}
+	c.Params = gin.Params{gin.Param{Key: "id", Value: project.ID.String()}}
 
 	handlers.UpdateProjectHandler(c)
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -120,7 +120,7 @@ func TestUpdateProjectHandler_NotFound(t *testing.T) {
 	c.Request, _ = http.NewRequest("PUT", "/projects/invalid-id", nil)
 	c.Set("userID", uuid.New())
 	c.Set("db", db)
-	c.Params = gin.Params{{Key: "id", Value: uuid.New().String()}}
+	c.Params = gin.Params{gin.Param{Key: "id", Value: uuid.New().String()}}
 
 	handlers.UpdateProjectHandler(c)
 	assert.Equal(t, http.StatusNotFound, w.Code)
@@ -143,7 +143,7 @@ func TestDeleteProjectHandler_Success(t *testing.T) {
 	c.Request, _ = http.NewRequest("DELETE", "/projects/"+project.ID.String(), nil)
 	c.Set("userID", userID)
 	c.Set("db", db)
-	c.Params = gin.Params{{Key: "id", Value: project.ID.String()}}
+	c.Params = gin.Params{gin.Param{Key: "id", Value: project.ID.String()}}
 
 	handlers.DeleteProjectHandler(c)
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -157,7 +157,7 @@ func TestDeleteProjectHandler_NotFound(t *testing.T) {
 	c.Request, _ = http.NewRequest("DELETE", "/projects/invalid-id", nil)
 	c.Set("userID", uuid.New())
 	c.Set("db", db)
-	c.Params = gin.Params{{Key: "id", Value: uuid.New().String()}}
+	c.Params = gin.Params{gin.Param{Key: "id", Value: uuid.New().String()}}
 
 	handlers.DeleteProjectHandler(c)
 	assert.Equal(t, http.StatusNotFound, w.Code)
@@ -191,7 +191,7 @@ func TestGetProjectByIDHandler_Success(t *testing.T) {
 	c, _ := gin.CreateTestContext(w)
 	c.Request, _ = http.NewRequest("GET", "/projects/"+project.ID.String(), nil)
 	c.Set("db", db)
-	c.Params = gin.Params{{Key: "id", Value: project.ID.String()}}
+	c.Params = gin.Params{gin.Param{Key: "id", Value: project.ID.String()}}
 
 	handlers.GetProjectByIDHandler(c)
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -204,7 +204,7 @@ func TestGetProjectByIDHandler_NotFound(t *testing.T) {
 	c, _ := gin.CreateTestContext(w)
 	c.Request, _ = http.NewRequest("GET", "/projects/some-id", nil)
 	c.Set("db", db)
-	c.Params = gin.Params{{Key: "id", Value: uuid.New().String()}}
+	c.Params = gin.Params{gin.Param{Key: "id", Value: uuid.New().String()}}
 
 	handlers.GetProjectByIDHandler(c)
 	assert.Equal(t, http.StatusNotFound, w.Code)

@@ -138,7 +138,7 @@ func TestGetProjectDonationsHandler_Success(t *testing.T) {
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 	c.Request, _ = http.NewRequest("GET", "/projects/"+project.ID.String()+"/donations", nil)
-	c.Params = gin.Params{{Key: "id", Value: project.ID.String()}}
+	c.Params = gin.Params{gin.Param{Key: "id", Value: project.ID.String()}}
 	c.Set("db", db)
 
 	handlers.GetProjectDonationsHandler(c)
@@ -227,7 +227,7 @@ func TestGetDonationByIDHandler_Success(t *testing.T) {
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 	c.Request, _ = http.NewRequest("GET", "/donations/"+donation.ID.String(), nil)
-	c.Params = gin.Params{{Key: "id", Value: donation.ID.String()}}
+	c.Params = gin.Params{gin.Param{Key: "id", Value: donation.ID.String()}}
 	c.Set("db", db)
 
 	handlers.GetDonationByIDHandler(c)
@@ -246,7 +246,7 @@ func TestGetDonationByIDHandler_NotFound(t *testing.T) {
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 	c.Request, _ = http.NewRequest("GET", "/donations/"+uuid.New().String(), nil)
-	c.Params = gin.Params{{Key: "id", Value: uuid.New().String()}}
+	c.Params = gin.Params{gin.Param{Key: "id", Value: uuid.New().String()}}
 	c.Set("db", db)
 
 	handlers.GetDonationByIDHandler(c)
