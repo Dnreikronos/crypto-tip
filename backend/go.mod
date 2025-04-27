@@ -4,6 +4,7 @@ go 1.24.1
 
 require (
 	github.com/Dnreikronos/budgetMannager---Back v0.0.0-20241220210357-95ba05523f6f
+	github.com/gin-contrib/cors v1.7.2
 	github.com/gin-gonic/gin v1.10.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/uuid v1.6.0
