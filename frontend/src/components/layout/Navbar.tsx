@@ -64,7 +64,7 @@ export default function Navbar() {
               Login
             </Link>
             <Link 
-              href="/signup" 
+              href="/register" 
               className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 rounded-lg transition-all duration-200 transform hover:scale-105"
             >
               Create Account
