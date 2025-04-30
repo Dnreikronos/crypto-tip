@@ -20,7 +20,7 @@ export default function AuthForm({ type, onSubmit }: AuthFormProps) {
     <motion.form
       onSubmit={(e) => {
         e.preventDefault();
-        onSubmit(email, password);
+        onSubmit(name,  email, password);
       }}
       className="space-y-4 bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md"
       initial={{ opacity: 0, y: 20 }}
@@ -29,6 +29,7 @@ export default function AuthForm({ type, onSubmit }: AuthFormProps) {
       <h2 className="text-2xl font-bold text-white text-center">
         {type === "login" ? "Login" : "Create Account"}
       </h2>
+
       <label className="text-white">
         E-mail
         <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
