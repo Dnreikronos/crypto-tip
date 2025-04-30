@@ -30,6 +30,13 @@ export default function AuthForm({ type, onSubmit }: AuthFormProps) {
         {type === "login" ? "Login" : "Create Account"}
       </h2>
 
+      {type === "register" && (
+          <label className="text-white">
+            Name
+            <Input type="text" value={name} onChange={(e) => setName(e.target.value)} required />
+          </label>
+        )}
+        
       <label className="text-white">
         E-mail
         <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
@@ -39,6 +46,8 @@ export default function AuthForm({ type, onSubmit }: AuthFormProps) {
         Password
         <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
         </label>
+
+        
 
       <Button type="submit">{type === "login" ? "Login" : "Register"}</Button>
     </motion.form>
