@@ -7,7 +7,7 @@ import { Button } from "./button";
 
 interface AuthFormProps {
   type: "login" | "register";
-  onSubmit: (email: string, password: string) => void;
+  onSubmit: (name: string,email: string, password: string) => void;
 }
 
 export default function AuthForm({ type, onSubmit }: AuthFormProps) {
