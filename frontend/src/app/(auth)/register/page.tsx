@@ -7,14 +7,15 @@ import AnimatedBackground from "@/components/ui/AnimatedBackground";
 export default function RegisterPage() {
   const router = useRouter();
 
-  async function handleRegister(email: string, password: string) {
-    const res = await fetch("/api/auth/register", {
+  async function handleRegister(name: string, email: string, password: string) {
+    const res = await fetch("http://localhost:9090/register", {
+      credentials: "include",
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ name, email, password }),
       headers: { "Content-Type": "application/json" },
     });
 
-    if (res.ok) router.push("/auth/login");
+    if (res.ok) router.push("/login");
   }
 
   return (
