@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -111,11 +112,10 @@ func CreateUserHandler(c *gin.Context) {
 func LoginHandler(c *gin.Context) {
 	var input models.SignInInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		log.Printf("error trying to bind json: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Printf("Error trying to parse json: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
-	var existingUser models.User
 	db := c.MustGet("db").(*gorm.DB)
 	if err := db.Where("email = ?", input.Email).First(&existingUser).Error; err != nil {
 		log.Printf("invalid user e-mail: %v", err)
