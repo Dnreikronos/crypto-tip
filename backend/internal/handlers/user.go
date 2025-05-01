@@ -116,12 +116,19 @@ func LoginHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
+
 	db := c.MustGet("db").(*gorm.DB)
+	var existingUser models.User
 	if err := db.Where("email = ?", input.Email).First(&existingUser).Error; err != nil {
-		log.Printf("invalid user e-mail: %v", err)
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": ErrInvalidCredentials.Error()})
+		} else {
+			log.Printf("Database error: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		}
 		return
 	}
+
 	if err := VerifyPassword(existingUser.Password, input.Password); err != nil {
 		log.Printf("invalid user password: %v", err)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
