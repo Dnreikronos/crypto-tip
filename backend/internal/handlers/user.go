@@ -97,13 +97,14 @@ func CreateUserHandler(c *gin.Context) {
 		Name:     input.Name,
 		Email:    input.Email,
 		Password: hashedPassword,
-		Verified: true,
 	}
-	db := c.MustGet("db").(*gorm.DB)
+
 	if err := db.Create(&newUser).Error; err != nil {
-		log.Printf("error trying to create user: %v", err)
+		log.Printf("Error creating user: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+		return
 	}
+
 	c.JSON(http.StatusCreated, models.FilteredResponse(newUser))
 }
 
