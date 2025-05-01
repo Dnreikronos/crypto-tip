@@ -26,6 +26,11 @@ type TokenResponse struct {
 	ExpiresAt int64  `json:"expires_at"`
 }
 
+type Claims struct {
+	UserID string `json:"user_id"`
+	jwt.StandardClaims
+}
+
 func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	return string(bytes), err
