@@ -84,6 +84,15 @@ func CreateUserHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process password"})
 		return
 	}
+
+	db := c.MustGet("db").(*gorm.DB)
+
+	var existingUser models.User
+	if err := db.Where("email = ?", input.Email).First(&existingUser).Error; err == nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "Email already registered"})
+		return
+	}
+
 	newUser := models.User{
 		Name:     input.Name,
 		Email:    input.Email,
