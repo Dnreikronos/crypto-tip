@@ -74,7 +74,7 @@ func setupRouterIntegration(t *testing.T) (*gin.Engine, *gorm.DB) {
 }
 
 func CreateLoginTest(t *testing.T, router *gin.Engine) string {
-	user := models.RegisterInput{Name: "Teste", Email: "project@example.com", Password: "123456"}
+	user := models.RegisterInput{Name: "Teste", Email: "project@example.com", Password: "12345678"}
 	registerBody, _ := json.Marshal(user)
 	req := httptest.NewRequest(http.MethodPost, "/register", bytes.NewBuffer(registerBody))
 	req.Header.Set("Content-Type", "application/json")
