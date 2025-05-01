@@ -72,8 +72,12 @@ func CreateUserHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email format"})
 		return
 	}
+
+	if len(input.Password) < 8 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Password must be at least 8 characters long"})
 		return
 	}
+
 	hashedPassword, err := HashPassword(input.Password)
 	if err != nil {
 		log.Printf("error trying to hash user password: %v", err)
