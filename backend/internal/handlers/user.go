@@ -156,36 +156,48 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		tokenString := c.Request.Header.Get("Authorization")
-
-		if len(tokenString) > 7 && strings.ToUpper(tokenString[0:7]) == "BEARER " {
-			tokenString = tokenString[7:]
-		}
-
 		if tokenString == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "No token provided"})
 			c.Abort()
 			return
 		}
 
-		claims := &jwt.StandardClaims{}
+		// Remove "Bearer " prefix if present
+		if len(tokenString) > 7 && strings.ToUpper(tokenString[0:7]) == "BEARER " {
+			tokenString = tokenString[7:]
+		}
+
+		claims := &Claims{}
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, errors.New("unexpected signing method")
+			}
 			return jwtSecret, nil
 		})
 
-		if err != nil || !token.Valid {
-			log.Printf("invalid JWT token: %v", err)
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		if err != nil {
+			if err == jwt.ErrSignatureInvalid {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token signature"})
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+			}
 			c.Abort()
 			return
 		}
 
-		if _, err := uuid.Parse(claims.Subject); err != nil {
-			log.Printf("error invalid user id in JWT token: %v", err)
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID format in token"})
+		if !token.Valid {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token is not valid"})
+			c.Abort()
 			return
 		}
 
-		c.Set("userID", claims.Subject)
+		if _, err := uuid.Parse(claims.UserID); err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID in token"})
+			c.Abort()
+			return
+		}
+
+		c.Set("userID", claims.UserID)
 		c.Next()
 	}
 }
@@ -196,11 +208,10 @@ func ProfileHandler(c *gin.Context) {
 	var u models.User
 	db := c.MustGet("db").(*gorm.DB)
 	if err := db.First(&u, "id = ?", userID).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			log.Printf("error, user not found: %v", err)
-			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": ErrUserNotFound.Error()})
 		} else {
-			log.Printf("error!!: %v", err)
+			log.Printf("Database error: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		}
 		return
