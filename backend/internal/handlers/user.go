@@ -63,8 +63,10 @@ func GenerateToken(user models.User) (string, int64, error) {
 func CreateUserHandler(c *gin.Context) {
 	var input models.RegisterInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		log.Printf("Error trying to bind json: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Printf("error trying to bind json: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
 		return
 	}
 	hashedPassword, err := HashPassword(input.Password)
