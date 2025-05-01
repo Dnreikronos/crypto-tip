@@ -40,11 +40,15 @@ func VerifyPassword(hashedPassword, password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
 
-func GenereateToken(user models.User) (string, error) {
+func GenerateToken(user models.User) (string, int64, error) {
 	expirationTime := time.Now().Add(24 * time.Hour)
-	claims := &jwt.StandardClaims{
-		Subject:   user.ID.String(),
-		ExpiresAt: expirationTime.Unix(),
+	claims := &Claims{
+		UserID: user.ID.String(),
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+			IssuedAt:  time.Now().Unix(),
+			Subject:   user.ID.String(),
+		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(jwtSecret)
