@@ -130,8 +130,8 @@ func LoginHandler(c *gin.Context) {
 	}
 
 	if err := VerifyPassword(existingUser.Password, input.Password); err != nil {
-		log.Printf("invalid user password: %v", err)
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		log.Printf("error trying to validate password: %v", err)
+		c.JSON(http.StatusUnauthorized, gin.H{"error": ErrInvalidCredentials.Error()})
 		return
 	}
 	token, err := GenereateToken(existingUser)
