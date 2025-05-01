@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -78,7 +79,7 @@ func TestCreateDonationHandler_Success(t *testing.T) {
 
 	var response models.Donation
 	err := json.Unmarshal(w.Body.Bytes(), &response)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, donationInput.Amount, response.Amount)
 	assert.Equal(t, donationInput.CryptoType, response.CryptoType)
 }
@@ -116,7 +117,7 @@ func TestGetProjectDonationsHandler_Success(t *testing.T) {
 
 	var response []models.DonationInfo
 	err := json.Unmarshal(w.Body.Bytes(), &response)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, response, 1)
 	assert.Equal(t, donation.Amount, response[0].Amount)
 }
@@ -155,7 +156,7 @@ func TestGetUserDonationsHandler_Success(t *testing.T) {
 
 	var response []models.Donation
 	err := json.Unmarshal(w.Body.Bytes(), &response)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, response, 1)
 	assert.Equal(t, donation.Amount, response[0].Amount)
 }
@@ -193,7 +194,7 @@ func TestGetDonationByIDHandler_Success(t *testing.T) {
 
 	var response models.Donation
 	err := json.Unmarshal(w.Body.Bytes(), &response)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, donation.ID, response.ID)
 	assert.Equal(t, donation.Amount, response.Amount)
 }
