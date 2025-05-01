@@ -50,8 +50,14 @@ func GenerateToken(user models.User) (string, int64, error) {
 			Subject:   user.ID.String(),
 		},
 	}
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtSecret)
+	tokenString, err := token.SignedString(jwtSecret)
+	if err != nil {
+		return "", 0, err
+	}
+
+	return tokenString, expirationTime.Unix(), nil
 }
 
 func CreateUserHandler(c *gin.Context) {
