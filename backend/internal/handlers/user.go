@@ -21,6 +21,11 @@ var (
 	ErrUserNotFound       = errors.New("user not found")
 )
 
+type TokenResponse struct {
+	Token     string `json:"token"`
+	ExpiresAt int64  `json:"expires_at"`
+}
+
 func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	return string(bytes), err
