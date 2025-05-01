@@ -67,6 +67,11 @@ func CreateUserHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
+
+	if !strings.Contains(input.Email, "@") {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email format"})
+		return
+	}
 		return
 	}
 	hashedPassword, err := HashPassword(input.Password)
