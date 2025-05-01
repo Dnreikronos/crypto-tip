@@ -80,8 +80,8 @@ func CreateUserHandler(c *gin.Context) {
 
 	hashedPassword, err := HashPassword(input.Password)
 	if err != nil {
-		log.Printf("error trying to hash user password: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+		log.Printf("Error hashing password: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process password"})
 		return
 	}
 	newUser := models.User{
