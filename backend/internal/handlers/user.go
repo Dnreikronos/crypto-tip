@@ -134,13 +134,18 @@ func LoginHandler(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": ErrInvalidCredentials.Error()})
 		return
 	}
-	token, err := GenereateToken(existingUser)
+
+	token, expiresAt, err := GenerateToken(existingUser)
 	if err != nil {
-		log.Printf("error trying to genereate JWT token: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not generate token"})
+		log.Printf("Error generating token: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"token": token})
+
+	c.JSON(http.StatusOK, TokenResponse{
+		Token:     token,
+		ExpiresAt: expiresAt,
+	})
 }
 
 func AuthMiddleware() gin.HandlerFunc {
