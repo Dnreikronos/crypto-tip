@@ -1,117 +1,99 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
-
-interface User {
-	id: string;
-	name: string;
-	email: string;
-}
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import { User, loginUser, logoutUser, getCurrentUser } from "@/lib/auth";
 
 interface AuthContextType {
-	user: User | null;
-	token: string | null;
-	login: (email: string, password: string) => Promise<void>;
-	logout: () => void;
-	isAuthenticated: boolean;
-	isLoading: boolean;
+  user: User | null;
+  loading: boolean;
+  login: (email: string, password: string, rememberMe: boolean) => Promise<void>;
+  logout: () => Promise<void>;
+  isAuthenticated: boolean;
+  checkAuth: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-	const [user, setUser] = useState<User | null>(null);
-	const [token, setToken] = useState<string | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
-	const router = useRouter();
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
 
-	useEffect(() => {
-		// Check for stored token and user data
-		const storedToken = localStorage.getItem('token');
-		const storedUser = localStorage.getItem('user');
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-		if (storedToken && storedUser) {
-			setToken(storedToken);
-			setUser(JSON.parse(storedUser));
-		}
-		setIsLoading(false);
-	}, []);
+  const checkAuth = async (): Promise<boolean> => {
+    try {
+      setLoading(true);
+      const userData = await getCurrentUser();
 
-	const login = async (email: string, password: string) => {
-		try {
-			const res = await fetch('http://localhost:9090/login', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email, password }),
-			});
+      if (!userData) {
+        return false;
+      }
 
-			if (!res.ok) {
-				const error = await res.json();
-				throw new Error(error.error || 'Login failed');
-			}
+      setUser(userData);
+      return true;
+    } catch (error) {
+      console.error("Error checking authentication:", error);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-			const data = await res.json();
+  const login = async (email: string, password: string, rememberMe: boolean): Promise<void> => {
+    try {
+      const response = await loginUser({ email, password, rememberMe });
 
-			if (!data.token) {
-				throw new Error('Invalid response from server');
-			}
+      // Save token in localStorage
+      localStorage.setItem("token", response.token);
 
-			// Get user profile after successful login
-			const profileRes = await fetch('http://localhost:9090/profile', {
-				headers: {
-					'Authorization': `Bearer ${data.token}`,
-				},
-			});
+      setUser(response.user);
+    } catch (error) {
+      console.error("Error logging in:", error);
+      throw error;
+    }
+  };
 
-			if (!profileRes.ok) {
-				throw new Error('Failed to fetch user profile');
-			}
+  const logout = async (): Promise<void> => {
+    try {
+      await logoutUser();
+      setUser(null);
+      router.push("/login");
+    } catch (error) {
+      console.error("Error logging out:", error);
+      throw error;
+    }
+  };
 
-			const userProfile = await profileRes.json();
+  // Check authentication on page load
+  useEffect(() => {
+    const verifyAuth = async () => {
+      await checkAuth();
+    };
+    verifyAuth();
+  }, []);
 
-			// Store token and user data
-			localStorage.setItem('token', data.token);
-			localStorage.setItem('user', JSON.stringify(userProfile));
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        login,
+        logout,
+        isAuthenticated: !!user,
+        checkAuth,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};
 
-			setToken(data.token);
-			setUser(userProfile);
-
-			router.push('/donation');
-		} catch (error) {
-			console.error('Login error:', error);
-			throw error;
-		}
-	};
-
-	const logout = () => {
-		localStorage.removeItem('token');
-		localStorage.removeItem('user');
-		setToken(null);
-		setUser(null);
-		router.push('/login');
-	};
-
-	return (
-		<AuthContext.Provider
-			value={{
-				user,
-				token,
-				login,
-				logout,
-				isAuthenticated: !!token,
-				isLoading,
-			}}
-		>
-			{children}
-		</AuthContext.Provider>
-	);
-}
-
-export function useAuth() {
-	const context = useContext(AuthContext);
-	if (context === undefined) {
-		throw new Error('useAuth must be used within an AuthProvider');
-	}
-	return context;
-}
+export default AuthContext;
