@@ -19,14 +19,10 @@ import (
 
 func setupDonationTestRouter(t *testing.T, testUserID uuid.UUID) (*gin.Engine, *gorm.DB) {
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("failed to open DB: %v", err)
-	}
+	require.NoError(t, err, "failed to open DB")
 
 	err = db.AutoMigrate(&models.User{}, &models.Project{}, &models.Donation{})
-	if err != nil {
-		t.Fatalf("failed to migrate DB: %v", err)
-	}
+	require.NoError(t, err, "failed to migrate DB")
 
 	router := gin.Default()
 	router.Use(func(c *gin.Context) {
@@ -67,7 +63,9 @@ func TestCreateDonationHandler_Success(t *testing.T) {
 		Anonymous:  false,
 	}
 
-	body, _ := json.Marshal(donationInput)
+	body, err := json.Marshal(donationInput)
+	require.NoError(t, err)
+
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/donations", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -75,10 +73,13 @@ func TestCreateDonationHandler_Success(t *testing.T) {
 
 	router.ServeHTTP(w, req)
 
-	assert.Equal(t, http.StatusCreated, w.Code)
+	if w.Code != http.StatusCreated {
+		t.Logf("unexpected status: %d, body: %s", w.Code, w.Body.String())
+	}
+	require.Equal(t, http.StatusCreated, w.Code)
 
 	var response models.Donation
-	err := json.Unmarshal(w.Body.Bytes(), &response)
+	err = json.Unmarshal(w.Body.Bytes(), &response)
 	require.NoError(t, err)
 	assert.Equal(t, donationInput.Amount, response.Amount)
 	assert.Equal(t, donationInput.CryptoType, response.CryptoType)
@@ -113,12 +114,15 @@ func TestGetProjectDonationsHandler_Success(t *testing.T) {
 
 	router.ServeHTTP(w, req)
 
-	assert.Equal(t, http.StatusOK, w.Code)
+	if w.Code != http.StatusOK {
+		t.Logf("unexpected status: %d, body: %s", w.Code, w.Body.String())
+	}
+	require.Equal(t, http.StatusOK, w.Code)
 
 	var response []models.DonationInfo
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	require.NoError(t, err)
-	assert.Len(t, response, 1)
+	require.Len(t, response, 1)
 	assert.Equal(t, donation.Amount, response[0].Amount)
 }
 
@@ -152,12 +156,15 @@ func TestGetUserDonationsHandler_Success(t *testing.T) {
 
 	router.ServeHTTP(w, req)
 
-	assert.Equal(t, http.StatusOK, w.Code)
+	if w.Code != http.StatusOK {
+		t.Logf("unexpected status: %d, body: %s", w.Code, w.Body.String())
+	}
+	require.Equal(t, http.StatusOK, w.Code)
 
 	var response []models.Donation
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	require.NoError(t, err)
-	assert.Len(t, response, 1)
+	require.Len(t, response, 1)
 	assert.Equal(t, donation.Amount, response[0].Amount)
 }
 
@@ -190,7 +197,10 @@ func TestGetDonationByIDHandler_Success(t *testing.T) {
 
 	router.ServeHTTP(w, req)
 
-	assert.Equal(t, http.StatusOK, w.Code)
+	if w.Code != http.StatusOK {
+		t.Logf("unexpected status: %d, body: %s", w.Code, w.Body.String())
+	}
+	require.Equal(t, http.StatusOK, w.Code)
 
 	var response models.Donation
 	err := json.Unmarshal(w.Body.Bytes(), &response)
