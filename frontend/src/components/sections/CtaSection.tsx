@@ -71,7 +71,7 @@ export default function CtaSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.6 }}
           >
-            <ButtonPrimary href="/signup" className="text-lg px-8 py-4">
+            <ButtonPrimary href="/register" className="text-lg px-8 py-4">
               Create Your Page <ArrowRight className="ml-2 h-5 w-5" />
             </ButtonPrimary>
             <a 

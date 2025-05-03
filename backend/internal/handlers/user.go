@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -15,10 +16,24 @@ import (
 	"gorm.io/gorm"
 )
 
-var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
+var (
+	jwtSecret             = []byte(os.Getenv("JWT_SECRET"))
+	ErrInvalidCredentials = errors.New("invalid credentials")
+	ErrUserNotFound       = errors.New("user not found")
+)
+
+type TokenResponse struct {
+	Token     string `json:"token"`
+	ExpiresAt int64  `json:"expires_at"`
+}
+
+type Claims struct {
+	UserID string `json:"user_id"`
+	jwt.StandardClaims
+}
 
 func HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	return string(bytes), err
 }
 
@@ -26,69 +41,111 @@ func VerifyPassword(hashedPassword, password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
 
-func GenereateToken(user models.User) (string, error) {
+func GenerateToken(user models.User) (string, int64, error) {
 	expirationTime := time.Now().Add(24 * time.Hour)
-	claims := &jwt.StandardClaims{
-		Subject:   user.ID.String(),
-		ExpiresAt: expirationTime.Unix(),
+	claims := &Claims{
+		UserID: user.ID.String(),
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+			IssuedAt:  time.Now().Unix(),
+			Subject:   user.ID.String(),
+		},
 	}
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtSecret)
+	tokenString, err := token.SignedString(jwtSecret)
+	if err != nil {
+		return "", 0, err
+	}
+
+	return tokenString, expirationTime.Unix(), nil
 }
 
 func CreateUserHandler(c *gin.Context) {
 	var input models.RegisterInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		log.Printf("Error trying to bind json: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Printf("error trying to bind json: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
+
+	if !strings.Contains(input.Email, "@") {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email format"})
+		return
+	}
+
+	if len(input.Password) < 8 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Password must be at least 8 characters long"})
+		return
+	}
+
 	hashedPassword, err := HashPassword(input.Password)
 	if err != nil {
-		log.Printf("error trying to hash user password: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+		log.Printf("Error hashing password: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process password"})
 		return
 	}
+
+	db := c.MustGet("db").(*gorm.DB)
+
+	var existingUser models.User
+	if err := db.Where("email = ?", input.Email).First(&existingUser).Error; err == nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "Email already registered"})
+		return
+	}
+
 	newUser := models.User{
 		Name:     input.Name,
 		Email:    input.Email,
 		Password: hashedPassword,
-		Verified: true,
 	}
-	db := c.MustGet("db").(*gorm.DB)
+
 	if err := db.Create(&newUser).Error; err != nil {
-		log.Printf("error trying to create user: %v", err)
+		log.Printf("Error creating user: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+		return
 	}
+
 	c.JSON(http.StatusCreated, models.FilteredResponse(newUser))
 }
 
 func LoginHandler(c *gin.Context) {
 	var input models.SignInInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		log.Printf("error trying to bind json: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Printf("Error trying to parse json: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
-	var existingUser models.User
+
 	db := c.MustGet("db").(*gorm.DB)
+	var existingUser models.User
 	if err := db.Where("email = ?", input.Email).First(&existingUser).Error; err != nil {
-		log.Printf("invalid user e-mail: %v", err)
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": ErrInvalidCredentials.Error()})
+		} else {
+			log.Printf("Database error: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		}
 		return
 	}
+
 	if err := VerifyPassword(existingUser.Password, input.Password); err != nil {
-		log.Printf("invalid user password: %v", err)
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		log.Printf("error trying to validate password: %v", err)
+		c.JSON(http.StatusUnauthorized, gin.H{"error": ErrInvalidCredentials.Error()})
 		return
 	}
-	token, err := GenereateToken(existingUser)
+
+	token, expiresAt, err := GenerateToken(existingUser)
 	if err != nil {
-		log.Printf("error trying to genereate JWT token: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not generate token"})
+		log.Printf("Error generating token: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"token": token})
+
+	c.JSON(http.StatusOK, TokenResponse{
+		Token:     token,
+		ExpiresAt: expiresAt,
+	})
 }
 
 func AuthMiddleware() gin.HandlerFunc {
@@ -99,36 +156,48 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		tokenString := c.Request.Header.Get("Authorization")
-
-		if len(tokenString) > 7 && strings.ToUpper(tokenString[0:7]) == "BEARER " {
-			tokenString = tokenString[7:]
-		}
-
 		if tokenString == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "No token provided"})
 			c.Abort()
 			return
 		}
 
-		claims := &jwt.StandardClaims{}
+		// Remove "Bearer " prefix if present
+		if len(tokenString) > 7 && strings.ToUpper(tokenString[0:7]) == "BEARER " {
+			tokenString = tokenString[7:]
+		}
+
+		claims := &Claims{}
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, errors.New("unexpected signing method")
+			}
 			return jwtSecret, nil
 		})
 
-		if err != nil || !token.Valid {
-			log.Printf("invalid JWT token: %v", err)
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		if err != nil {
+			if err == jwt.ErrSignatureInvalid {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token signature"})
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+			}
 			c.Abort()
 			return
 		}
 
-		if _, err := uuid.Parse(claims.Subject); err != nil {
-			log.Printf("error invalid user id in JWT token: %v", err)
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID format in token"})
+		if !token.Valid {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token is not valid"})
+			c.Abort()
 			return
 		}
 
-		c.Set("userID", claims.Subject)
+		if _, err := uuid.Parse(claims.UserID); err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID in token"})
+			c.Abort()
+			return
+		}
+
+		c.Set("userID", claims.UserID)
 		c.Next()
 	}
 }
@@ -139,11 +208,10 @@ func ProfileHandler(c *gin.Context) {
 	var u models.User
 	db := c.MustGet("db").(*gorm.DB)
 	if err := db.First(&u, "id = ?", userID).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			log.Printf("error, user not found: %v", err)
-			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": ErrUserNotFound.Error()})
 		} else {
-			log.Printf("error!!: %v", err)
+			log.Printf("Database error: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		}
 		return
