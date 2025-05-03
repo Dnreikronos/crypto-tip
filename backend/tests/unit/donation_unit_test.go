@@ -12,17 +12,19 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
-func setupDonationTestDB() *gorm.DB {
-	db, _ := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	_ = db.AutoMigrate(&models.User{}, &models.Project{}, &models.Donation{})
+func setupDonationTestDB(t *testing.T) *gorm.DB {
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	require.NoError(t, err)
+	require.NoError(t, db.AutoMigrate(&models.User{}, &models.Project{}, &models.Donation{}))
 	return db
 }
 
-func createDonationRequestBody(projectID uuid.UUID) []byte {
+func createDonationRequestBody(t *testing.T, projectID uuid.UUID) []byte {
 	donation := models.DonationInput{
 		Amount:     100.0,
 		CryptoType: "ETH",
@@ -32,39 +34,33 @@ func createDonationRequestBody(projectID uuid.UUID) []byte {
 		ProjectID:  projectID,
 		Anonymous:  false,
 	}
-	body, _ := json.Marshal(donation)
+	body, err := json.Marshal(donation)
+	require.NoError(t, err)
 	return body
 }
 
 func TestCreateDonationHandler_Success(t *testing.T) {
-	db := setupDonationTestDB()
+	db := setupDonationTestDB(t)
 
 	user := models.User{ID: uuid.New(), Name: "Test User", Email: "test@example.com"}
-	project := models.Project{
-		ID:         uuid.New(),
-		Title:      "Test Project",
-		Goal:       1000.0,
-		WalletAddr: "0xdef",
-		UserID:     user.ID,
-	}
-	db.Create(&user)
-	db.Create(&project)
+	project := models.Project{ID: uuid.New(), Title: "Test Project", Goal: 1000.0, WalletAddr: "0xdef", UserID: user.ID}
+	require.NoError(t, db.Create(&user).Error)
+	require.NoError(t, db.Create(&project).Error)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 
-	c.Request, _ = http.NewRequest("POST", "/donations", bytes.NewBuffer(createDonationRequestBody(project.ID)))
+	c.Request, _ = http.NewRequest("POST", "/donations", bytes.NewBuffer(createDonationRequestBody(t, project.ID)))
 	c.Request.Header.Set("Content-Type", "application/json")
 	c.Set("userID", user.ID.String())
 	c.Set("db", db)
 
 	handlers.CreateDonationHandler(c)
-
-	assert.Equal(t, http.StatusCreated, w.Code)
+	require.Equal(t, http.StatusCreated, w.Code, "unexpected response: %s", w.Body.String())
 }
 
 func TestCreateDonationHandler_InvalidJSON(t *testing.T) {
-	db := setupDonationTestDB()
+	db := setupDonationTestDB(t)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -74,66 +70,51 @@ func TestCreateDonationHandler_InvalidJSON(t *testing.T) {
 	c.Set("db", db)
 
 	handlers.CreateDonationHandler(c)
-
-	assert.Equal(t, http.StatusBadRequest, w.Code)
+	require.Equal(t, http.StatusBadRequest, w.Code, "unexpected response: %s", w.Body.String())
 }
 
 func TestCreateDonationHandler_Unauthorized(t *testing.T) {
-	db := setupDonationTestDB()
+	db := setupDonationTestDB(t)
 	project := models.Project{ID: uuid.New(), Title: "Test Project", WalletAddr: "0xdef"}
-	db.Create(&project)
+	require.NoError(t, db.Create(&project).Error)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 
-	c.Request, _ = http.NewRequest("POST", "/donations", bytes.NewBuffer(createDonationRequestBody(project.ID)))
+	c.Request, _ = http.NewRequest("POST", "/donations", bytes.NewBuffer(createDonationRequestBody(t, project.ID)))
 	c.Request.Header.Set("Content-Type", "application/json")
 	c.Set("db", db)
 
 	handlers.CreateDonationHandler(c)
-
-	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	require.Equal(t, http.StatusUnauthorized, w.Code, "unexpected response: %s", w.Body.String())
 }
 
 func TestCreateDonationHandler_ProjectNotFound(t *testing.T) {
-	db := setupDonationTestDB()
+	db := setupDonationTestDB(t)
 	user := models.User{ID: uuid.New(), Name: "Test User", Email: "test@example.com"}
-	db.Create(&user)
+	require.NoError(t, db.Create(&user).Error)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 
-	c.Request, _ = http.NewRequest("POST", "/donations", bytes.NewBuffer(createDonationRequestBody(uuid.New())))
+	c.Request, _ = http.NewRequest("POST", "/donations", bytes.NewBuffer(createDonationRequestBody(t, uuid.New())))
 	c.Request.Header.Set("Content-Type", "application/json")
 	c.Set("userID", user.ID.String())
 	c.Set("db", db)
 
 	handlers.CreateDonationHandler(c)
-
-	assert.Equal(t, http.StatusNotFound, w.Code)
+	require.Equal(t, http.StatusNotFound, w.Code, "unexpected response: %s", w.Body.String())
 }
 
 func TestGetProjectDonationsHandler_Success(t *testing.T) {
-	db := setupDonationTestDB()
+	db := setupDonationTestDB(t)
 	user := models.User{ID: uuid.New(), Name: "Test User", Email: "test@example.com"}
-	project := models.Project{
-		ID:         uuid.New(),
-		Title:      "Test Project",
-		Goal:       1000.0,
-		WalletAddr: "0xdef",
-		UserID:     user.ID,
-	}
-	db.Create(&user)
-	db.Create(&project)
+	project := models.Project{ID: uuid.New(), Title: "Test Project", Goal: 1000.0, WalletAddr: "0xdef", UserID: user.ID}
+	require.NoError(t, db.Create(&user).Error)
+	require.NoError(t, db.Create(&project).Error)
 
-	donation := models.Donation{
-		ID:         uuid.New(),
-		Amount:     100.0,
-		CryptoType: "ETH",
-		ProjectID:  project.ID,
-		DonorID:    user.ID,
-	}
-	db.Create(&donation)
+	donation := models.Donation{ID: uuid.New(), Amount: 100.0, CryptoType: "ETH", ProjectID: project.ID, DonorID: user.ID}
+	require.NoError(t, db.Create(&donation).Error)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -142,36 +123,23 @@ func TestGetProjectDonationsHandler_Success(t *testing.T) {
 	c.Set("db", db)
 
 	handlers.GetProjectDonationsHandler(c)
-
-	assert.Equal(t, http.StatusOK, w.Code)
+	require.Equal(t, http.StatusOK, w.Code, "unexpected response: %s", w.Body.String())
 
 	var response []models.DonationInfo
 	err := json.Unmarshal(w.Body.Bytes(), &response)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, response, 1)
 }
 
 func TestGetUserDonationsHandler_Success(t *testing.T) {
-	db := setupDonationTestDB()
+	db := setupDonationTestDB(t)
 	user := models.User{ID: uuid.New(), Name: "Test User", Email: "test@example.com"}
-	project := models.Project{
-		ID:         uuid.New(),
-		Title:      "Test Project",
-		Goal:       1000.0,
-		WalletAddr: "0xdef",
-		UserID:     user.ID,
-	}
-	db.Create(&user)
-	db.Create(&project)
+	project := models.Project{ID: uuid.New(), Title: "Test Project", Goal: 1000.0, WalletAddr: "0xdef", UserID: user.ID}
+	require.NoError(t, db.Create(&user).Error)
+	require.NoError(t, db.Create(&project).Error)
 
-	donation := models.Donation{
-		ID:         uuid.New(),
-		Amount:     100.0,
-		CryptoType: "ETH",
-		ProjectID:  project.ID,
-		DonorID:    user.ID,
-	}
-	db.Create(&donation)
+	donation := models.Donation{ID: uuid.New(), Amount: 100.0, CryptoType: "ETH", ProjectID: project.ID, DonorID: user.ID}
+	require.NoError(t, db.Create(&donation).Error)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -180,17 +148,16 @@ func TestGetUserDonationsHandler_Success(t *testing.T) {
 	c.Set("db", db)
 
 	handlers.GetUserDonationsHandler(c)
-
-	assert.Equal(t, http.StatusOK, w.Code)
+	require.Equal(t, http.StatusOK, w.Code, "unexpected response: %s", w.Body.String())
 
 	var response []models.Donation
 	err := json.Unmarshal(w.Body.Bytes(), &response)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, response, 1)
 }
 
 func TestGetUserDonationsHandler_Unauthorized(t *testing.T) {
-	db := setupDonationTestDB()
+	db := setupDonationTestDB(t)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -198,31 +165,18 @@ func TestGetUserDonationsHandler_Unauthorized(t *testing.T) {
 	c.Set("db", db)
 
 	handlers.GetUserDonationsHandler(c)
-
-	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	require.Equal(t, http.StatusUnauthorized, w.Code, "unexpected response: %s", w.Body.String())
 }
 
 func TestGetDonationByIDHandler_Success(t *testing.T) {
-	db := setupDonationTestDB()
+	db := setupDonationTestDB(t)
 	user := models.User{ID: uuid.New(), Name: "Test User", Email: "test@example.com"}
-	project := models.Project{
-		ID:         uuid.New(),
-		Title:      "Test Project",
-		Goal:       1000.0,
-		WalletAddr: "0xdef",
-		UserID:     user.ID,
-	}
-	db.Create(&user)
-	db.Create(&project)
+	project := models.Project{ID: uuid.New(), Title: "Test Project", Goal: 1000.0, WalletAddr: "0xdef", UserID: user.ID}
+	require.NoError(t, db.Create(&user).Error)
+	require.NoError(t, db.Create(&project).Error)
 
-	donation := models.Donation{
-		ID:         uuid.New(),
-		Amount:     100.0,
-		CryptoType: "ETH",
-		ProjectID:  project.ID,
-		DonorID:    user.ID,
-	}
-	db.Create(&donation)
+	donation := models.Donation{ID: uuid.New(), Amount: 100.0, CryptoType: "ETH", ProjectID: project.ID, DonorID: user.ID}
+	require.NoError(t, db.Create(&donation).Error)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -231,17 +185,16 @@ func TestGetDonationByIDHandler_Success(t *testing.T) {
 	c.Set("db", db)
 
 	handlers.GetDonationByIDHandler(c)
-
-	assert.Equal(t, http.StatusOK, w.Code)
+	require.Equal(t, http.StatusOK, w.Code, "unexpected response: %s", w.Body.String())
 
 	var response models.Donation
 	err := json.Unmarshal(w.Body.Bytes(), &response)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, donation.ID, response.ID)
 }
 
 func TestGetDonationByIDHandler_NotFound(t *testing.T) {
-	db := setupDonationTestDB()
+	db := setupDonationTestDB(t)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -250,6 +203,5 @@ func TestGetDonationByIDHandler_NotFound(t *testing.T) {
 	c.Set("db", db)
 
 	handlers.GetDonationByIDHandler(c)
-
-	assert.Equal(t, http.StatusNotFound, w.Code)
+	require.Equal(t, http.StatusNotFound, w.Code, "unexpected response: %s", w.Body.String())
 }
