@@ -12,20 +12,17 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
 func setupRouterIntegration(t *testing.T) (*gin.Engine, *gorm.DB) {
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("failed to open DB: %v", err)
-	}
+	require.NoError(t, err)
 
 	err = db.AutoMigrate(&models.User{}, &models.Project{})
-	if err != nil {
-		t.Fatalf("failed to migrate DB: %v", err)
-	}
+	require.NoError(t, err)
 
 	router := gin.Default()
 	router.Use(func(c *gin.Context) {
@@ -53,10 +50,8 @@ func setupRouterIntegration(t *testing.T) (*gin.Engine, *gorm.DB) {
 			}
 
 			db := c.MustGet("db").(*gorm.DB)
-
 			var projects []models.Project
-			if err := db.Preload("User").
-				Where("user_id = ?", userID).Find(&projects).Error; err != nil {
+			if err := db.Preload("User").Where("user_id = ?", userID).Find(&projects).Error; err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch your projects"})
 				return
 			}
@@ -75,21 +70,31 @@ func setupRouterIntegration(t *testing.T) (*gin.Engine, *gorm.DB) {
 
 func CreateLoginTest(t *testing.T, router *gin.Engine) string {
 	user := models.RegisterInput{Name: "Teste", Email: "project@example.com", Password: "12345678"}
-	registerBody, _ := json.Marshal(user)
+	registerBody, err := json.Marshal(user)
+	require.NoError(t, err)
+
 	req := httptest.NewRequest(http.MethodPost, "/register", bytes.NewBuffer(registerBody))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
+	require.Equal(t, http.StatusCreated, w.Code)
 
-	loginBody, _ := json.Marshal(user)
+	loginBody, err := json.Marshal(user)
+	require.NoError(t, err)
+
 	req = httptest.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(loginBody))
 	req.Header.Set("Content-Type", "application/json")
 	w = httptest.NewRecorder()
 	router.ServeHTTP(w, req)
+	require.Equal(t, http.StatusOK, w.Code)
 
-	var resp map[string]string
-	_ = json.Unmarshal(w.Body.Bytes(), &resp)
-	return resp["token"]
+	var resp map[string]interface{}
+	err = json.Unmarshal(w.Body.Bytes(), &resp)
+	require.NoError(t, err)
+
+	token, ok := resp["token"].(string)
+	require.True(t, ok, "expected token as string, got: %#v", resp["token"])
+	return token
 }
 
 func CreateTestProject(t *testing.T, router *gin.Engine, token string) string {
@@ -100,20 +105,22 @@ func CreateTestProject(t *testing.T, router *gin.Engine, token string) string {
 		WalletAddr:  "0xwallet",
 		ProjectLink: "github/test",
 	}
-	body, _ := json.Marshal(payload)
+	body, err := json.Marshal(payload)
+	require.NoError(t, err)
+
 	req := httptest.NewRequest(http.MethodPost, "/projects", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+token)
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
+	require.Equal(t, http.StatusCreated, w.Code)
 
 	var res map[string]interface{}
-	_ = json.Unmarshal(w.Body.Bytes(), &res)
+	err = json.Unmarshal(w.Body.Bytes(), &res)
+	require.NoError(t, err)
 
 	id, ok := res["id"].(string)
-	if !ok {
-		t.Fatalf("expected string id, got: %#v", res["id"])
-	}
+	require.True(t, ok, "expected string id, got: %#v", res["id"])
 	return id
 }
 
@@ -128,16 +135,23 @@ func TestCreateProjecHandler(t *testing.T) {
 		WalletAddr:  "0xwallet",
 		ProjectLink: "github/test",
 	}
-	body, _ := json.Marshal(payload)
+	body, err := json.Marshal(payload)
+	require.NoError(t, err)
 
 	req := httptest.NewRequest(http.MethodPost, "/projects", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+token)
-
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
-	assert.Equal(t, http.StatusCreated, w.Code)
+	require.Equal(t, http.StatusCreated, w.Code)
+
+	var res map[string]interface{}
+	err = json.Unmarshal(w.Body.Bytes(), &res)
+	require.NoError(t, err)
+
+	_, ok := res["id"].(string)
+	require.True(t, ok, "expected string id, got: %#v", res["id"])
 }
 
 func TestGetProjectByIDHandler(t *testing.T) {
@@ -149,12 +163,15 @@ func TestGetProjectByIDHandler(t *testing.T) {
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
-	assert.Equal(t, http.StatusOK, w.Code)
+	require.Equal(t, http.StatusOK, w.Code)
 
 	var body map[string]interface{}
 	err := json.Unmarshal(w.Body.Bytes(), &body)
-	assert.NoError(t, err)
-	assert.Equal(t, projectID, body["id"])
+	require.NoError(t, err)
+
+	id, ok := body["id"].(string)
+	require.True(t, ok, "expected string id in response")
+	assert.Equal(t, projectID, id)
 }
 
 func TestUpdateProjectHandler(t *testing.T) {
@@ -166,20 +183,20 @@ func TestUpdateProjectHandler(t *testing.T) {
 		Title: "Updated Title",
 		Goal:  200.0,
 	}
-	body, _ := json.Marshal(updatePayload)
+	body, err := json.Marshal(updatePayload)
+	require.NoError(t, err)
 
 	req := httptest.NewRequest(http.MethodPut, "/projects/"+projectID, bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+token)
-
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
-	assert.Equal(t, http.StatusOK, w.Code)
+	require.Equal(t, http.StatusOK, w.Code)
 
 	var res map[string]interface{}
-	err := json.Unmarshal(w.Body.Bytes(), &res)
-	assert.NoError(t, err)
+	err = json.Unmarshal(w.Body.Bytes(), &res)
+	require.NoError(t, err)
 	assert.Equal(t, "Updated Title", res["title"])
 }
 
@@ -190,16 +207,18 @@ func TestDeleteProjectHandler(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodDelete, "/projects/"+projectID, nil)
 	req.Header.Set("Authorization", "Bearer "+token)
-
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
-	assert.Equal(t, http.StatusOK, w.Code)
+	require.Equal(t, http.StatusOK, w.Code)
 
-	var res map[string]string
+	var res map[string]interface{}
 	err := json.Unmarshal(w.Body.Bytes(), &res)
-	assert.NoError(t, err)
-	assert.Equal(t, "Project deleted sucessfulyy", res["message"])
+	require.NoError(t, err)
+
+	msg, ok := res["message"].(string)
+	require.True(t, ok)
+	assert.Equal(t, "Project deleted sucessfulyy", msg)
 }
 
 func TestGetUserProjectsHandler(t *testing.T) {
@@ -209,14 +228,16 @@ func TestGetUserProjectsHandler(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/user/projects", nil)
 	req.Header.Set("Authorization", "Bearer "+token)
-
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
-	assert.Equal(t, http.StatusOK, w.Code)
+	require.Equal(t, http.StatusOK, w.Code)
 
 	var projects []map[string]interface{}
 	err := json.Unmarshal(w.Body.Bytes(), &projects)
-	assert.NoError(t, err)
-	assert.Len(t, projects, 1)
+	require.NoError(t, err)
+	require.Len(t, projects, 1)
+
+	_, ok := projects[0]["id"].(string)
+	require.True(t, ok, "expected string id in user projects")
 }
