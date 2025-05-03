@@ -11,18 +11,19 @@ import (
 	"github.com/Dnreikronos/crypto-tip/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
-func setupProjectTestDB() *gorm.DB {
-	db, _ := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	_ = db.AutoMigrate(&models.Project{}, &models.User{})
+func setupProjectTestDB(t *testing.T) *gorm.DB {
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	require.NoError(t, err)
+	require.NoError(t, db.AutoMigrate(&models.Project{}, &models.User{}))
 	return db
 }
 
-func createProjectRequestBody() []byte {
+func createProjectRequestBody(t *testing.T) []byte {
 	project := models.ProjectInput{
 		Title:       "Test Project",
 		Description: "This is a test project",
@@ -30,28 +31,28 @@ func createProjectRequestBody() []byte {
 		WalletAddr:  "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
 		ProjectLink: "github/test",
 	}
-	body, _ := json.Marshal(project)
+	body, err := json.Marshal(project)
+	require.NoError(t, err)
 	return body
 }
 
 func TestCreateProjectHandler_Success(t *testing.T) {
-	db := setupProjectTestDB()
+	db := setupProjectTestDB(t)
 	userID := uuid.New()
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
-	c.Request, _ = http.NewRequest("POST", "/projects", bytes.NewBuffer(createProjectRequestBody()))
+	c.Request, _ = http.NewRequest("POST", "/projects", bytes.NewBuffer(createProjectRequestBody(t)))
 	c.Request.Header.Set("Content-Type", "application/json")
 	c.Set("userID", userID.String())
 	c.Set("db", db)
 
 	handlers.CreateProjectHandler(c)
-
-	assert.Equal(t, http.StatusCreated, w.Code)
+	require.Equal(t, http.StatusCreated, w.Code, "unexpected response: %s", w.Body.String())
 }
 
 func TestCreateProjectHandler_InvalidJSON(t *testing.T) {
-	db := setupProjectTestDB()
+	db := setupProjectTestDB(t)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -60,26 +61,24 @@ func TestCreateProjectHandler_InvalidJSON(t *testing.T) {
 	c.Set("db", db)
 
 	handlers.CreateProjectHandler(c)
-
-	assert.Equal(t, http.StatusBadRequest, w.Code)
+	require.Equal(t, http.StatusBadRequest, w.Code, "unexpected response: %s", w.Body.String())
 }
 
 func TestCreateProjectHandler_Unauthorized(t *testing.T) {
-	db := setupProjectTestDB()
+	db := setupProjectTestDB(t)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
-	c.Request, _ = http.NewRequest("POST", "/projects", bytes.NewBuffer(createProjectRequestBody()))
+	c.Request, _ = http.NewRequest("POST", "/projects", bytes.NewBuffer(createProjectRequestBody(t)))
 	c.Request.Header.Set("Content-Type", "application/json")
 	c.Set("db", db)
 
 	handlers.CreateProjectHandler(c)
-
-	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	require.Equal(t, http.StatusUnauthorized, w.Code, "unexpected response: %s", w.Body.String())
 }
 
 func TestUpdateProjectHandler(t *testing.T) {
-	db := setupProjectTestDB()
+	db := setupProjectTestDB(t)
 	userID := uuid.New()
 	project := models.Project{
 		ID:          uuid.New(),
@@ -99,7 +98,9 @@ func TestUpdateProjectHandler(t *testing.T) {
 		WalletAddr:  "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
 		ProjectLink: "github/test",
 	}
-	body, _ := json.Marshal(update)
+	body, err := json.Marshal(update)
+	require.NoError(t, err)
+
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 	c.Request, _ = http.NewRequest("PUT", "/projects/"+project.ID.String(), bytes.NewBuffer(body))
@@ -109,11 +110,11 @@ func TestUpdateProjectHandler(t *testing.T) {
 	c.Params = gin.Params{gin.Param{Key: "id", Value: project.ID.String()}}
 
 	handlers.UpdateProjectHandler(c)
-	assert.Equal(t, http.StatusOK, w.Code)
+	require.Equal(t, http.StatusOK, w.Code, "unexpected response: %s", w.Body.String())
 }
 
 func TestUpdateProjectHandler_NotFound(t *testing.T) {
-	db := setupProjectTestDB()
+	db := setupProjectTestDB(t)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -123,11 +124,11 @@ func TestUpdateProjectHandler_NotFound(t *testing.T) {
 	c.Params = gin.Params{gin.Param{Key: "id", Value: uuid.New().String()}}
 
 	handlers.UpdateProjectHandler(c)
-	assert.Equal(t, http.StatusNotFound, w.Code)
+	require.Equal(t, http.StatusNotFound, w.Code, "unexpected response: %s", w.Body.String())
 }
 
 func TestDeleteProjectHandler_Success(t *testing.T) {
-	db := setupProjectTestDB()
+	db := setupProjectTestDB(t)
 	userID := uuid.New()
 	project := models.Project{
 		ID:          uuid.New(),
@@ -146,11 +147,11 @@ func TestDeleteProjectHandler_Success(t *testing.T) {
 	c.Params = gin.Params{gin.Param{Key: "id", Value: project.ID.String()}}
 
 	handlers.DeleteProjectHandler(c)
-	assert.Equal(t, http.StatusOK, w.Code)
+	require.Equal(t, http.StatusOK, w.Code, "unexpected response: %s", w.Body.String())
 }
 
 func TestDeleteProjectHandler_NotFound(t *testing.T) {
-	db := setupProjectTestDB()
+	db := setupProjectTestDB(t)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -160,11 +161,11 @@ func TestDeleteProjectHandler_NotFound(t *testing.T) {
 	c.Params = gin.Params{gin.Param{Key: "id", Value: uuid.New().String()}}
 
 	handlers.DeleteProjectHandler(c)
-	assert.Equal(t, http.StatusNotFound, w.Code)
+	require.Equal(t, http.StatusNotFound, w.Code, "unexpected response: %s", w.Body.String())
 }
 
 func TestGetAllProjectHandler_Success(t *testing.T) {
-	db := setupProjectTestDB()
+	db := setupProjectTestDB(t)
 	db.Create(&models.Project{ID: uuid.New(), Title: "P1", WalletAddr: "0xabc", Goal: 100, ProjectLink: "github/test"})
 	db.Create(&models.Project{ID: uuid.New(), Title: "P2", WalletAddr: "0xdef", Goal: 200, ProjectLink: "github/test"})
 
@@ -174,11 +175,11 @@ func TestGetAllProjectHandler_Success(t *testing.T) {
 	c.Set("db", db)
 
 	handlers.GetAllProjectHandler(c)
-	assert.Equal(t, http.StatusOK, w.Code)
+	require.Equal(t, http.StatusOK, w.Code, "unexpected response: %s", w.Body.String())
 }
 
 func TestGetProjectByIDHandler_Success(t *testing.T) {
-	db := setupProjectTestDB()
+	db := setupProjectTestDB(t)
 	project := models.Project{
 		ID:          uuid.New(),
 		Title:       "Single Project",
@@ -194,11 +195,11 @@ func TestGetProjectByIDHandler_Success(t *testing.T) {
 	c.Params = gin.Params{gin.Param{Key: "id", Value: project.ID.String()}}
 
 	handlers.GetProjectByIDHandler(c)
-	assert.Equal(t, http.StatusOK, w.Code)
+	require.Equal(t, http.StatusOK, w.Code, "unexpected response: %s", w.Body.String())
 }
 
 func TestGetProjectByIDHandler_NotFound(t *testing.T) {
-	db := setupProjectTestDB()
+	db := setupProjectTestDB(t)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -207,11 +208,11 @@ func TestGetProjectByIDHandler_NotFound(t *testing.T) {
 	c.Params = gin.Params{gin.Param{Key: "id", Value: uuid.New().String()}}
 
 	handlers.GetProjectByIDHandler(c)
-	assert.Equal(t, http.StatusNotFound, w.Code)
+	require.Equal(t, http.StatusNotFound, w.Code, "unexpected response: %s", w.Body.String())
 }
 
 func TestGetUserProjectsHandler_Success(t *testing.T) {
-	db := setupProjectTestDB()
+	db := setupProjectTestDB(t)
 	userID := uuid.New()
 	db.Create(&models.Project{ID: uuid.New(), Title: "U1", UserID: userID, WalletAddr: "0xaaa", ProjectLink: "github/test"})
 	db.Create(&models.Project{ID: uuid.New(), Title: "U2", UserID: uuid.New(), WalletAddr: "0xbbb", ProjectLink: "github/test"})
@@ -223,5 +224,5 @@ func TestGetUserProjectsHandler_Success(t *testing.T) {
 	c.Set("userID", userID)
 
 	handlers.GetUserProjectsHandler(c)
-	assert.Equal(t, http.StatusOK, w.Code)
+	require.Equal(t, http.StatusOK, w.Code, "unexpected response: %s", w.Body.String())
 }
