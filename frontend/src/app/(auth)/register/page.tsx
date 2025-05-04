@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
 
-import { registerUser } from "@/lib/auth";
+import { registerUser } from "../../../lib/auth";
 
 const registerSchema = z
   .object({
