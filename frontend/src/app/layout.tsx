@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Toaster } from 'sonner'
+import Providers from "@/providers/Providers";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 const geistSans = Geist({
@@ -32,22 +33,24 @@ export default function RootLayout({
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
 				suppressHydrationWarning
 			>
-				<AuthProvider>
-					<Navbar />
-					{children}
-					<Toaster
-						position="top-right"
-						toastOptions={{
-							style: {
-								background: 'var(--crypto-dark-2)',
-								color: 'white',
-								border: '1px solid rgba(var(--crypto-glow-rgb), 0.1)',
-							},
-							className: 'crypto-toast',
-						}}
-					/>
-					<Footer />
-				</AuthProvider>
+				<Providers>
+					<AuthProvider>
+						<Navbar />
+						{children}
+						<Toaster
+							position="top-right"
+							toastOptions={{
+								style: {
+									background: 'var(--crypto-dark-2)',
+									color: 'white',
+									border: '1px solid rgba(var(--crypto-glow-rgb), 0.1)',
+								},
+								className: 'crypto-toast',
+							}}
+						/>
+						<Footer />
+					</AuthProvider>
+				</Providers>
 			</body>
 		</html>
 	);
