@@ -1,25 +1,25 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { PROTECTED_ROUTES, PUBLIC_ROUTES } from '@/config';
 
-// Rotas que exigem autenticação
-const protectedRoutes = [
-  '/my-projects',
-  '/donation',
-  '/create-project',
-];
-
-// Rotas públicas (não redirecionar caso já esteja autenticado)
-const publicRoutes = [
-  '/login',
-  '/register',
-  '/'
-];
+const protectedRoutes = PROTECTED_ROUTES;
+const publicRoutes = PUBLIC_ROUTES;
 
 export function middleware(request: NextRequest) {
   const token = request.cookies.get('token')?.value || 
                 request.headers.get('authorization')?.replace('Bearer ', '');
   
   const { pathname } = request.nextUrl;
+  
+  // Skip middleware on api routes and static files
+  if (pathname.includes('/_next') || 
+      pathname.includes('/api') || 
+      pathname.includes('/static') || 
+      pathname.includes('/images') ||
+      pathname.includes('/favicon.ico')) {
+    return NextResponse.next();
+  }
+  
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
 
@@ -40,12 +40,13 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
+     * - _next (Next.js internals)
+     * - static (static files)
      * - favicon.ico (favicon file)
+     * - images (image files)
      * - public folder
      * - api routes
      */
-    '/((?!_next/static|_next/image|favicon.ico|public|api).*)',
+    '/((?!_next|static|favicon.ico|images|public|api).*)',
   ],
 };

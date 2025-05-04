@@ -1,4 +1,5 @@
 import { API_URL } from "@/config";
+import Cookies from 'js-cookie';
 
 export interface User {
   id: string;
@@ -7,27 +8,19 @@ export interface User {
   verified: boolean;
 }
 
-export interface AuthResponse {
+export interface LoginResponse {
   token: string;
-  user: User;
 }
 
-export async function loginUser({ 
-  email, 
-  password, 
-  rememberMe 
-}: { 
-  email: string;
-  password: string;
-  rememberMe: boolean;
-}): Promise<AuthResponse> {
+
+export async function loginUser({ email, password }: { email: string; password: string;}): Promise<LoginResponse> {
   const response = await fetch(`${API_URL}/login`, {
     method: "POST",
-    headers: {
+    headers: { 
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ email, password, rememberMe }),
-    credentials: "include",
+    body: JSON.stringify({ email, password }),
+    credentials: 'include', 
   });
 
   if (!response.ok) {
@@ -35,7 +28,18 @@ export async function loginUser({
     throw new Error(error.error || "Authentication failed");
   }
 
-  return response.json();
+  const data = await response.json();
+  
+  if (data.token) {
+    Cookies.set('token', data.token, {
+      path: '/',
+      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production',
+      expires: 1, // 1 day
+    });
+  }
+
+  return data;
 }
 
 export async function registerUser({
@@ -53,6 +57,7 @@ export async function registerUser({
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ name, email, password }),
+    credentials: 'include', 
   });
 
   if (!response.ok) {
@@ -63,23 +68,14 @@ export async function registerUser({
   return response.json();
 }
 
-export async function logoutUser(): Promise<void> {
-  try {
-    await fetch(`${API_URL}/logout`, {
-      method: "POST",
-      credentials: "include",
-    });
-  } catch (error) {
-    console.error("Error logging out from server:", error);
-  }
 
-  localStorage.removeItem("token");
-  document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+export async function logoutUser(): Promise<void> {
+  Cookies.remove('token', { path: '/' });
 }
 
 export async function getCurrentUser(): Promise<User | null> {
   try {
-    const token = localStorage.getItem("token");
+    const token = Cookies.get('token');
     
     if (!token) {
       return null;
@@ -88,12 +84,13 @@ export async function getCurrentUser(): Promise<User | null> {
     const response = await fetch(`${API_URL}/profile`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${token}`,
+        "Authorization": `Bearer ${token}`,
       },
-      credentials: "include", 
+      credentials: 'include', 
     });
 
     if (!response.ok) {
+      Cookies.remove('token', { path: '/' });
       throw new Error("Failed to fetch current user");
     }
 
@@ -102,4 +99,12 @@ export async function getCurrentUser(): Promise<User | null> {
     console.error("Error fetching user:", error);
     return null;
   }
+}
+
+export async function isAuthenticated(): Promise<boolean> {
+  return !!Cookies.get('token');
+}
+
+export async function getToken(): Promise<string | undefined> {
+  return Cookies.get('token');
 }

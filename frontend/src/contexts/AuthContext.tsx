@@ -1,13 +1,20 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { useRouter } from "next/navigation";
-import { User, loginUser, logoutUser, getCurrentUser } from "@/lib/auth";
+import { useRouter, usePathname } from "next/navigation";
+import { 
+  User, 
+  loginUser, 
+  logoutUser, 
+  getCurrentUser, 
+  getToken
+} from "../lib/auth";
+import {  PUBLIC_ROUTES } from "@/config";
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string, rememberMe: boolean) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   checkAuth: () => Promise<boolean>;
@@ -27,13 +34,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
 
   const checkAuth = async (): Promise<boolean> => {
     try {
       setLoading(true);
+      
+      const token = await getToken();
+      if (!token) {
+        setUser(null);
+        return false;
+      }
+      
       const userData = await getCurrentUser();
 
       if (!userData) {
+        setUser(null);
         return false;
       }
 
@@ -41,20 +57,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return true;
     } catch (error) {
       console.error("Error checking authentication:", error);
+      setUser(null);
       return false;
     } finally {
       setLoading(false);
     }
   };
 
-  const login = async (email: string, password: string, rememberMe: boolean): Promise<void> => {
+  const login = async (email: string, password: string): Promise<void> => {
     try {
-      const response = await loginUser({ email, password, rememberMe });
-
-      // Save token in localStorage
-      localStorage.setItem("token", response.token);
-
-      setUser(response.user);
+      await loginUser({ email, password });
+      
+      await checkAuth();
+      
     } catch (error) {
       console.error("Error logging in:", error);
       throw error;
@@ -63,16 +78,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async (): Promise<void> => {
     try {
-      await logoutUser();
+      await logoutUser(); // Removes the cookie
       setUser(null);
-      router.push("/login");
+      
+      if (!PUBLIC_ROUTES.some(route => pathname?.startsWith(route))) {
+        router.push("/login");
+      }
     } catch (error) {
       console.error("Error logging out:", error);
       throw error;
     }
   };
 
-  // Check authentication on page load
   useEffect(() => {
     const verifyAuth = async () => {
       await checkAuth();
