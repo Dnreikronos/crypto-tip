@@ -158,7 +158,12 @@ func GetProjectByIDHandler(c *gin.Context) {
 }
 
 func GetUserProjectsHandler(c *gin.Context) {
-	userID := c.MustGet("userID").(uuid.UUID)
+	userIDStr := c.MustGet("userID").(string)
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID"})
+		return
+	}
 	db := c.MustGet("db").(*gorm.DB)
 
 	var projects []models.Project
