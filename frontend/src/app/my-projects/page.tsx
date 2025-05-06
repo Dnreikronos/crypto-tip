@@ -1,4 +1,3 @@
-// page.tsx
 import { PageHeader } from '@/components/ui/PageHeader';
 import AnimatedBackground from '@/components/ui/AnimatedBackground';
 import ProjectsContent from './ProjectsContent';
