@@ -221,7 +221,7 @@ func TestGetUserProjectsHandler_Success(t *testing.T) {
 	c, _ := gin.CreateTestContext(w)
 	c.Request, _ = http.NewRequest("GET", "/projects/user", nil)
 	c.Set("db", db)
-	c.Set("userID", userID)
+	c.Set("userID", userID.String())
 
 	handlers.GetUserProjectsHandler(c)
 	require.Equal(t, http.StatusOK, w.Code, "unexpected response: %s", w.Body.String())
