@@ -13,7 +13,7 @@ import {
 	TableRow
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Project } from '@/app/my-projects/_data/projects';
+import { Project } from '@/app/my-projects/getProjects';
 
 interface ProjectsTableProps {
 	initialProjects: Project[];
