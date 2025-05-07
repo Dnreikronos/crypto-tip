@@ -13,6 +13,7 @@ const ProjectSchema = z.object({
 });
 
 const ProjectsSchema = z.array(ProjectSchema);
+export type Project = z.infer<typeof ProjectSchema>;
 
 export async function getProjects() {
 	if (typeof window === 'undefined') {
