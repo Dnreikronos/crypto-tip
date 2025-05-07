@@ -76,7 +76,7 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
 									</div>
 								</TableCell>
 								<TableCell>
-									{new Date(project.createdAt).toLocaleDateString('en-US', {
+									{new Date(project.created_at).toLocaleDateString('en-US', {
 										year: 'numeric',
 										month: 'short',
 										day: 'numeric'
