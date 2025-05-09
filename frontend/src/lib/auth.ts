@@ -101,6 +101,11 @@ export async function getCurrentUser(): Promise<User | null> {
 	}
 }
 
+export async function getAuthHeaders(): Promise<HeadersInit> {
+	const token = await getToken();
+	return token ? { 'Authorization': `Bearer ${token}` } : {};
+  }
+
 export async function isAuthenticated(): Promise<boolean> {
 	return !!Cookies.get('token');
 }

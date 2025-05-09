@@ -10,7 +10,7 @@ interface ProjectPreviewProps {
 		description: string;
 		goal: number;
 		raised: number;
-		walletAddr: string;
+		wallet_addr: string;
 	};
 	onBack: () => void;
 }
@@ -19,7 +19,7 @@ export function ProjectPreview({ project, onBack }: ProjectPreviewProps) {
 	const progress = project.goal > 0 ? (project.raised / project.goal) * 100 : 0;
 
 	function copyToClipboard() {
-		navigator.clipboard.writeText(project.walletAddr)
+		navigator.clipboard.writeText(project.wallet_addr)
 			.then(() => {
 				toast.success("Wallet address copied to clipboard")
 			})
@@ -120,7 +120,7 @@ export function ProjectPreview({ project, onBack }: ProjectPreviewProps) {
 				<h3 className="text-lg font-bold mb-4 text-white">Wallet Address</h3>
 				<div className="flex items-center justify-between bg-gray-900 p-3 rounded-lg border border-gray-700">
 					<code className="text-sm text-gray-400 font-mono truncate">
-						{project.walletAddr}
+						{project.wallet_addr}
 					</code>
 					<Button
 						variant="ghost"

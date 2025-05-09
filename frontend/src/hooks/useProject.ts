@@ -1,0 +1,72 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { 
+  createProject, 
+  getProjects, 
+  getProject, 
+  updateProject, 
+  deleteProject,
+  ProjectInput,
+  ProjectResponse
+} from '@/services/projectService';
+
+const PROJECTS_KEY = ['projects'] as const;
+const PROJECT_KEY = (id: string) => ['projects', id] as const;
+
+/** CREATE */
+export function useCreateProject() {
+  const queryClient = useQueryClient();
+
+  return useMutation<ProjectResponse, Error, ProjectInput>({
+    mutationFn: createProject,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PROJECTS_KEY });
+    },
+  });
+}
+
+/** READ ALL */
+export function useProjects() {
+  return useQuery<ProjectResponse[], Error>({
+    queryKey: PROJECTS_KEY,
+    queryFn: getProjects,
+  });
+}
+
+/** READ ONE */
+export function useProject(id: string) {
+  return useQuery<ProjectResponse, Error>({
+    queryKey: PROJECT_KEY(id),
+    queryFn: () => getProject(id),
+    enabled: Boolean(id),
+  });
+}
+
+/** UPDATE */
+export function useUpdateProject() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    ProjectResponse,           // return type
+    Error,                     // error type
+    { id: string; data: Partial<ProjectInput> } // variables
+  >({
+    mutationFn: ({ id, data }) => updateProject(id, data),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(PROJECT_KEY(updated.id), updated);
+      queryClient.invalidateQueries({ queryKey: PROJECTS_KEY });
+    },
+  });
+}
+
+/** DELETE */
+export function useDeleteProject() {
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, string>({
+    mutationFn: deleteProject,
+    onSuccess: (_, deletedId) => {
+      queryClient.removeQueries({ queryKey: PROJECT_KEY(deletedId) });
+      queryClient.invalidateQueries({ queryKey: PROJECTS_KEY });
+    },
+  });
+}
