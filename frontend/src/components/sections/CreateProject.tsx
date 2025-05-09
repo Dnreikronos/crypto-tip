@@ -66,7 +66,7 @@ export default function CreateProjectPage() {
   const { mutate: createProjectMutation, isPending } = useCreateProject()
 
   function onSubmit(values: FormValues) {
-    const { accept_terms: _, ...projectData } = values
+    const { accept_terms: _, ...projectData } = values // eslint-disable-line @typescript-eslint/no-unused-vars
     
     createProjectMutation(projectData, {
       onSuccess: () => {
