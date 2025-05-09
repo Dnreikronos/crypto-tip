@@ -26,7 +26,6 @@ import { useCreateProject } from '@/hooks/useProject'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 
-// Define validation schema with Zod
 const projectSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters long" }),
   description: z.string().min(10, { message: "Description must be at least 10 characters long" }),
@@ -64,11 +63,9 @@ export default function CreateProjectPage() {
 
   const formValues = form.watch()
 
-  // Use the project service hook instead of inline mutation
   const { mutate: createProjectMutation, isPending } = useCreateProject()
 
   function onSubmit(values: FormValues) {
-    // Destructure accept_terms out as it's not needed in the API payload
     const { accept_terms: _, ...projectData } = values
     
     createProjectMutation(projectData, {
@@ -90,7 +87,6 @@ export default function CreateProjectPage() {
           { duration: 3000 }
         )
         
-        // Redirect to creator tip page after successful creation
         setTimeout(() => router.push('/my-projects'), 1500)
       },
       onError: (error) => {
