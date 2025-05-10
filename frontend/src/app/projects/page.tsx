@@ -1,7 +1,7 @@
 'use client';
 
 
-import TableSkeleton from '@/components/ui/TableSkeleton';
+
 import ProjectsContent from './ProjectsContent';
 import AnimatedBackground from '@/components/ui/AnimatedBackground';
 
