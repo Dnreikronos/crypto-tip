@@ -17,10 +17,10 @@ export default function ProjectsContent() {
 
 function Projects() {
 	const { data: projects } = useSuspenseQuery({
-		queryKey: ['projects'],
+		queryKey: ['my-projects'],
 		queryFn: getProjects,
 	});
 
 	if (projects.length === 0) return <EmptyState />;
-	return <ProjectsTable initialProjects={projects} />;
+	return <ProjectsTable initialProjects={projects} isMyProjects={true} />;
 }
