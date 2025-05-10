@@ -6,37 +6,37 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
-  children: ReactNode;
+	children: ReactNode;
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, loading, checkAuth } = useAuth();
-  const router = useRouter();
+	const { isAuthenticated, loading, checkAuth } = useAuth();
+	const router = useRouter();
 
-  useEffect(() => {
-    const verifyAuth = async () => {
-      const authenticated = await checkAuth();
-      if (!authenticated) {
-        router.push("/login");
-      }
-    };
+	useEffect(() => {
+		const verifyAuth = async () => {
+			const authenticated = await checkAuth();
+			if (!authenticated) {
+				router.push("/login");
+			}
+		};
 
-    if (!isAuthenticated && !loading) {
-      verifyAuth();
-    }
-  }, [isAuthenticated, loading, router, checkAuth]);
+		if (!isAuthenticated && !loading) {
+			verifyAuth();
+		}
+	}, [isAuthenticated, loading, router, checkAuth]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 text-primary animate-spin" />
-      </div>
-    );
-  }
+	if (loading) {
+		return (
+			<div className="flex items-center justify-center min-h-screen">
+				<Loader2 className="h-8 w-8 text-primary animate-spin" />
+			</div>
+		);
+	}
 
-  if (!isAuthenticated) {
-    return null; // Não renderiza nada enquanto redireciona
-  }
+	if (!isAuthenticated) {
+		return null; // Não renderiza nada enquanto redireciona
+	}
 
-  return <>{children}</>;
+	return <>{children}</>;
 }
