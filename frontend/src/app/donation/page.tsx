@@ -27,7 +27,7 @@ export default function DonationPage() {
 
 					<div className="lg:col-span-8 space-y-6">
 						<Suspense fallback={<div className="h-96 bg-gray-900/60 rounded-lg animate-pulse"></div>}>
-							<SupportForm />
+							<SupportForm project={null} />
 						</Suspense>
 
 					</div>
