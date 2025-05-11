@@ -15,7 +15,6 @@ export default function DonationPageClient({ project }: DonationPageClientProps)
 	return (
 		<div className="pt-20 pb-16 w-full bg-black text-white relative">
 			<AnimatedBackground />
-
 			<div className="container max-w-6xl mx-auto px-4 md:px-6 lg:px-8 relative z-10">
 				<h1 className="text-3xl md:text-4xl font-bold mb-6 md:mb-10 text-center bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
 					{project ? `Support ${project.title}` : 'Support Open-Source Development'}
