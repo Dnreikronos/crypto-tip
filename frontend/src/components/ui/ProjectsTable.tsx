@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+
 import { motion } from 'framer-motion';
-import { Eye, Edit, Trash2 } from 'lucide-react';
+import { Eye, Edit, Trash2, Gift } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
 	Table,
@@ -13,10 +13,28 @@ import {
 	TableRow
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Project } from '@/app/my-projects/getProjects';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Project as MyProject } from '@/app/my-projects/getProjects';
+import Cookies from 'js-cookie';
+import { useRouter } from 'next/navigation';
+
+// Extended project type for all projects view
+interface Project extends Omit<MyProject, 'created_at'> {
+	wallet_addr: string;
+	project_link?: string;
+	repo_link?: string;
+	created_at: string; // String for all projects, Date for my projects
+	updated_at: string;
+	user?: {
+		id: string;
+		name: string;
+		email: string;
+	};
+}
 
 interface ProjectsTableProps {
-	initialProjects: Project[];
+	initialProjects: (Project | MyProject)[];
+	isMyProjects?: boolean;
 }
 
 const itemVariants = {
@@ -24,13 +42,63 @@ const itemVariants = {
 	visible: { opacity: 1, y: 0 }
 };
 
-export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
-	const [projects, setProjects] = useState<Project[]>(initialProjects);
+async function deleteProject(id: string) {
+	const token = Cookies.get('token');
+	const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${id}`, {
+		method: 'DELETE',
+		headers: {
+			'Content-Type': 'application/json',
+			...(token && { Authorization: `Bearer ${token}` }),
+		},
+		credentials: 'include',
+	});
 
-	function handleDeleteProject(id: string) {
-		setProjects(projects.filter(project => project.id !== id));
-		toast.success("Project deleted successfully");
+	if (!response.ok) {
+		throw new Error('Failed to delete project');
 	}
+
+	return { id };
+}
+
+export function ProjectsTable({ initialProjects, isMyProjects = false }: ProjectsTableProps) {
+	const queryClient = useQueryClient();
+	const router = useRouter();
+
+	const { mutate: handleDelete } = useMutation({
+		mutationFn: deleteProject,
+		onMutate: async (id) => {
+			// Cancel outgoing refetches
+			await queryClient.cancelQueries({ queryKey: isMyProjects ? ['my-projects'] : ['projects'] });
+
+			// Snapshot the previous value
+			const previousProjects = queryClient.getQueryData(isMyProjects ? ['my-projects'] : ['projects']);
+
+			// Optimistically update to the new value
+			queryClient.setQueryData(isMyProjects ? ['my-projects'] : ['projects'], (old: (Project | MyProject)[] = []) => 
+				old.filter(project => project.id !== id)
+			);
+
+			return { previousProjects };
+		},
+		onError: (err, variables, context) => {
+			// Rollback on error
+			if (context?.previousProjects) {
+				queryClient.setQueryData(isMyProjects ? ['my-projects'] : ['projects'], context.previousProjects);
+			}
+			toast.error("Failed to delete project");
+		},
+		onSuccess: () => {
+			toast.success("Project deleted successfully");
+		},
+		onSettled: () => {
+			// Always refetch after error or success
+			queryClient.invalidateQueries({ queryKey: isMyProjects ? ['my-projects'] : ['projects'] });
+		},
+	});
+
+	const handleDonate = (projectId: string) => {
+		router.push(`/donation?projectId=${projectId}`);
+	};
 
 	return (
 		<motion.div
@@ -51,8 +119,12 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{projects.map((project: Project) => {
-						const progress = project.goal > 0 ? (project.raised / project.goal) * 100 : 0;
+					{initialProjects.map((project) => {
+						const raised = project.raised || 0;
+						const progress = project.goal > 0 ? (raised / project.goal) * 100 : 0;
+						const createdAt = project.created_at instanceof Date 
+							? project.created_at 
+							: new Date(project.created_at);
 
 						return (
 							<TableRow key={project.id} className="hover:bg-purple-500/5 border-b border-purple-500/10">
@@ -63,7 +135,7 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
 									</div>
 								</TableCell>
 								<TableCell>{project.goal.toFixed(2)}</TableCell>
-								<TableCell className="text-cyan-400">{project.raised.toFixed(2)}</TableCell>
+								<TableCell className="text-cyan-400">{raised.toFixed(2)}</TableCell>
 								<TableCell>
 									<div className="flex items-center gap-2">
 										<div className="w-full bg-gray-800 rounded-full h-2 overflow-hidden">
@@ -76,7 +148,7 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
 									</div>
 								</TableCell>
 								<TableCell>
-									{new Date(project.created_at).toLocaleDateString('en-US', {
+									{createdAt.toLocaleDateString('en-US', {
 										year: 'numeric',
 										month: 'short',
 										day: 'numeric'
@@ -84,6 +156,17 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
 								</TableCell>
 								<TableCell className="text-right">
 									<div className="flex justify-end gap-2">
+										{!isMyProjects && (
+											<Button
+												variant="ghost"
+												size="icon"
+												className="h-8 w-8 text-gray-400 hover:text-green-400 hover:bg-green-400/5"
+												title="Donate"
+												onClick={() => handleDonate(project.id)}
+											>
+												<Gift className="h-4 w-4" />
+											</Button>
+										)}
 										<Button
 											variant="ghost"
 											size="icon"
@@ -92,23 +175,27 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
 										>
 											<Eye className="h-4 w-4" />
 										</Button>
-										<Button
-											variant="ghost"
-											size="icon"
-											className="h-8 w-8 text-gray-400 hover:text-purple-400 hover:bg-purple-400/5"
-											title="Edit"
-										>
-											<Edit className="h-4 w-4" />
-										</Button>
-										<Button
-											variant="ghost"
-											size="icon"
-											className="h-8 w-8 text-gray-400 hover:text-red-400 hover:bg-red-400/5"
-											title="Delete"
-											onClick={() => handleDeleteProject(project.id)}
-										>
-											<Trash2 className="h-4 w-4" />
-										</Button>
+										{isMyProjects && (
+											<Button
+												variant="ghost"
+												size="icon"
+												className="h-8 w-8 text-gray-400 hover:text-purple-400 hover:bg-purple-400/5"
+												title="Edit"
+											>
+												<Edit className="h-4 w-4" />
+											</Button>
+										)}
+										{isMyProjects && (
+											<Button
+												variant="ghost"
+												size="icon"
+												className="h-8 w-8 text-gray-400 hover:text-red-400 hover:bg-red-400/5"
+												title="Delete"
+												onClick={() => handleDelete(project.id)}
+											>
+												<Trash2 className="h-4 w-4" />
+											</Button>
+										)}
 									</div>
 								</TableCell>
 							</TableRow>
