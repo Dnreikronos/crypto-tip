@@ -1,8 +1,3 @@
-import { Suspense } from 'react';
-import ProfileCard from '@/components/ui/ProfileCard';
-import SupportForm from '@/components/ui/DonationForm';
-import RecentSupporters from '@/components/ui/RecentSupporters';
-import AnimatedBackground from '@/components/ui/AnimatedBackground';
 import DonationPageClient from './DonationPageClient';
 import { getProject } from '@/services/projectService';
 
