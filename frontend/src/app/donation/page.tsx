@@ -2,6 +2,7 @@ import DonationPageClient from './DonationPageClient';
 import { getProject } from '@/services/projectService';
 
 interface DonationPageProps {
+	params: { [key: string]: string | string[] | undefined };
 	searchParams: { [key: string]: string | string[] | undefined };
 }
 
