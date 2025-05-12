@@ -7,27 +7,56 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import type { ProjectResponse } from '@/services/projectService';
+import { createDonation } from '@/services/donationService';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 interface DonationFormProps {
 	project: ProjectResponse | null;
 }
 
 export default function DonationForm({ project }: DonationFormProps) {
+	const router = useRouter();
 	const [amount, setAmount] = useState(50);
 	const [currency, setCurrency] = useState('ethereum');
 	const [showPublicly, setShowPublicly] = useState(true);
+	const [message, setMessage] = useState('');
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const usdEquivalent = currency === 'ethereum' ? amount * 30 :
 		currency === 'bitcoin' ? amount * 60000 :
 			amount * 100;
 
-	function handleSend() {
-		console.log('Sending tip:', { 
-			amount, 
-			currency, 
-			showPublicly,
-			projectId: project?.id 
-		});
+	async function handleSend() {
+		if (!project) {
+			toast.error('No project selected');
+			return;
+		}
+
+		try {
+			setIsSubmitting(true);
+			//TODO: replace with actual tx hash and from address
+			const mockTxHash = '0x' + Math.random().toString(36).substring(2, 15);
+			const mockFromAddr = '0x' + Math.random().toString(36).substring(2, 15);
+
+			await createDonation({
+				amount: amount,
+				crypto_type: currency,
+				tx_hash: mockTxHash,
+				from_addr: mockFromAddr,
+				message: message,
+				anonymous: !showPublicly,
+				project_id: project.id
+			});
+
+			toast.success('Donation sent successfully!');
+			router.refresh(); // Refresh the page to update the project's raised amount
+		} catch (error) {
+			console.error('Error sending donation:', error);
+			toast.error('Failed to send donation. Please try again.');
+		} finally {
+			setIsSubmitting(false);
+		}
 	}
 
 	return (
@@ -207,6 +236,8 @@ export default function DonationForm({ project }: DonationFormProps) {
 						<Textarea
 							placeholder="Write a message of support..."
 							className="bg-gray-800 border-gray-700 resize-none h-24"
+							value={message}
+							onChange={(e) => setMessage(e.target.value)}
 						/>
 					</motion.div>
 				</motion.div>
@@ -223,20 +254,27 @@ export default function DonationForm({ project }: DonationFormProps) {
 						<Button
 							onClick={handleSend}
 							className="cursor-pointer w-full py-6 text-lg bg-gradient-to-r from-purple-500 to-cyan-500 hover:opacity-90 transition-opacity"
+							disabled={isSubmitting}
 						>
 							<motion.div className="flex items-center justify-center">
-								Send {amount} {currency === 'ethereum' ? 'ETH' : currency === 'bitcoin' ? 'BTC' : 'SOL'} Tip
-								<motion.svg
-									className="ml-2 h-5 w-5"
-									fill="none"
-									viewBox="0 0 24 24"
-									stroke="currentColor"
-									initial={{ x: 0 }}
-									whileHover={{ x: 5 }}
-									transition={{ type: "spring", stiffness: 400 }}
-								>
-									<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-								</motion.svg>
+								{isSubmitting ? (
+									'Processing...'
+								) : (
+									<>
+										Send {amount} {currency === 'ethereum' ? 'ETH' : currency === 'bitcoin' ? 'BTC' : 'SOL'} Tip
+										<motion.svg
+											className="ml-2 h-5 w-5"
+											fill="none"
+											viewBox="0 0 24 24"
+											stroke="currentColor"
+											initial={{ x: 0 }}
+											whileHover={{ x: 5 }}
+											transition={{ type: "spring", stiffness: 400 }}
+										>
+											<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+										</motion.svg>
+									</>
+								)}
 							</motion.div>
 						</Button>
 					</motion.div>
