@@ -1,15 +1,16 @@
 import DonationPageClient from './DonationPageClient';
 import { getProject } from '@/services/projectService';
 
-interface DonationPageProps {
-	params: { [key: string]: string | string[] | undefined };
-	searchParams: { [key: string]: string | string[] | undefined };
+type SearchParamsType = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default async function DonationPage({
+  searchParams,
+}: {
+  searchParams: SearchParamsType;
+}) {
+  const resolvedParams = await searchParams;
+  const projectId = resolvedParams.projectId as string;
+  const project = projectId ? await getProject(projectId) : null;
+
+  return <DonationPageClient project={project} />;
 }
-
-export default async function DonationPage({ searchParams }: DonationPageProps) {
-	const projectId = searchParams.projectId as string;
-	const project = projectId ? await getProject(projectId) : null;
-
-	return <DonationPageClient project={project} />;
-}
-
