@@ -14,7 +14,6 @@ export default async function DonationPage({ searchParams }: DonationPageProps) 
 		try {
 			project = await getProject(projectId);
 		} catch (error) {
-			console.error('Error fetching project:', error);
 			// Project will remain null if there's an error
 		}
 	}
