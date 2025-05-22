@@ -181,6 +181,7 @@ export function ProjectsTable({ initialProjects, isMyProjects = false }: Project
 												size="icon"
 												className="h-8 w-8 text-gray-400 hover:text-purple-400 hover:bg-purple-400/5"
 												title="Edit"
+												onClick={() => router.push(`/edit-project/${project.id}`)}
 											>
 												<Edit className="h-4 w-4" />
 											</Button>

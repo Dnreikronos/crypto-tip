@@ -1,12 +1,14 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
+import { useProject, useUpdateProject } from '@/hooks/useProject'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
-import { Coins, ArrowRight } from 'lucide-react'
+import { Coins, ArrowRight, Sparkles } from 'lucide-react'
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -34,34 +36,81 @@ const projectSchema = z.object({
 type FormValues = z.infer<typeof projectSchema>
 
 export default function EditProject() {
-  const mockProject = {
-    title: 'Mock Project Title',
-    description: 'This is a mock project description for UI testing purposes.',
-    goal: 100,
-    raised: 25,
-    wallet_addr: '0x1234567890abcdef1234567890abcdef12345678',
-    project_link: 'https://example.com',
-    repo_link: 'https://github.com/example/mock',
-  }
+  const router = useRouter()
+  const params = useParams()
+  const rawId = params.id
+  const projectId = Array.isArray(rawId) ? rawId[0] : rawId ?? ''
+  const { data: project, isLoading: isProjectLoading, isError, error } = useProject(projectId)
+  const { mutate: updateProjectMutation, isPending: isUpdating } = useUpdateProject()
 
   const [previewMode, setPreviewMode] = useState(false)
 
   const form = useForm<FormValues>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
-      title: mockProject.title,
-      description: mockProject.description,
-      goal: mockProject.goal.toString(),
-      wallet_addr: mockProject.wallet_addr,
-      project_link: mockProject.project_link,
-      repo_link: mockProject.repo_link,
-      accept_terms: true,
+      title: '',
+      description: '',
+      goal: '',
+      wallet_addr: '',
+      project_link: '',
+      repo_link: '',
+      accept_terms: false,
     },
   })
 
+  useEffect(() => {
+    if (project) {
+      form.reset({
+        title: project.title,
+        description: project.description,
+        goal: project.goal.toString(),
+        wallet_addr: project.wallet_addr,
+        project_link: project.project_link,
+        repo_link: project.repo_link,
+        accept_terms: false,
+      })
+    }
+  }, [project, form])
+
   function onSubmit(values: FormValues) {
-    console.log('Mock submit', values)
-    toast.success('Mock save successful!')
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { accept_terms, ...projectData } = values
+    updateProjectMutation(
+      { id: projectId, data: projectData },
+      {
+        onSuccess: () => {
+          toast.custom(
+            () => (
+              <motion.div
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -50 }}
+                className="bg-gradient-to-r from-cyan-500/90 to-purple-500/90 p-4 rounded-lg shadow-lg border border-white/10 flex items-center"
+              >
+                <Sparkles className="h-5 w-5 mr-3 text-white" />
+                <span className="text-white font-medium">Project updated successfully!</span>
+              </motion.div>
+            ),
+            { duration: 3000 }
+          )
+          setTimeout(() => router.push('/my-projects'), 1500)
+        },
+        onError: (error) => {
+          toast.error(`Failed to update project: ${error.message}`)
+        },
+      }
+    )
+  }
+
+  // Loading & error states
+  if (isProjectLoading) {
+    return <div className="min-h-screen flex items-center justify-center text-white">Loading project...</div>
+  }
+  if (isError) {
+    return <div className="min-h-screen flex items-center justify-center text-red-500">Error: {error.message}</div>
+  }
+  if (!project) {
+    return <div className="min-h-screen flex items-center justify-center text-white">Project not found</div>
   }
 
   function togglePreview() {
@@ -127,11 +176,11 @@ export default function EditProject() {
             >
               <ProjectPreview
                 project={{
-                  title: formValues.title || mockProject.title,
-                  description: formValues.description || mockProject.description,
-                  goal: parseFloat(formValues.goal) || mockProject.goal,
-                  raised: mockProject.raised,
-                  wallet_addr: formValues.wallet_addr || mockProject.wallet_addr,
+                  title: formValues.title || project.title,
+                  description: formValues.description || project.description,
+                  goal: parseFloat(formValues.goal) || project.goal,
+                  raised: project.raised,
+                  wallet_addr: formValues.wallet_addr || project.wallet_addr,
                 }}
                 onBack={togglePreview}
               />
@@ -314,7 +363,7 @@ export default function EditProject() {
                       <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                         <Button
                           type="submit"
-                          disabled={false}
+                          disabled={isUpdating}
                           className="bg-gradient-to-r from-purple-500 to-cyan-500 text-white hover:shadow-lg hover:shadow-cyan-500/20 transition-all px-8 py-2 cursor-pointer relative overflow-hidden group"
                         >
                           <span className="relative z-10">Save Changes</span>
