@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Coins, LogOut } from 'lucide-react';
 import { getCurrentUser, logoutUser, User } from '@/lib/auth';
+import { ButtonConnectWallet } from '@/components/ButtonConnectWallet';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -61,6 +62,7 @@ export default function Navbar() {
           </Link>
 
           <div className="hidden md:flex items-center space-x-4">
+            <ButtonConnectWallet />
             {user ? (
               <button
                 onClick={handleLogout}
@@ -103,6 +105,7 @@ export default function Navbar() {
             className="md:hidden bg-gray-900/95 backdrop-blur-lg"
           >
             <div className="px-4 py-6 space-y-4">
+              <ButtonConnectWallet />
               {user ? (
                 <button
                   onClick={() => {

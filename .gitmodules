@@ -1,0 +1,6 @@
+[submodule "crypto/crypto/lib/forge-std"]
+	path = crypto/crypto/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
+[submodule "crypto/lib/forge-std"]
+	path = crypto/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std

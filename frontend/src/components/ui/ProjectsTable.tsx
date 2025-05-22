@@ -170,7 +170,7 @@ export function ProjectsTable({ initialProjects, isMyProjects = false }: Project
 										<Button
 											variant="ghost"
 											size="icon"
-											className="h-8 w-8 text-gray-400 hover:text-cyan-400 hover:bg-cyan-400/5"
+											className="h-8 w-8 text-gray-400 hover:text-cyan-400 hover:bg-cyan-400/5 cursor-pointer"
 											title="View"
 										>
 											<Eye className="h-4 w-4" />
@@ -179,8 +179,9 @@ export function ProjectsTable({ initialProjects, isMyProjects = false }: Project
 											<Button
 												variant="ghost"
 												size="icon"
-												className="h-8 w-8 text-gray-400 hover:text-purple-400 hover:bg-purple-400/5"
+												className="h-8 w-8 text-gray-400 hover:text-purple-400 hover:bg-purple-400/5 cursor-pointer"
 												title="Edit"
+												onClick={() => router.push(`/edit-project/${project.id}`)}
 											>
 												<Edit className="h-4 w-4" />
 											</Button>
@@ -189,7 +190,7 @@ export function ProjectsTable({ initialProjects, isMyProjects = false }: Project
 											<Button
 												variant="ghost"
 												size="icon"
-												className="h-8 w-8 text-gray-400 hover:text-red-400 hover:bg-red-400/5"
+												className="h-8 w-8 text-gray-400 hover:text-red-400 hover:bg-red-400/5 cursor-pointer"
 												title="Delete"
 												onClick={() => handleDelete(project.id)}
 											>
