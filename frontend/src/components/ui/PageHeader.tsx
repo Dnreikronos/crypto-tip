@@ -4,7 +4,7 @@
 import { motion } from 'framer-motion';
 import { Plus } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { useRouter } from 'next/navigation'
 
 interface PageHeaderProps {
 	title: string;
@@ -18,8 +18,9 @@ const itemVariants = {
 };
 
 export function PageHeader({ title, description, showCreateButton = false }: PageHeaderProps) {
+	const router = useRouter()
 	function handleCreateProject() {
-		toast.info("Create project functionality would be implemented here");
+		router.push('/create-project')
 	}
 
 	return (
@@ -46,7 +47,7 @@ export function PageHeader({ title, description, showCreateButton = false }: Pag
 				</div>
 				{showCreateButton && (
 					<Button
-						className="bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 text-white font-medium py-2 px-4 rounded-lg transition-all"
+						className="bg-gradient-to-r from-purple-500 cursor-pointer to-cyan-500 hover:from-purple-600 hover:to-cyan-600 text-white font-medium py-2 px-4 rounded-lg transition-all"
 						onClick={handleCreateProject}
 					>
 						<Plus className="mr-2 h-4 w-4" />
