@@ -10,6 +10,7 @@ import {
 } from '@/services/projectService';
 
 const PROJECTS_KEY = ['projects'] as const;
+const MY_PROJECTS_KEY = ['my-projects'] as const;
 const PROJECT_KEY = (id: string) => ['projects', id] as const;
 
 /** CREATE */
@@ -20,6 +21,7 @@ export function useCreateProject() {
     mutationFn: createProject,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PROJECTS_KEY });
+      queryClient.invalidateQueries({ queryKey: MY_PROJECTS_KEY });
     },
   });
 }

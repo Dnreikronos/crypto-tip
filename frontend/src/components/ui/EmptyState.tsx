@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { Plus, Coins } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { useRouter } from 'next/navigation'
 
 const itemVariants = {
 	hidden: { opacity: 0, y: 20 },
@@ -11,8 +11,9 @@ const itemVariants = {
 };
 
 export function EmptyState() {
+	const router = useRouter()
 	function handleCreateProject() {
-		toast.info("Create project functionality would be implemented here");
+		router.push('/create-project')
 	}
 
 	return (
@@ -26,7 +27,7 @@ export function EmptyState() {
 			<h3 className="text-xl font-semibold mb-2">No Projects Found</h3>
 			<p className="text-gray-400 mb-6">You haven&apos;t created any funding projects yet</p>
 			<Button
-				className="bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 text-white font-medium py-2 px-4 rounded-lg transition-all"
+				className="bg-gradient-to-r from-purple-500 to-cyan-500 cursor-pointer hover:from-purple-600 hover:to-cyan-600 text-white font-medium py-2 px-4 rounded-lg transition-all"
 				onClick={handleCreateProject}
 			>
 				<Plus className="mr-2 h-4 w-4" />
