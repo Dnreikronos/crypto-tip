@@ -1,4 +1,4 @@
-import { getAuthHeaders } from '@/lib/auth';
+import { getAuthHeaders } from "@/lib/auth";
 
 export interface ProjectInput {
   title: string;
@@ -27,7 +27,7 @@ export interface ProjectResponse {
   };
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 /**
  * Creates a new project
@@ -35,19 +35,24 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
  * @returns Created project data
  * @throws Error if the request fails
  */
-export async function createProject(projectData: ProjectInput): Promise<ProjectResponse> {
+export async function createProject(
+  projectData: ProjectInput,
+): Promise<ProjectResponse> {
   const headers = await getAuthHeaders();
-  
+
   // Convert goal to number if it's a string
   const formattedData = {
     ...projectData,
-    goal: typeof projectData.goal === 'string' ? parseFloat(projectData.goal) : projectData.goal,
+    goal:
+      typeof projectData.goal === "string"
+        ? parseFloat(projectData.goal)
+        : projectData.goal,
   };
 
   const response = await fetch(`${API_URL}/projects`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...headers,
     },
     body: JSON.stringify(formattedData),
@@ -55,7 +60,7 @@ export async function createProject(projectData: ProjectInput): Promise<ProjectR
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.error || 'Failed to create project');
+    throw new Error(errorData.error || "Failed to create project");
   }
 
   return response.json();
@@ -68,14 +73,14 @@ export async function createProject(projectData: ProjectInput): Promise<ProjectR
  */
 export async function getProjects(): Promise<ProjectResponse[]> {
   const headers = await getAuthHeaders();
-  
+
   const response = await fetch(`${API_URL}/projects`, {
     headers,
   });
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.error || 'Failed to fetch projects');
+    throw new Error(errorData.error || "Failed to fetch projects");
   }
 
   return response.json();
@@ -89,14 +94,14 @@ export async function getProjects(): Promise<ProjectResponse[]> {
  */
 export async function getProject(id: string): Promise<ProjectResponse> {
   const headers = await getAuthHeaders();
-  
+
   const response = await fetch(`${API_URL}/projects/${id}`, {
     headers,
   });
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.error || 'Failed to fetch project');
+    throw new Error(errorData.error || "Failed to fetch project");
   }
 
   return response.json();
@@ -109,21 +114,25 @@ export async function getProject(id: string): Promise<ProjectResponse> {
  * @returns Updated project data
  * @throws Error if the request fails
  */
-export async function updateProject(id: string, projectData: Partial<ProjectInput>): Promise<ProjectResponse> {
+export async function updateProject(
+  id: string,
+  projectData: Partial<ProjectInput>,
+): Promise<ProjectResponse> {
   const headers = await getAuthHeaders();
-  
+
   // Convert goal to number if it's a string
   const formattedData = {
     ...projectData,
-    goal: projectData.goal && typeof projectData.goal === 'string' 
-      ? parseFloat(projectData.goal) 
-      : projectData.goal,
+    goal:
+      projectData.goal && typeof projectData.goal === "string"
+        ? parseFloat(projectData.goal)
+        : projectData.goal,
   };
 
   const response = await fetch(`${API_URL}/projects/${id}`, {
-    method: 'PUT',
+    method: "PUT",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...headers,
     },
     body: JSON.stringify(formattedData),
@@ -131,7 +140,7 @@ export async function updateProject(id: string, projectData: Partial<ProjectInpu
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.error || 'Failed to update project');
+    throw new Error(errorData.error || "Failed to update project");
   }
 
   return response.json();
@@ -145,14 +154,14 @@ export async function updateProject(id: string, projectData: Partial<ProjectInpu
  */
 export async function deleteProject(id: string): Promise<void> {
   const headers = await getAuthHeaders();
-  
+
   const response = await fetch(`${API_URL}/projects/${id}`, {
-    method: 'DELETE',
+    method: "DELETE",
     headers,
   });
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.error || 'Failed to delete project');
+    throw new Error(errorData.error || "Failed to delete project");
   }
 }

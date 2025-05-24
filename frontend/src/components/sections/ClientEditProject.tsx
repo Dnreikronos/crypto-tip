@@ -1,35 +1,35 @@
-"use client"
+"use client";
 
-import dynamic from 'next/dynamic'
-import { Suspense, useEffect } from 'react'
-import { Skeleton } from '@/components/ui/skeleton'
+import dynamic from "next/dynamic";
+import { Suspense, useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const EditProjectPage = dynamic(
-  () => import('@/components/sections/EditProject'),
+  () => import("@/components/sections/EditProject"),
   {
     ssr: false,
-    loading: () => <PageSkeleton />
-  }
-)
+    loading: () => <PageSkeleton />,
+  },
+);
 
 export default function ClientEditProject() {
   return (
     <Suspense fallback={<PageSkeleton />}>
       <EditProjectPage />
     </Suspense>
-  )
+  );
 }
 
 function PageSkeleton() {
   useEffect(() => {
     const interval = setInterval(() => {
-      document.querySelectorAll('.pulse-width').forEach(element => {
-        const width = 30 + Math.floor(Math.random() * 70)
-        ;(element as HTMLElement).style.width = `${width}%`
-      })
-    }, 2000)
-    return () => clearInterval(interval)
-  }, [])
+      document.querySelectorAll(".pulse-width").forEach((element) => {
+        const width = 30 + Math.floor(Math.random() * 70);
+        (element as HTMLElement).style.width = `${width}%`;
+      });
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="min-h-screen w-full bg-gray-950 p-4">
@@ -62,5 +62,5 @@ function PageSkeleton() {
         </div>
       </div>
     </div>
-  )
-} 
+  );
+}

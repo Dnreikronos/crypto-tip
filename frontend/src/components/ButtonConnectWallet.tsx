@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -10,31 +10,32 @@ import Image from "next/image";
 export function ButtonConnectWallet() {
   const [userAccount, setUserAccount] = useState<string>("");
   const providers = useWalletProviders();
-  const metaMaskProvider = providers.find(p => p.info.name === "MetaMask");
+  const metaMaskProvider = providers.find((p) => p.info.name === "MetaMask");
 
   const handleConnect = async (providerWithInfo: EIP6963ProviderDetail) => {
     try {
-      const accounts = await providerWithInfo.provider
-        .request({ method: "eth_requestAccounts" }) as string[] | undefined;
+      const accounts = (await providerWithInfo.provider.request({
+        method: "eth_requestAccounts",
+      })) as string[] | undefined;
 
       if (accounts?.[0]) {
         setUserAccount(accounts[0]);
-        toast.success('Wallet Connected', {
-          description: 'Your MetaMask wallet has been connected successfully.',
+        toast.success("Wallet Connected", {
+          description: "Your MetaMask wallet has been connected successfully.",
         });
       }
     } catch (error) {
-      console.error('Failed to connect:', error);
-      toast.error('Connection Failed', {
-        description: 'Unable to connect to MetaMask. Please try again.',
+      console.error("Failed to connect:", error);
+      toast.error("Connection Failed", {
+        description: "Unable to connect to MetaMask. Please try again.",
       });
     }
   };
 
   const handleDisconnect = () => {
     setUserAccount("");
-    toast.info('Wallet Disconnected', {
-      description: 'Your MetaMask wallet has been disconnected.',
+    toast.info("Wallet Disconnected", {
+      description: "Your MetaMask wallet has been disconnected.",
     });
   };
 
@@ -45,8 +46,8 @@ export function ButtonConnectWallet() {
         animate={{ opacity: 1, y: 0 }}
         className="relative"
       >
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={handleDisconnect}
           className="w-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 hover:border-cyan-500/50 hover:bg-gray-800/80 transition-all duration-300 group"
         >
@@ -54,9 +55,9 @@ export function ButtonConnectWallet() {
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-full blur-sm opacity-50 group-hover:opacity-75 transition-opacity"></div>
               {metaMaskProvider?.info.icon && (
-                <Image 
-                  src={metaMaskProvider.info.icon} 
-                  alt="MetaMask" 
+                <Image
+                  src={metaMaskProvider.info.icon}
+                  alt="MetaMask"
                   width={20}
                   height={20}
                   className="relative z-10"
@@ -79,7 +80,7 @@ export function ButtonConnectWallet() {
         animate={{ opacity: 1, y: 0 }}
       >
         <Button
-          onClick={() => window.open('https://metamask.io/download/', '_blank')}
+          onClick={() => window.open("https://metamask.io/download/", "_blank")}
           className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-orange-500/25"
         >
           Install MetaMask
@@ -103,9 +104,9 @@ export function ButtonConnectWallet() {
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-full blur-sm opacity-50 group-hover:opacity-75 transition-opacity"></div>
             {metaMaskProvider.info.icon && (
-              <Image 
-                src={metaMaskProvider.info.icon} 
-                alt="MetaMask" 
+              <Image
+                src={metaMaskProvider.info.icon}
+                alt="MetaMask"
                 width={20}
                 height={20}
                 className="relative z-10"
@@ -117,4 +118,4 @@ export function ButtonConnectWallet() {
       </Button>
     </motion.div>
   );
-} 
+}

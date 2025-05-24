@@ -1,37 +1,37 @@
-'use client';
+"use client";
 
-import { z } from 'zod';
-import Cookies from 'js-cookie';
+import { z } from "zod";
+import Cookies from "js-cookie";
 
 const ProjectSchema = z.object({
-	id: z.string(),
-	title: z.string(),
-	description: z.string(),
-	goal: z.number(),
-	raised: z.number(),
-	created_at: z.coerce.date(),
+  id: z.string(),
+  title: z.string(),
+  description: z.string(),
+  goal: z.number(),
+  raised: z.number(),
+  created_at: z.coerce.date(),
 });
 
 const ProjectsSchema = z.array(ProjectSchema);
 export type Project = z.infer<typeof ProjectSchema>;
 
 export async function getProjects() {
-	if (typeof window === 'undefined') {
-		return [];
-	}
+  if (typeof window === "undefined") {
+    return [];
+  }
 
-	const token = Cookies.get('token');
-	if (!token) return [];
+  const token = Cookies.get("token");
+  if (!token) return [];
 
-	const res = await fetch('http://localhost:9090/user/projects', {
-		headers: {
-			Authorization: `Bearer ${token}`,
-		},
-		credentials: 'include',
-		cache: 'no-store',
-	});
+  const res = await fetch("http://localhost:9090/user/projects", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    credentials: "include",
+    cache: "no-store",
+  });
 
-	if (!res.ok) throw new Error('Failed to fetch projects');
-	const data = await res.json();
-	return ProjectsSchema.parse(data);
+  if (!res.ok) throw new Error("Failed to fetch projects");
+  const data = await res.json();
+  return ProjectsSchema.parse(data);
 }

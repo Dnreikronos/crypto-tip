@@ -1,17 +1,17 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { 
-  createProject, 
-  getProjects, 
-  getProject, 
-  updateProject, 
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  createProject,
+  getProjects,
+  getProject,
+  updateProject,
   deleteProject,
   ProjectInput,
-  ProjectResponse
-} from '@/services/projectService';
+  ProjectResponse,
+} from "@/services/projectService";
 
-const PROJECTS_KEY = ['projects'] as const;
-const MY_PROJECTS_KEY = ['my-projects'] as const;
-const PROJECT_KEY = (id: string) => ['projects', id] as const;
+const PROJECTS_KEY = ["projects"] as const;
+const MY_PROJECTS_KEY = ["my-projects"] as const;
+const PROJECT_KEY = (id: string) => ["projects", id] as const;
 
 /** CREATE */
 export function useCreateProject() {
@@ -48,8 +48,8 @@ export function useUpdateProject() {
   const queryClient = useQueryClient();
 
   return useMutation<
-    ProjectResponse,           // return type
-    Error,                     // error type
+    ProjectResponse, // return type
+    Error, // error type
     { id: string; data: Partial<ProjectInput> } // variables
   >({
     mutationFn: ({ id, data }) => updateProject(id, data),
