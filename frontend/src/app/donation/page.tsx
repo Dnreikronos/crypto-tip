@@ -1,7 +1,9 @@
-import DonationPageClient from './DonationPageClient';
-import { getProject } from '@/services/projectService';
+import DonationPageClient from "./DonationPageClient";
+import { getProject } from "@/services/projectService";
 
-type SearchParamsType = Promise<{ [key: string]: string | string[] | undefined }>;
+type SearchParamsType = Promise<{
+  [key: string]: string | string[] | undefined;
+}>;
 
 export default async function DonationPage({
   searchParams,

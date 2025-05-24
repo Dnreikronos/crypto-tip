@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -42,13 +42,13 @@ export default function Navbar() {
     visible: {
       opacity: 1,
       height: 'auto',
-      transition: { duration: 0.3, ease: 'easeInOut' }
+      transition: { duration: 0.3, ease: 'easeInOut' },
     },
     exit: {
       opacity: 0,
       height: 0,
-      transition: { duration: 0.3, ease: 'easeInOut' }
-    }
+      transition: { duration: 0.3, ease: 'easeInOut' },
+    },
   };
 
   const navInteractiveBaseStyles = "inline-flex items-center justify-center font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 cursor-pointer";
@@ -57,7 +57,6 @@ export default function Navbar() {
   const navButtonStylesDesktop = `${navInteractiveBaseStyles} ${navButtonGradientColors} px-4 py-2 text-sm`;
   const textLinkStylesDesktop = "text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors";
 
-  // Applied fixed height h-12 (3rem) for mobile buttons
   const mobileMenuItemSharedSizeStyles = "w-full px-4 h-12 text-base"; 
 
   const navButtonStylesMobile = `${navInteractiveBaseStyles} ${navButtonGradientColors} ${mobileMenuItemSharedSizeStyles}`;
@@ -122,7 +121,11 @@ export default function Navbar() {
             aria-label="Toggle menu"
             aria-expanded={isMenuOpen}
           >
-            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {isMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
           </button>
         </div>
       </div>
