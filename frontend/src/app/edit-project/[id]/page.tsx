@@ -1,5 +1,5 @@
-import AnimatedBackground from "@/components/ui/AnimatedBackground"
-import ClientEditProject from "@/components/sections/ClientEditProject"
+import AnimatedBackground from "@/components/ui/AnimatedBackground";
+import ClientEditProject from "@/components/sections/ClientEditProject";
 
 export default function EditProjectRoute() {
   return (
@@ -9,5 +9,5 @@ export default function EditProjectRoute() {
         <ClientEditProject />
       </div>
     </div>
-  )
+  );
 }

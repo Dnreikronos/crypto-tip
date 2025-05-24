@@ -1,14 +1,44 @@
-import { Bitcoin, Lock } from 'lucide-react'
-import { SiEthereum, SiSolana, SiKucoin, SiRipple } from 'react-icons/si'
-import { motion } from 'framer-motion'
+import { Bitcoin, Lock } from "lucide-react";
+import { SiEthereum, SiSolana, SiKucoin, SiRipple } from "react-icons/si";
+import { motion } from "framer-motion";
 
 export function CryptoInfoPanel() {
   const cryptos = [
-    { name: 'Bitcoin', symbol: 'BTC', icon: <Bitcoin className="h-6 w-6 text-yellow-400" />, locked: true, color: 'yellow' },
-    { name: 'Ethereum', symbol: 'ETH', icon: <SiEthereum className="h-6 w-6 text-cyan-400" />, locked: false, color: 'cyan' },
-    { name: 'Solana', symbol: 'SOL', icon: <SiSolana className="h-6 w-6 text-purple-400" />, locked: true, color: 'purple' },
-    { name: 'USDC', symbol: 'USDC', icon: <SiKucoin className="h-6 w-6 text-blue-400" />, locked: true, color: 'blue' },
-    { name: 'XRP', symbol: 'XRP', icon: <SiRipple className="h-6 w-6 text-indigo-400" />, locked: true, color: 'indigo' }
+    {
+      name: "Bitcoin",
+      symbol: "BTC",
+      icon: <Bitcoin className="h-6 w-6 text-yellow-400" />,
+      locked: true,
+      color: "yellow",
+    },
+    {
+      name: "Ethereum",
+      symbol: "ETH",
+      icon: <SiEthereum className="h-6 w-6 text-cyan-400" />,
+      locked: false,
+      color: "cyan",
+    },
+    {
+      name: "Solana",
+      symbol: "SOL",
+      icon: <SiSolana className="h-6 w-6 text-purple-400" />,
+      locked: true,
+      color: "purple",
+    },
+    {
+      name: "USDC",
+      symbol: "USDC",
+      icon: <SiKucoin className="h-6 w-6 text-blue-400" />,
+      locked: true,
+      color: "blue",
+    },
+    {
+      name: "XRP",
+      symbol: "XRP",
+      icon: <SiRipple className="h-6 w-6 text-indigo-400" />,
+      locked: true,
+      color: "indigo",
+    },
   ];
 
   return (
@@ -34,8 +64,8 @@ export function CryptoInfoPanel() {
             className={
               `relative flex flex-col items-center p-4 rounded-xl border bg-gray-800/60 transition-all ` +
               (crypto.locked
-                ? 'opacity-50 cursor-not-allowed border-gray-600'
-                : 'hover:shadow-lg hover:shadow-[0_0_20px_rgba(6,182,212,0.5)] border-cyan-600 ring-1 ring-cyan-400')
+                ? "opacity-50 cursor-not-allowed border-gray-600"
+                : "hover:shadow-lg hover:shadow-[0_0_20px_rgba(6,182,212,0.5)] border-cyan-600 ring-1 ring-cyan-400")
             }
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -52,7 +82,9 @@ export function CryptoInfoPanel() {
                 className="p-3 bg-gray-900 rounded-full"
                 whileHover={crypto.locked ? {} : { rotate: 10 }}
                 whileTap={crypto.locked ? {} : { scale: 0.9 }}
-                animate={crypto.locked ? { opacity: 0.6 } : { y: [0, -3, 0, 3, 0] }}
+                animate={
+                  crypto.locked ? { opacity: 0.6 } : { y: [0, -3, 0, 3, 0] }
+                }
                 transition={{ repeat: Infinity, duration: 2, delay: idx * 0.3 }}
               >
                 {crypto.icon}
@@ -60,7 +92,11 @@ export function CryptoInfoPanel() {
             </div>
 
             <div className="mt-3 text-center z-10">
-              <span className={`block text-lg font-semibold text-${crypto.color}-300`}>{crypto.name}</span>
+              <span
+                className={`block text-lg font-semibold text-${crypto.color}-300`}
+              >
+                {crypto.name}
+              </span>
               <small className="text-gray-400">{crypto.symbol}</small>
             </div>
           </motion.div>
@@ -71,5 +107,5 @@ export function CryptoInfoPanel() {
         Available
       </div>
     </motion.div>
-  )
+  );
 }

@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Coins, LogOut } from 'lucide-react';
-import { getCurrentUser, logoutUser, User } from '@/lib/auth';
-import { ButtonConnectWallet } from '@/components/ButtonConnectWallet';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { Menu, X, Coins, LogOut } from "lucide-react";
+import { getCurrentUser, logoutUser, User } from "@/lib/auth";
+import { ButtonConnectWallet } from "@/components/ButtonConnectWallet";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -18,8 +18,8 @@ export default function Navbar() {
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
@@ -33,25 +33,27 @@ export default function Navbar() {
   const handleLogout = async () => {
     await logoutUser();
     setUser(null);
-    router.push('/login');
+    router.push("/login");
   };
 
   const menuVariants = {
     hidden: { opacity: 0, height: 0 },
     visible: {
       opacity: 1,
-      height: 'auto',
-      transition: { duration: 0.3, ease: 'easeInOut' }
+      height: "auto",
+      transition: { duration: 0.3, ease: "easeInOut" },
     },
     exit: {
       opacity: 0,
       height: 0,
-      transition: { duration: 0.3, ease: 'easeInOut' }
-    }
+      transition: { duration: 0.3, ease: "easeInOut" },
+    },
   };
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-gray-900/80 backdrop-blur-lg shadow-lg' : 'bg-transparent'}`}>      
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-gray-900/80 backdrop-blur-lg shadow-lg" : "bg-transparent"}`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           <Link href="/" className="flex items-center">
@@ -73,7 +75,10 @@ export default function Navbar() {
               </button>
             ) : (
               <>
-                <Link href="/login" className="text-gray-300 hover:text-white transition-colors">
+                <Link
+                  href="/login"
+                  className="text-gray-300 hover:text-white transition-colors"
+                >
                   Login
                 </Link>
                 <Link
@@ -90,7 +95,11 @@ export default function Navbar() {
             className="md:hidden text-gray-300 hover:text-white"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
-            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {isMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
           </button>
         </div>
       </div>
