@@ -1,60 +1,67 @@
-'use client';
+"use client";
 
 // app/my-projects/components/PageHeader.tsx
-import { motion } from 'framer-motion';
-import { Plus } from 'lucide-react';
+import { motion } from "framer-motion";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useRouter } from 'next/navigation'
+import { useRouter } from "next/navigation";
 
 interface PageHeaderProps {
-	title: string;
-	description: string;
-	showCreateButton?: boolean;
+  title: string;
+  description: string;
+  showCreateButton?: boolean;
 }
 
 const itemVariants = {
-	hidden: { opacity: 0, y: 20 },
-	visible: { opacity: 1, y: 0 }
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
 };
 
-export function PageHeader({ title, description, showCreateButton = false }: PageHeaderProps) {
-	const router = useRouter()
-	function handleCreateProject() {
-		router.push('/create-project')
-	}
+export function PageHeader({
+  title,
+  description,
+  showCreateButton = false,
+}: PageHeaderProps) {
+  const router = useRouter();
+  function handleCreateProject() {
+    router.push("/create-project");
+  }
 
-	return (
-		<motion.div
-			initial="hidden"
-			animate="visible"
-			variants={{
-				hidden: { opacity: 0 },
-				visible: {
-					opacity: 1,
-					transition: {
-						staggerChildren: 0.1
-					}
-				}
-			}}
-			className="w-full"
-		>
-			<motion.div className="flex items-center justify-between mb-8" variants={itemVariants}>
-				<div>
-					<h1 className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
-						{title}
-					</h1>
-					<p className="text-gray-400">{description}</p>
-				</div>
-				{showCreateButton && (
-					<Button
-						className="bg-gradient-to-r from-purple-500 cursor-pointer to-cyan-500 hover:from-purple-600 hover:to-cyan-600 text-white font-medium py-2 px-4 rounded-lg transition-all"
-						onClick={handleCreateProject}
-					>
-						<Plus className="mr-2 h-4 w-4" />
-						Create Project
-					</Button>
-				)}
-			</motion.div>
-		</motion.div>
-	);
+  return (
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={{
+        hidden: { opacity: 0 },
+        visible: {
+          opacity: 1,
+          transition: {
+            staggerChildren: 0.1,
+          },
+        },
+      }}
+      className="w-full"
+    >
+      <motion.div
+        className="flex items-center justify-between mb-8"
+        variants={itemVariants}
+      >
+        <div>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
+            {title}
+          </h1>
+          <p className="text-gray-400">{description}</p>
+        </div>
+        {showCreateButton && (
+          <Button
+            className="bg-gradient-to-r from-purple-500 cursor-pointer to-cyan-500 hover:from-purple-600 hover:to-cyan-600 text-white font-medium py-2 px-4 rounded-lg transition-all"
+            onClick={handleCreateProject}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Create Project
+          </Button>
+        )}
+      </motion.div>
+    </motion.div>
+  );
 }

@@ -1,10 +1,7 @@
-'use client';
+"use client";
 
-
-
-import ProjectsContent from './ProjectsContent';
-import AnimatedBackground from '@/components/ui/AnimatedBackground';
-
+import ProjectsContent from "./ProjectsContent";
+import AnimatedBackground from "@/components/ui/AnimatedBackground";
 
 export default function ProjectsPage() {
   return (
@@ -13,4 +10,4 @@ export default function ProjectsPage() {
       <ProjectsContent />
     </div>
   );
-} 
+}

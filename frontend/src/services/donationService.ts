@@ -1,6 +1,6 @@
-import { getAuthHeaders } from '@/lib/auth';
+import { getAuthHeaders } from "@/lib/auth";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 export interface DonationInput {
   amount: number;
@@ -26,13 +26,15 @@ export interface DonationResponse {
   updated_at: string;
 }
 
-export async function createDonation(donationData: DonationInput): Promise<DonationResponse> {
+export async function createDonation(
+  donationData: DonationInput,
+): Promise<DonationResponse> {
   const headers = await getAuthHeaders();
-  
+
   const response = await fetch(`${API_URL}/donations`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...headers,
     },
     body: JSON.stringify(donationData),
@@ -40,8 +42,8 @@ export async function createDonation(donationData: DonationInput): Promise<Donat
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.error || 'Failed to create donation');
+    throw new Error(errorData.error || "Failed to create donation");
   }
 
   return response.json();
-} 
+}

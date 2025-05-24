@@ -1,13 +1,13 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
-import { Bitcoin, Coins, ArrowRight, Sparkles } from 'lucide-react'
-import { TipsInfoPanel } from './TipsInfoPanel'
-import { CryptoInfoPanel } from './CryptoInfoPanel'
-import { Button } from '@/components/ui/button'
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Bitcoin, Coins, ArrowRight, Sparkles } from "lucide-react";
+import { TipsInfoPanel } from "./TipsInfoPanel";
+import { CryptoInfoPanel } from "./CryptoInfoPanel";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -16,58 +16,65 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Checkbox } from '@/components/ui/checkbox'
-import { ProjectPreview } from './ProjectPreview'
-import { motion, AnimatePresence } from 'framer-motion'
-import { useCreateProject } from '@/hooks/useProject'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ProjectPreview } from "./ProjectPreview";
+import { motion, AnimatePresence } from "framer-motion";
+import { useCreateProject } from "@/hooks/useProject";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
 const projectSchema = z.object({
-  title: z.string().min(3, { message: "Title must be at least 3 characters long" }),
-  description: z.string().min(10, { message: "Description must be at least 10 characters long" }),
-  goal: z.string().refine(val => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
-    message: "Goal must be a positive number",
-  }),
-  wallet_addr: z.string().min(42, { message: "Please enter a valid Ethereum wallet address" })
+  title: z
+    .string()
+    .min(3, { message: "Title must be at least 3 characters long" }),
+  description: z
+    .string()
+    .min(10, { message: "Description must be at least 10 characters long" }),
+  goal: z
+    .string()
+    .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
+      message: "Goal must be a positive number",
+    }),
+  wallet_addr: z
+    .string()
+    .min(42, { message: "Please enter a valid Ethereum wallet address" })
     .startsWith("0x", { message: "Ethereum addresses should start with 0x" }),
   project_link: z.string().url({ message: "Please enter a valid URL" }),
   repo_link: z.string().url({ message: "Please enter a valid URL" }),
-  accept_terms: z.boolean().refine(val => val === true, {
+  accept_terms: z.boolean().refine((val) => val === true, {
     message: "You must accept the terms and conditions",
   }),
-})
+});
 
-type FormValues = z.infer<typeof projectSchema>
-
+type FormValues = z.infer<typeof projectSchema>;
 
 export default function CreateProjectPage() {
-  const [previewMode, setPreviewMode] = useState(false)
-  const router = useRouter()
+  const [previewMode, setPreviewMode] = useState(false);
+  const router = useRouter();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
-      title: '',
-      description: '',
-      goal: '',
-      wallet_addr: '',
-      project_link: '',
-      repo_link: '',
+      title: "",
+      description: "",
+      goal: "",
+      wallet_addr: "",
+      project_link: "",
+      repo_link: "",
       accept_terms: false,
     },
-  })
+  });
 
-  const formValues = form.watch()
+  const formValues = form.watch();
 
-  const { mutate: createProjectMutation, isPending } = useCreateProject()
+  const { mutate: createProjectMutation, isPending } = useCreateProject();
 
   function onSubmit(values: FormValues) {
-    const { accept_terms: _, ...projectData } = values // eslint-disable-line @typescript-eslint/no-unused-vars
-    
+    const { accept_terms: _, ...projectData } = values; // eslint-disable-line @typescript-eslint/no-unused-vars
+
     createProjectMutation(projectData, {
       onSuccess: () => {
         toast.custom(
@@ -84,20 +91,20 @@ export default function CreateProjectPage() {
               </span>
             </motion.div>
           ),
-          { duration: 3000 }
-        )
-        
-        setTimeout(() => router.push('/my-projects'), 1500)
+          { duration: 3000 },
+        );
+
+        setTimeout(() => router.push("/my-projects"), 1500);
       },
       onError: (error) => {
-        toast.error(`Failed to create project: ${error.message}`)
-        console.error(error)
-      }
-    })
+        toast.error(`Failed to create project: ${error.message}`);
+        console.error(error);
+      },
+    });
   }
 
   function togglePreview() {
-    setPreviewMode(!previewMode)
+    setPreviewMode(!previewMode);
   }
 
   return (
@@ -116,11 +123,11 @@ export default function CreateProjectPage() {
             transition={{
               duration: 0.5,
               type: "spring",
-              stiffness: 200
+              stiffness: 200,
             }}
             whileHover={{
               rotate: [0, -10, 10, -5, 5, 0],
-              transition: { duration: 0.5 }
+              transition: { duration: 0.5 },
             }}
           >
             <Coins className="h-8 w-8 text-cyan-500" />
@@ -131,9 +138,7 @@ export default function CreateProjectPage() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.7, delay: 0.2 }}
           >
-            <motion.span
-              initial={{ display: "inline-block" }}
-            >
+            <motion.span initial={{ display: "inline-block" }}>
               Create Your Project Funding
             </motion.span>
           </motion.h1>
@@ -143,7 +148,8 @@ export default function CreateProjectPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.4 }}
           >
-            Set up your crypto funding page and start receiving support from around the world
+            Set up your crypto funding page and start receiving support from
+            around the world
           </motion.p>
         </motion.div>
 
@@ -160,11 +166,13 @@ export default function CreateProjectPage() {
               >
                 <ProjectPreview
                   project={{
-                    title: formValues.title || 'Your Amazing Project',
-                    description: formValues.description || 'Project description will appear here...',
-                    goal: parseFloat(formValues.goal || '0'),
+                    title: formValues.title || "Your Amazing Project",
+                    description:
+                      formValues.description ||
+                      "Project description will appear here...",
+                    goal: parseFloat(formValues.goal || "0"),
                     raised: 0,
-                    wallet_addr: formValues.wallet_addr || '0x...',
+                    wallet_addr: formValues.wallet_addr || "0x...",
                   }}
                   onBack={togglePreview}
                 />
@@ -183,7 +191,9 @@ export default function CreateProjectPage() {
                   transition={{ duration: 0.3 }}
                 >
                   <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold text-white">Project Details</h2>
+                    <h2 className="text-2xl font-bold text-white">
+                      Project Details
+                    </h2>
                     <motion.div
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -201,7 +211,7 @@ export default function CreateProjectPage() {
                             duration: 1.5,
                             repeat: Infinity,
                             repeatDelay: 2,
-                            ease: "easeInOut"
+                            ease: "easeInOut",
                           }}
                         >
                           <ArrowRight className="ml-2 h-4 w-4" />
@@ -211,13 +221,18 @@ export default function CreateProjectPage() {
                   </div>
 
                   <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    <form
+                      onSubmit={form.handleSubmit(onSubmit)}
+                      className="space-y-6"
+                    >
                       <FormField
                         control={form.control}
                         name="title"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-gray-400">Project Title</FormLabel>
+                            <FormLabel className="text-gray-400">
+                              Project Title
+                            </FormLabel>
                             <FormControl>
                               <motion.div whileFocus={{ scale: 1.01 }}>
                                 <Input
@@ -240,7 +255,9 @@ export default function CreateProjectPage() {
                         name="description"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-gray-400">Project Description</FormLabel>
+                            <FormLabel className="text-gray-400">
+                              Project Description
+                            </FormLabel>
                             <FormControl>
                               <motion.div whileFocus={{ scale: 1.01 }}>
                                 <Textarea
@@ -260,7 +277,9 @@ export default function CreateProjectPage() {
                         name="goal"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-gray-400">Funding Goal</FormLabel>
+                            <FormLabel className="text-gray-400">
+                              Funding Goal
+                            </FormLabel>
                             <FormControl>
                               <div className="relative">
                                 <motion.div whileFocus={{ scale: 1.01 }}>
@@ -295,7 +314,9 @@ export default function CreateProjectPage() {
                         name="wallet_addr"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-gray-400">Wallet Address</FormLabel>
+                            <FormLabel className="text-gray-400">
+                              Wallet Address
+                            </FormLabel>
                             <FormControl>
                               <div className="relative">
                                 <motion.div whileFocus={{ scale: 1.01 }}>
@@ -314,13 +335,15 @@ export default function CreateProjectPage() {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="project_link"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-gray-400">Project Link </FormLabel>
+                            <FormLabel className="text-gray-400">
+                              Project Link{" "}
+                            </FormLabel>
                             <FormControl>
                               <motion.div whileFocus={{ scale: 1.01 }}>
                                 <Input
@@ -343,7 +366,9 @@ export default function CreateProjectPage() {
                         name="repo_link"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-gray-400">Repository Link </FormLabel>
+                            <FormLabel className="text-gray-400">
+                              Repository Link{" "}
+                            </FormLabel>
                             <FormControl>
                               <motion.div whileFocus={{ scale: 1.01 }}>
                                 <Input
@@ -381,7 +406,8 @@ export default function CreateProjectPage() {
                               </FormControl>
                               <div className="space-y-1 leading-none">
                                 <FormLabel className="text-sm text-gray-400">
-                                  I agree to the terms and conditions for receiving crypto donations
+                                  I agree to the terms and conditions for
+                                  receiving crypto donations
                                 </FormLabel>
                                 <FormMessage />
                               </div>
@@ -402,14 +428,32 @@ export default function CreateProjectPage() {
                           >
                             {isPending ? (
                               <span className="flex items-center">
-                                <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                <svg
+                                  className="animate-spin -ml-1 mr-3 h-4 w-4 text-white"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                  ></circle>
+                                  <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                  ></path>
                                 </svg>
                                 Creating...
                               </span>
                             ) : (
-                              <span className="relative z-10">Create Project</span>
+                              <span className="relative z-10">
+                                Create Project
+                              </span>
                             )}
                             <motion.span
                               className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-purple-500 opacity-0 group-hover:opacity-100"
@@ -439,5 +483,5 @@ export default function CreateProjectPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

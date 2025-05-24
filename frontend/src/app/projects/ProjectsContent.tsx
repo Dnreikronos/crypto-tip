@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useQuery } from '@tanstack/react-query';
-import { z } from 'zod';
-import { PageHeader } from '@/components/ui/PageHeader';
-import { ProjectsTable } from '@/components/ui/ProjectsTable';
-import TableSkeleton from '@/components/ui/TableSkeleton';
+import { useQuery } from "@tanstack/react-query";
+import { z } from "zod";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { ProjectsTable } from "@/components/ui/ProjectsTable";
+import TableSkeleton from "@/components/ui/TableSkeleton";
 
 // Validation schemas
 const userSchema = z.object({
@@ -33,12 +33,12 @@ const projectsSchema = z.array(projectSchema);
 async function fetchProjects() {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects`, {
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
   });
 
   if (!response.ok) {
-    throw new Error('Failed to fetch projects');
+    throw new Error("Failed to fetch projects");
   }
 
   const data = await response.json();
@@ -46,8 +46,12 @@ async function fetchProjects() {
 }
 
 export default function ProjectsContent() {
-  const { data: projects, isLoading, error } = useQuery({
-    queryKey: ['projects'],
+  const {
+    data: projects,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["projects"],
     queryFn: fetchProjects,
   });
 
@@ -86,4 +90,4 @@ export default function ProjectsContent() {
       <ProjectsTable initialProjects={projects || []} isMyProjects={false} />
     </div>
   );
-} 
+}
