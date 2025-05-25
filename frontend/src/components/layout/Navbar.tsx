@@ -34,7 +34,10 @@ export default function Navbar() {
 
   useEffect(() => {
     async function fetchUser() {
-       console.log("Navbar: Fetching user state on mount or pathname change:", pathname);
+      console.log(
+        "Navbar: Fetching user state on mount or pathname change:",
+        pathname,
+      );
       const current = await getCurrentUser();
       setUser(current);
     }
@@ -47,7 +50,6 @@ export default function Navbar() {
     setIsMenuOpen(false);
     router.push("/login");
   };
-
 
   const menuVariants = {
     hidden: { opacity: 0, height: 0 },
