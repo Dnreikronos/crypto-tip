@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu,
@@ -22,6 +22,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -33,11 +34,15 @@ export default function Navbar() {
 
   useEffect(() => {
     async function fetchUser() {
+      console.log(
+        "Navbar: Fetching user state on mount or pathname change:",
+        pathname,
+      );
       const current = await getCurrentUser();
       setUser(current);
     }
     fetchUser();
-  }, []);
+  }, [pathname]);
 
   const handleLogout = async () => {
     await logoutUser();
@@ -65,7 +70,7 @@ export default function Navbar() {
   const navButtonGradientColors =
     "bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 focus:ring-cyan-300 text-white";
 
-  const navButtonStylesDesktop = `${navInteractiveBaseStyles} ${navButtonGradientColors} px-4 py-2 text-sm`;
+  const navButtonStylesDesktop = `${navInteractiveBaseStyles} ${navButtonGradientColors} px-3 py-2 text-sm`;
   const textLinkStylesDesktop =
     "text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors";
 
@@ -92,10 +97,12 @@ export default function Navbar() {
           </div>
 
           <div className="hidden md:flex absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 items-center space-x-3 lg:space-x-4">
-            <Link href="/projects" className={navButtonStylesDesktop}>
-              <Briefcase className="h-4 w-4 mr-2" />
-              Projects
-            </Link>
+            {user && (
+              <Link href="/projects" className={navButtonStylesDesktop}>
+                <Briefcase className="h-4 w-4 mr-2" />
+                Projects
+              </Link>
+            )}
             {user && (
               <Link href="/my-projects" className={navButtonStylesDesktop}>
                 <LayoutDashboard className="h-4 w-4 mr-2" />
@@ -105,7 +112,7 @@ export default function Navbar() {
           </div>
 
           <div className="hidden md:flex flex-shrink-0 items-center space-x-4">
-            <ButtonConnectWallet />
+            {user && <ButtonConnectWallet />}
             {user ? (
               <button
                 onClick={handleLogout}
@@ -154,14 +161,16 @@ export default function Navbar() {
             className="md:hidden bg-gray-900/95 backdrop-blur-lg shadow-xl"
           >
             <div className="px-4 pt-4 pb-5 space-y-3">
-              <Link
-                href="/projects"
-                className={navButtonStylesMobile}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <Briefcase className="h-5 w-5 mr-2" />
-                Projects
-              </Link>
+              {user && (
+                <Link
+                  href="/projects"
+                  className={navButtonStylesMobile}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Briefcase className="h-5 w-5 mr-2" />
+                  Projects
+                </Link>
+              )}
               {user && (
                 <Link
                   href="/my-projects"
@@ -173,9 +182,11 @@ export default function Navbar() {
                 </Link>
               )}
 
-              <div className="pt-1">
-                <ButtonConnectWallet />
-              </div>
+              {user && (
+                <div className="pt-1">
+                  <ButtonConnectWallet />
+                </div>
+              )}
 
               {user ? (
                 <button
