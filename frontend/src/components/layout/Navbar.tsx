@@ -15,7 +15,7 @@ import {
   LogIn as LogInIcon,
 } from "lucide-react";
 import { getCurrentUser, logoutUser, User } from "@/lib/auth";
-import { ButtonConnectWallet } from "@/components/ButtonConnectWallet";
+
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -112,7 +112,7 @@ export default function Navbar() {
           </div>
 
           <div className="hidden md:flex flex-shrink-0 items-center space-x-4">
-            {user && <ButtonConnectWallet />}
+            
             {user ? (
               <button
                 onClick={handleLogout}
@@ -182,11 +182,7 @@ export default function Navbar() {
                 </Link>
               )}
 
-              {user && (
-                <div className="pt-1">
-                  <ButtonConnectWallet />
-                </div>
-              )}
+            
 
               {user ? (
                 <button
