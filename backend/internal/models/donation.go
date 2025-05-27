@@ -15,9 +15,9 @@ type Donation struct {
 	FromAddr   string    `json:"from_addr"`
 	Message    string    `json:"message"`
 	ProjectID  uuid.UUID `json:"project_id" gorm:"type:uuid;"`
-	Project    Project   `json:"-" gorm:"foreignKey:ProjectID"`
+	Project    Project   `json:"-" gorm:"foreignKey:ProjectID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	DonorID    uuid.UUID `json:"donor_id,omitempty" gorm:"type:uuid;"`
-	Donor      User      `json:"-" gorm:"foreignKey:DonorID"`
+	Donor      User      `json:"-" gorm:"foreignKey:DonorID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Anonymous  bool      `json:"anonymous" gorm:"default:false"`
 	CreatedAt  time.Time `json:"created_at"`
 	UpdatedAt  time.Time `json:"updated_at"`
