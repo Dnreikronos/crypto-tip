@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { getCurrentUser, logoutUser, User } from "@/lib/auth";
 
-
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -112,7 +111,6 @@ export default function Navbar() {
           </div>
 
           <div className="hidden md:flex flex-shrink-0 items-center space-x-4">
-            
             {user ? (
               <button
                 onClick={handleLogout}
@@ -181,8 +179,6 @@ export default function Navbar() {
                   My Projects
                 </Link>
               )}
-
-            
 
               {user ? (
                 <button

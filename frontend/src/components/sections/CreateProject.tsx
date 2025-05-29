@@ -347,7 +347,10 @@ export default function CreateProjectPage() {
                             </FormLabel>
                             <FormControl>
                               <div className="relative flex gap-2">
-                                <motion.div whileFocus={{ scale: 1.01 }} className="flex-1">
+                                <motion.div
+                                  whileFocus={{ scale: 1.01 }}
+                                  className="flex-1"
+                                >
                                   <Input
                                     placeholder="0x..."
                                     {...field}

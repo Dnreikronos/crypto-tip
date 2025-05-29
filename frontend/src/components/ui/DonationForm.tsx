@@ -25,7 +25,9 @@ export default function DonationForm({ project }: DonationFormProps) {
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const providers = useWalletProviders();
-  const metaMaskProvider = providers.find((p: EIP6963ProviderDetail) => p.info.name === "MetaMask");
+  const metaMaskProvider = providers.find(
+    (p: EIP6963ProviderDetail) => p.info.name === "MetaMask",
+  );
 
   const usdEquivalent =
     currency === "ethereum"
@@ -40,7 +42,7 @@ export default function DonationForm({ project }: DonationFormProps) {
       return;
     }
 
-    if (typeof window.ethereum === 'undefined') {
+    if (typeof window.ethereum === "undefined") {
       toast.error("MetaMask not found", {
         description: "Please install MetaMask to make a donation.",
       });
@@ -51,9 +53,9 @@ export default function DonationForm({ project }: DonationFormProps) {
     try {
       setIsSubmitting(true);
 
-      const accounts = await window.ethereum.request({
+      const accounts = (await window.ethereum.request({
         method: "eth_requestAccounts",
-      }) as string[];
+      })) as string[];
 
       if (!accounts?.[0]) {
         throw new Error("No accounts found");
@@ -63,15 +65,17 @@ export default function DonationForm({ project }: DonationFormProps) {
       const toAddress = project.wallet_addr;
 
       const amountInWei = (amount * 1e18).toString(16);
-      
-      const txHash = await window.ethereum.request({
+
+      const txHash = (await window.ethereum.request({
         method: "eth_sendTransaction",
-        params: [{
-          from: fromAddress,
-          to: toAddress,
-          value: `0x${amountInWei}`,
-        }],
-      }) as string;
+        params: [
+          {
+            from: fromAddress,
+            to: toAddress,
+            value: `0x${amountInWei}`,
+          },
+        ],
+      })) as string;
 
       await createDonation({
         amount: amount,
@@ -84,11 +88,11 @@ export default function DonationForm({ project }: DonationFormProps) {
       });
 
       toast.success("Donation sent successfully!");
-      router.refresh(); 
+      router.refresh();
     } catch (error: any) {
       console.error("Error sending donation:", error);
       console.log("Full error object:", error);
-      
+
       if (error.code === 4001) {
         toast.error("Transaction rejected", {
           description: "You rejected the transaction in MetaMask.",
