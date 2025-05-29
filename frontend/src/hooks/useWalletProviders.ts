@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import type { EIP1193Provider } from "@/types/wallet";
 
 declare global {
   interface WindowEventMap {
