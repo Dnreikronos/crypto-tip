@@ -10,8 +10,7 @@ import type { ProjectResponse } from "@/services/projectService";
 import { createDonation } from "@/services/donationService";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { useWalletProviders } from "@/hooks/useWalletProviders";
-import type { EIP6963ProviderDetail } from "@/types/wallet";
+
 
 interface DonationFormProps {
   project: ProjectResponse | null;
@@ -24,8 +23,8 @@ export default function DonationForm({ project }: DonationFormProps) {
   const [showPublicly, setShowPublicly] = useState(true);
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const providers = useWalletProviders();
-  const metaMaskProvider = providers.find((p: EIP6963ProviderDetail) => p.info.name === "MetaMask");
+  
+  
 
   const usdEquivalent =
     currency === "ethereum"
