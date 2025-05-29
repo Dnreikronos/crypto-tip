@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Eye, Edit, Trash2, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,12 +18,11 @@ import { Project as MyProject } from "@/app/my-projects/getProjects";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 
-// Extended project type for all projects view
 interface Project extends Omit<MyProject, "created_at"> {
   wallet_addr: string;
   project_link?: string;
   repo_link?: string;
-  created_at: string; // String for all projects, Date for my projects
+  created_at: string;
   updated_at: string;
   user?: {
     id: string;
@@ -66,23 +66,25 @@ export function ProjectsTable({
   initialProjects,
   isMyProjects = false,
 }: ProjectsTableProps) {
+  const [mounted, setMounted] = useState(false);
   const queryClient = useQueryClient();
   const router = useRouter();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { mutate: handleDelete } = useMutation({
     mutationFn: deleteProject,
     onMutate: async (id) => {
-      // Cancel outgoing refetches
       await queryClient.cancelQueries({
         queryKey: isMyProjects ? ["my-projects"] : ["projects"],
       });
 
-      // Snapshot the previous value
       const previousProjects = queryClient.getQueryData(
         isMyProjects ? ["my-projects"] : ["projects"],
       );
 
-      // Optimistically update to the new value
       queryClient.setQueryData(
         isMyProjects ? ["my-projects"] : ["projects"],
         (old: (Project | MyProject)[] = []) =>
@@ -92,7 +94,6 @@ export function ProjectsTable({
       return { previousProjects };
     },
     onError: (err, variables, context) => {
-      // Rollback on error
       if (context?.previousProjects) {
         queryClient.setQueryData(
           isMyProjects ? ["my-projects"] : ["projects"],
@@ -105,7 +106,6 @@ export function ProjectsTable({
       toast.success("Project deleted successfully");
     },
     onSettled: () => {
-      // Always refetch after error or success
       queryClient.invalidateQueries({
         queryKey: isMyProjects ? ["my-projects"] : ["projects"],
       });
@@ -115,6 +115,8 @@ export function ProjectsTable({
   const handleDonate = (projectId: string) => {
     router.push(`/donation?projectId=${projectId}`);
   };
+
+  if (!mounted) return null;
 
   return (
     <motion.div
