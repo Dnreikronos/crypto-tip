@@ -25,6 +25,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useCreateProject } from "@/hooks/useProject";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useWalletProviders } from "@/hooks/useWalletProviders";
 
 const projectSchema = z.object({
   title: z
@@ -54,6 +55,8 @@ type FormValues = z.infer<typeof projectSchema>;
 export default function CreateProjectPage() {
   const [previewMode, setPreviewMode] = useState(false);
   const router = useRouter();
+  const providers = useWalletProviders();
+  const metaMaskProvider = providers.find((p) => p.info.name === "MetaMask");
 
   const form = useForm<FormValues>({
     resolver: zodResolver(projectSchema),
@@ -71,6 +74,31 @@ export default function CreateProjectPage() {
   const formValues = form.watch();
 
   const { mutate: createProjectMutation, isPending } = useCreateProject();
+
+  const handleConnectWallet = async () => {
+    if (!metaMaskProvider) {
+      window.open("https://metamask.io/download/", "_blank");
+      return;
+    }
+
+    try {
+      const accounts = (await metaMaskProvider.provider.request({
+        method: "eth_requestAccounts",
+      })) as string[] | undefined;
+
+      if (accounts?.[0]) {
+        form.setValue("wallet_addr", accounts[0]);
+        toast.success("Wallet Connected", {
+          description: "Your MetaMask wallet has been connected successfully.",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to connect:", error);
+      toast.error("Connection Failed", {
+        description: "Unable to connect to MetaMask. Please try again.",
+      });
+    }
+  };
 
   function onSubmit(values: FormValues) {
     const { accept_terms: _, ...projectData } = values; // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -318,14 +346,25 @@ export default function CreateProjectPage() {
                               Wallet Address
                             </FormLabel>
                             <FormControl>
-                              <div className="relative">
-                                <motion.div whileFocus={{ scale: 1.01 }}>
+                              <div className="relative flex gap-2">
+                                <motion.div
+                                  whileFocus={{ scale: 1.01 }}
+                                  className="flex-1"
+                                >
                                   <Input
                                     placeholder="0x..."
                                     {...field}
-                                    className="bg-gray-800/70 border-gray-700 text-white focus:border-cyan-500 transition-all duration-300"
+                                    disabled
+                                    className="bg-gray-800/70 border-gray-700 text-white focus:border-cyan-500 transition-all duration-300 cursor-not-allowed"
                                   />
                                 </motion.div>
+                                <Button
+                                  type="button"
+                                  onClick={handleConnectWallet}
+                                  className="bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/25"
+                                >
+                                  Connect Wallet
+                                </Button>
                               </div>
                             </FormControl>
                             <FormDescription className="text-gray-400">

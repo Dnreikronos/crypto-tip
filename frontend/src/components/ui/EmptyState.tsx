@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Plus, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,15 @@ const itemVariants = {
 };
 
 export function EmptyState() {
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
   function handleCreateProject() {
     router.push("/create-project");
   }
