@@ -10,6 +10,8 @@ import type { ProjectResponse } from "@/services/projectService";
 import { createDonation } from "@/services/donationService";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useWalletProviders } from "@/hooks/useWalletProviders";
+import type { EIP6963ProviderDetail } from "@/types/wallet";
 
 interface DonationFormProps {
   project: ProjectResponse | null;
@@ -22,6 +24,8 @@ export default function DonationForm({ project }: DonationFormProps) {
   const [showPublicly, setShowPublicly] = useState(true);
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const providers = useWalletProviders();
+  const metaMaskProvider = providers.find((p: EIP6963ProviderDetail) => p.info.name === "MetaMask");
 
   const usdEquivalent =
     currency === "ethereum"
@@ -36,27 +40,72 @@ export default function DonationForm({ project }: DonationFormProps) {
       return;
     }
 
+    if (typeof window.ethereum === 'undefined') {
+      toast.error("MetaMask not found", {
+        description: "Please install MetaMask to make a donation.",
+      });
+      window.open("https://metamask.io/download/", "_blank");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
-      //TODO: replace with actual tx hash and from address
-      const mockTxHash = "0x" + Math.random().toString(36).substring(2, 15);
-      const mockFromAddr = "0x" + Math.random().toString(36).substring(2, 15);
+
+      const accounts = await window.ethereum.request({
+        method: "eth_requestAccounts",
+      }) as string[];
+
+      if (!accounts?.[0]) {
+        throw new Error("No accounts found");
+      }
+
+      const fromAddress = accounts[0];
+      const toAddress = project.wallet_addr;
+
+      const amountInWei = (amount * 1e18).toString(16);
+      
+      const txHash = await window.ethereum.request({
+        method: "eth_sendTransaction",
+        params: [{
+          from: fromAddress,
+          to: toAddress,
+          value: `0x${amountInWei}`,
+        }],
+      }) as string;
 
       await createDonation({
         amount: amount,
         crypto_type: currency,
-        tx_hash: mockTxHash,
-        from_addr: mockFromAddr,
+        tx_hash: txHash,
+        from_addr: fromAddress,
         message: message,
         anonymous: !showPublicly,
         project_id: project.id,
       });
 
       toast.success("Donation sent successfully!");
-      router.refresh(); // Refresh the page to update the project's raised amount
-    } catch (error) {
+      router.refresh(); 
+    } catch (error: any) {
       console.error("Error sending donation:", error);
-      toast.error("Failed to send donation. Please try again.");
+      console.log("Full error object:", error);
+      
+      if (error.code === 4001) {
+        toast.error("Transaction rejected", {
+          description: "You rejected the transaction in MetaMask.",
+        });
+      } else if (error.code === -32002) {
+        toast.error("Request pending", {
+          description: "Please check MetaMask for a pending request.",
+        });
+      } else if (error.code === -32603) {
+        toast.error("Transaction failed", {
+          description: "Insufficient funds or gas price too low.",
+        });
+      } else {
+        toast.error("Failed to send donation", {
+          description: error.message || "Please try again.",
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
