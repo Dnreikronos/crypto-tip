@@ -11,7 +11,6 @@ import { createDonation } from "@/services/donationService";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-
 interface DonationFormProps {
   project: ProjectResponse | null;
 }
@@ -23,8 +22,6 @@ export default function DonationForm({ project }: DonationFormProps) {
   const [showPublicly, setShowPublicly] = useState(true);
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  
 
   const usdEquivalent =
     currency === "ethereum"
@@ -39,7 +36,7 @@ export default function DonationForm({ project }: DonationFormProps) {
       return;
     }
 
-    if (typeof window.ethereum === 'undefined') {
+    if (typeof window.ethereum === "undefined") {
       toast.error("MetaMask not found", {
         description: "Please install MetaMask to make a donation.",
       });
@@ -50,9 +47,9 @@ export default function DonationForm({ project }: DonationFormProps) {
     try {
       setIsSubmitting(true);
 
-      const accounts = await window.ethereum.request({
+      const accounts = (await window.ethereum.request({
         method: "eth_requestAccounts",
-      }) as string[];
+      })) as string[];
 
       if (!accounts?.[0]) {
         throw new Error("No accounts found");
@@ -62,48 +59,57 @@ export default function DonationForm({ project }: DonationFormProps) {
       const toAddress = project.wallet_addr;
 
       const amountInWei = (amount * 1e18).toString(16);
-      
-      const txHash = await window.ethereum.request({
-        method: "eth_sendTransaction",
-        params: [{
-          from: fromAddress,
-          to: toAddress,
-          value: `0x${amountInWei}`,
-        }],
-      }) as string;
 
-      
+      const txHash = (await window.ethereum.request({
+        method: "eth_sendTransaction",
+        params: [
+          {
+            from: fromAddress,
+            to: toAddress,
+            value: `0x${amountInWei}`,
+          },
+        ],
+      })) as string;
+
       await createDonation({
-        amount: amount,
+        amount,
         crypto_type: currency,
         tx_hash: txHash,
         from_addr: fromAddress,
-        message: message,
+        message,
         anonymous: !showPublicly,
         project_id: project.id,
       });
 
       toast.success("Donation sent successfully!");
-      router.refresh(); 
-    } catch (error: any) {
+      router.refresh();
+    } catch (error: unknown) {
       console.log("Full error object:", error);
-      
-      
-      if (error.code === 4001) {
-        toast.error("Transaction rejected", {
-          description: "You rejected the transaction in MetaMask.",
-        });
-      } else if (error.code === -32002) {
-        toast.error("Request pending", {
-          description: "Please check MetaMask for a pending request.",
-        });
-      } else if (error.code === -32603) {
-        toast.error("Transaction failed", {
-          description: "Insufficient funds or gas price too low.",
-        });
+
+      if (typeof error === "object" && error !== null && "code" in error) {
+        const err = error as { code?: number; message?: string };
+
+        if (err.code === 4001) {
+          toast.error("Transaction rejected", {
+            description: "You rejected the transaction in MetaMask.",
+          });
+        } else if (err.code === -32002) {
+          toast.error("Request pending", {
+            description: "Please check MetaMask for a pending request.",
+          });
+        } else if (err.code === -32603) {
+          toast.error("Transaction failed", {
+            description: "Insufficient funds or gas price too low.",
+          });
+        } else {
+          toast.error("Failed to send donation", {
+            description:
+              err.message || "An unexpected error occurred. Please try again.",
+          });
+        }
       } else {
-        toast.error("Failed to send donation", {
-          description: error.message || "An unexpected error occurred. Please try again.",
+        toast.error("Unexpected error", {
+          description: "Please try again.",
         });
       }
     } finally {
