@@ -113,7 +113,7 @@ export function ProjectsTable({
   });
 
   const handleDonate = (projectId: string) => {
-    router.push(`/donation?projectId=${projectId}`);
+    router.push(`/donation/${projectId}`);
   };
 
   if (!mounted) return null;
@@ -196,10 +196,14 @@ export function ProjectsTable({
                         <Gift className="h-4 w-4" />
                       </Button>
                     )}
+
                     <Button
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-gray-400 hover:text-cyan-400 hover:bg-cyan-400/5 cursor-pointer"
+                      onClick={() =>
+                        router.push(`/donation/${project.id}`)
+                      }
                       title="View"
                     >
                       <Eye className="h-4 w-4" />
