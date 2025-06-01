@@ -212,8 +212,22 @@ export default function DonationForm({ project }: DonationFormProps) {
             className="bg-gradient-to-r from-purple-500 to-cyan-500 h-2 rounded-full"
           />
           <div className="flex justify-between text-xs text-gray-400 mt-1">
-            <span>5 {currency === "ethereum" ? "ETH" : currency === "bitcoin" ? "BTC" : "SOL"}</span>
-            <span>500 {currency === "ethereum" ? "ETH" : currency === "bitcoin" ? "BTC" : "SOL"}</span>
+            <span>
+              5{" "}
+              {currency === "ethereum"
+                ? "ETH"
+                : currency === "bitcoin"
+                  ? "BTC"
+                  : "SOL"}
+            </span>
+            <span>
+              500{" "}
+              {currency === "ethereum"
+                ? "ETH"
+                : currency === "bitcoin"
+                  ? "BTC"
+                  : "SOL"}
+            </span>
           </div>
           <motion.p className="text-sm text-gray-400 mb-4">
             ≈ ${usdEquivalent.toLocaleString()}

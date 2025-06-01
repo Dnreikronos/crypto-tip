@@ -1,5 +1,5 @@
-import DonationPageClient from './DonationPageClient';
-import { getProject } from '@/services/projectService';
+import DonationPageClient from "./DonationPageClient";
+import { getProject } from "@/services/projectService";
 
 export default async function DonationPage({
   params,
@@ -8,4 +8,4 @@ export default async function DonationPage({
 }) {
   const project = await getProject(params.id);
   return <DonationPageClient project={project} />;
-} 
+}
