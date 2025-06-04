@@ -3,7 +3,7 @@
 import { Suspense } from "react";
 import ProfileCard from "@/components/ui/ProfileCard";
 import SupportForm from "@/components/ui/DonationForm";
-import RecentSupporters from "@/components/ui/RecentSupporters";
+// import RecentSupporters from "@/components/ui/RecentSupporters";
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
 import type { ProjectResponse } from "@/services/projectService";
 
@@ -53,13 +53,13 @@ export default function DonationPageClient({
               )}
             </Suspense>
 
-            <Suspense
+            {/* <Suspense
               fallback={
                 <div className="h-60 bg-gray-900/60 rounded-lg animate-pulse"></div>
               }
             >
               <RecentSupporters />
-            </Suspense>
+            </Suspense> */}
           </div>
 
           <div className="lg:col-span-8 space-y-6">

@@ -1,15 +1,17 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { Slider } from "@/components/ui/slider";
 import { createDonation } from "@/services/donationService";
 import type { ProjectResponse } from "@/services/projectService";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { SiBitcoin, SiEthereum, SiSolana } from "react-icons/si";
 
 interface DonationFormProps {
   project: ProjectResponse | null;
@@ -17,18 +19,34 @@ interface DonationFormProps {
 
 export default function DonationForm({ project }: DonationFormProps) {
   const router = useRouter();
-  const [amount, setAmount] = useState(50);
+  const [usdAmount, setUsdAmount] = useState("50");
   const [currency, setCurrency] = useState("ethereum");
+  const [conversionRate, setConversionRate] = useState<number>(0);
+  const [isRateLoading, setIsRateLoading] = useState<boolean>(false);
   const [showPublicly, setShowPublicly] = useState(true);
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const usdEquivalent =
-    currency === "ethereum"
-      ? amount * 30
-      : currency === "bitcoin"
-        ? amount * 60000
-        : amount * 100;
+  const usdAmountNumber = parseFloat(usdAmount) || 0;
+  const cryptoAmount = conversionRate ? usdAmountNumber / conversionRate : 0;
+
+  useEffect(() => {
+    async function fetchRate() {
+      setIsRateLoading(true);
+      try {
+        const res = await fetch(`/api/quotes?slug=${currency}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to fetch rate");
+        setConversionRate(data.price);
+      } catch (error: unknown) {
+        console.error("Error fetching conversion rate:", error);
+        toast.error("Failed to fetch conversion rate");
+      } finally {
+        setIsRateLoading(false);
+      }
+    }
+    fetchRate();
+  }, [currency]);
 
   async function handleSend() {
     if (!project) {
@@ -58,7 +76,7 @@ export default function DonationForm({ project }: DonationFormProps) {
       const fromAddress = accounts[0];
       const toAddress = project.wallet_addr;
 
-      const amountInWei = (amount * 1e18).toString(16);
+      const amountInWei = (cryptoAmount * 1e18).toString(16);
 
       const txHash = (await window.ethereum.request({
         method: "eth_sendTransaction",
@@ -72,7 +90,7 @@ export default function DonationForm({ project }: DonationFormProps) {
       })) as string;
 
       await createDonation({
-        amount,
+        amount: cryptoAmount,
         crypto_type: currency,
         tx_hash: txHash,
         from_addr: fromAddress,
@@ -139,38 +157,16 @@ export default function DonationForm({ project }: DonationFormProps) {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          <p className="text-sm text-gray-400 mb-2">Donation Amount</p>
+          <p className="text-sm text-gray-400 mb-2">Donation Amount (USD)</p>
           <div className="flex items-baseline gap-3">
-            <motion.span
-              className="text-4xl font-bold"
-              key={amount}
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              {amount}
+            <motion.span className="text-4xl font-bold" key={usdAmount}>
+              ${usdAmount}
             </motion.span>
-            <motion.span
-              className="text-lg px-2 py-1 rounded bg-cyan-900 text-cyan-400"
-              key={currency}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              {currency === "ethereum"
-                ? "ETH"
-                : currency === "bitcoin"
-                  ? "BTC"
-                  : "SOL"}
-            </motion.span>
-            <motion.span
-              className="text-gray-400"
-              key={usdEquivalent}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              ≈ ${usdEquivalent.toLocaleString()}
+            <motion.span className="text-gray-400" key={cryptoAmount}>
+              ≈{" "}
+              {isRateLoading
+                ? "Loading..."
+                : `${cryptoAmount.toFixed(6)} ${currency === "ethereum" ? "ETH" : currency === "bitcoin" ? "BTC" : "SOL"}`}
             </motion.span>
           </div>
 
@@ -191,33 +187,25 @@ export default function DonationForm({ project }: DonationFormProps) {
             </div>
           )}
 
-          <div className="my-4">
-            <Slider
-              value={[amount]}
-              min={5}
-              max={500}
-              step={1}
-              onValueChange={(vals) => setAmount(vals[0])}
-              className="bg-gradient-to-r from-purple-500 to-cyan-500 h-2 rounded-full"
-            />
-            <div className="flex justify-between text-xs text-gray-400 mt-1">
-              <span>
-                5{" "}
-                {currency === "ethereum"
-                  ? "ETH"
-                  : currency === "bitcoin"
-                    ? "BTC"
-                    : "SOL"}
-              </span>
-              <span>
-                500{" "}
-                {currency === "ethereum"
-                  ? "ETH"
-                  : currency === "bitcoin"
-                    ? "BTC"
-                    : "SOL"}
-              </span>
-            </div>
+          <Input
+            type="number"
+            min="0"
+            step="0.01"
+            value={usdAmount}
+            onChange={(e) => setUsdAmount(e.target.value)}
+            className="bg-gray-800 text-white placeholder-gray-500 mb-2"
+          />
+          <Slider
+            value={[usdAmountNumber]}
+            min={5}
+            max={500}
+            step={1}
+            onValueChange={(vals) => setUsdAmount(vals[0].toString())}
+            className="bg-gradient-to-r from-purple-500 to-cyan-500 h-2 rounded-full"
+          />
+          <div className="flex justify-between text-xs text-gray-400 mt-1">
+            <span>5 USD</span>
+            <span>500 USD</span>
           </div>
         </motion.div>
 
@@ -247,8 +235,8 @@ export default function DonationForm({ project }: DonationFormProps) {
                   />
                 </svg>
               </div>
-              <div className="h-8 w-8 bg-yellow-500/50 rounded-full flex items-center justify-center">
-                <span className="text-lg">₿</span>
+              <div className="h-8 w-8 bg-yellow-500/20 rounded-full flex items-center justify-center">
+                <SiBitcoin className="h-5 w-5 text-yellow-400" />
               </div>
               <span className="text-sm">Bitcoin</span>
               <span className="text-xs text-gray-500">BTC</span>
@@ -269,7 +257,7 @@ export default function DonationForm({ project }: DonationFormProps) {
                     currency === "ethereum" ? "#06b6d4" : "#06b6d4",
                 }}
               >
-                <span className="text-lg">Ξ</span>
+                <SiEthereum className="h-6 w-6 text-white" />
               </motion.div>
               <span className="text-sm">Ethereum</span>
               <span className="text-xs text-gray-500">ETH</span>
@@ -294,8 +282,8 @@ export default function DonationForm({ project }: DonationFormProps) {
                   />
                 </svg>
               </div>
-              <div className="h-8 w-8 bg-green-500/50 rounded-full flex items-center justify-center">
-                <span className="text-lg">◎</span>
+              <div className="h-8 w-8 bg-green-500/20 rounded-full flex items-center justify-center">
+                <SiSolana className="h-5 w-5 text-purple-400" />
               </div>
               <span className="text-sm">Solana</span>
               <span className="text-xs text-gray-500">SOL</span>
@@ -310,13 +298,15 @@ export default function DonationForm({ project }: DonationFormProps) {
         >
           <div className="flex justify-between mb-2">
             <p className="text-sm text-gray-400">Leave a Message (Optional)</p>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-400">Show publicly</span>
+            <label className="inline-flex items-center gap-2 cursor-pointer">
+              <span className="text-sm text-gray-400">
+                {showPublicly ? "Public Donation" : "Anonymous"}
+              </span>
               <Switch
                 checked={showPublicly}
                 onCheckedChange={setShowPublicly}
               />
-            </div>
+            </label>
           </div>
 
           <motion.div
@@ -348,13 +338,7 @@ export default function DonationForm({ project }: DonationFormProps) {
                   "Processing..."
                 ) : (
                   <>
-                    Send {amount}{" "}
-                    {currency === "ethereum"
-                      ? "ETH"
-                      : currency === "bitcoin"
-                        ? "BTC"
-                        : "SOL"}{" "}
-                    Tip
+                    Send ${usdAmount} Tip
                     <motion.svg
                       className="ml-2 h-5 w-5"
                       fill="none"
