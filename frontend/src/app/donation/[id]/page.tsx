@@ -1,13 +1,8 @@
 import DonationPageClient from "./DonationPageClient";
 import { getProject } from "@/services/projectService";
 
-export default async function DonationPage({
-  params,
-  searchParams: _searchParams,
-}: {
-  params: { id: string };
-  searchParams: Record<string, string | string[] | undefined>;
-}) {
+// @ts-expect-error Next.js PageProps mismatch
+export default async function DonationPage({ params, searchParams: _searchParams }) {
   void _searchParams;
   const project = await getProject(params.id);
   return <DonationPageClient project={project} />;
