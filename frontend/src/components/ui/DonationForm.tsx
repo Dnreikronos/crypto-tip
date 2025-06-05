@@ -9,8 +9,9 @@ import { createDonation } from "@/services/donationService";
 import type { ProjectResponse } from "@/services/projectService";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { SiBitcoin, SiEthereum, SiSolana } from "react-icons/si";
 
 interface DonationFormProps {
   project: ProjectResponse | null;
@@ -18,24 +19,35 @@ interface DonationFormProps {
 
 export default function DonationForm({ project }: DonationFormProps) {
   const router = useRouter();
-  const [amount, setAmount] = useState(50);
+  const [usdAmount, setUsdAmount] = useState("50");
   const [currency, setCurrency] = useState("ethereum");
+  const [conversionRate, setConversionRate] = useState<number>(0);
+  const [isRateLoading, setIsRateLoading] = useState<boolean>(false);
   const [showPublicly, setShowPublicly] = useState(true);
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const usdEquivalent =
-    currency === "ethereum"
-      ? amount * 30
-      : currency === "bitcoin"
-        ? amount * 60000
-        : amount * 100;
+  const usdAmountNumber = parseFloat(usdAmount) || 0;
+  const cryptoAmount = conversionRate ? usdAmountNumber / conversionRate : 0;
 
-  const handleAmountChange = (value: string) => {
-    const newAmount = parseFloat(value);
-    setAmount(isNaN(newAmount) ? 0 : newAmount);
-  };
+  useEffect(() => {
+    async function fetchRate() {
+      setIsRateLoading(true);
+      try {
+        const res = await fetch(`/api/quotes?slug=${currency}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to fetch rate");
+        setConversionRate(data.price);
+      } catch (error: unknown) {
+        console.error("Error fetching conversion rate:", error);
+        toast.error("Failed to fetch conversion rate");
+      } finally {
+        setIsRateLoading(false);
+      }
+    }
+    fetchRate();
+  }, [currency]);
 
   async function handleSend() {
     if (!project) {
@@ -63,19 +75,17 @@ export default function DonationForm({ project }: DonationFormProps) {
 
       const fromAddress = accounts[0];
       const toAddress = project.wallet_addr;
-      const amountInWei = (amount * 1e18).toString(16);
+      const amountInWei = (cryptoAmount * 1e18).toString(16);
 
       setIsProcessing(true);
 
       const txHash = (await window.ethereum.request({
         method: "eth_sendTransaction",
-        params: [
-          { from: fromAddress, to: toAddress, value: `0x${amountInWei}` },
-        ],
+        params: [{ from: fromAddress, to: toAddress, value: `0x${amountInWei}` }],
       })) as string;
 
       await createDonation({
-        amount,
+        amount: cryptoAmount,
         crypto_type: currency,
         tx_hash: txHash,
         from_addr: fromAddress,
@@ -182,29 +192,26 @@ export default function DonationForm({ project }: DonationFormProps) {
             className="flex items-center bg-gray-800 rounded-lg border border-gray-700 focus-within:border-cyan-500 transition-colors"
             whileHover={{ scale: 1.01 }}
           >
+            <span className="text-4xl font-bold text-gray-400 pl-4">$</span>
             <Input
               type="number"
-              value={amount}
-              onChange={(e) => handleAmountChange(e.target.value)}
+              value={usdAmount}
+              onChange={(e) => setUsdAmount(e.target.value)}
               className="text-4xl font-bold bg-transparent border-none focus:ring-0 h-auto p-3 flex-1"
               disabled={isSubmitting || isProcessing}
             />
-            <div className="text-lg px-4 py-1 rounded-r-lg bg-gray-700 text-cyan-400 font-semibold">
-              {currency === "ethereum"
-                ? "ETH"
-                : currency === "bitcoin"
-                  ? "BTC"
-                  : "SOL"}
-            </div>
           </motion.div>
+
           <motion.p
             className="text-right text-gray-400 text-sm mt-2"
-            key={usdEquivalent}
+            key={cryptoAmount}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
           >
-            ≈ ${usdEquivalent.toLocaleString()}
+            ≈{" "}
+            {isRateLoading
+              ? "Loading..."
+              : `${cryptoAmount.toFixed(6)} ${currency === "ethereum" ? "ETH" : currency === "bitcoin" ? "BTC" : "SOL"}`}
           </motion.p>
 
           {project && (
@@ -226,17 +233,17 @@ export default function DonationForm({ project }: DonationFormProps) {
 
           <div className="my-4">
             <Slider
-              value={[amount]}
+              value={[usdAmountNumber]}
               min={5}
               max={500}
               step={1}
-              onValueChange={(vals) => setAmount(vals[0])}
+              onValueChange={(vals) => setUsdAmount(vals[0].toString())}
               className="bg-gradient-to-r from-purple-500 to-cyan-500 h-2 rounded-full"
               disabled={isSubmitting || isProcessing}
             />
             <div className="flex justify-between text-xs text-gray-400 mt-1">
-              <span>5</span>
-              <span>500</span>
+              <span>$5</span>
+              <span>$500</span>
             </div>
           </div>
         </motion.div>
@@ -252,8 +259,8 @@ export default function DonationForm({ project }: DonationFormProps) {
               className="relative p-4 rounded-lg border border-gray-700 bg-gray-800 flex flex-col items-center gap-2 opacity-50 cursor-not-allowed"
               disabled
             >
-              <div className="h-8 w-8 bg-yellow-500/50 rounded-full flex items-center justify-center">
-                <span className="text-lg">₿</span>
+              <div className="h-8 w-8 bg-yellow-500/20 rounded-full flex items-center justify-center">
+                <SiBitcoin className="h-5 w-5 text-yellow-400" />
               </div>
               <span className="text-sm">Bitcoin</span>
               <span className="text-xs text-gray-500">BTC</span>
@@ -275,7 +282,7 @@ export default function DonationForm({ project }: DonationFormProps) {
                 className="h-8 w-8 bg-cyan-500 rounded-full flex items-center justify-center"
                 animate={{ scale: currency === "ethereum" ? 1.1 : 1 }}
               >
-                <span className="text-lg">Ξ</span>
+                <SiEthereum className="h-6 w-6 text-white" />
               </motion.div>
               <span className="text-sm">Ethereum</span>
               <span className="text-xs text-gray-500">ETH</span>
@@ -285,8 +292,8 @@ export default function DonationForm({ project }: DonationFormProps) {
               className="relative p-4 rounded-lg border border-gray-700 bg-gray-800 flex flex-col items-center gap-2 opacity-50 cursor-not-allowed"
               disabled
             >
-              <div className="h-8 w-8 bg-green-500/50 rounded-full flex items-center justify-center">
-                <span className="text-lg">◎</span>
+              <div className="h-8 w-8 bg-green-500/20 rounded-full flex items-center justify-center">
+                <SiSolana className="h-5 w-5 text-purple-400" />
               </div>
               <span className="text-sm">Solana</span>
               <span className="text-xs text-gray-500">SOL</span>
@@ -301,14 +308,16 @@ export default function DonationForm({ project }: DonationFormProps) {
         >
           <div className="flex justify-between mb-2">
             <p className="text-sm text-gray-400">Leave a Message (Optional)</p>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-400">Show publicly</span>
+            <label className="inline-flex items-center gap-2 cursor-pointer">
+              <span className="text-sm text-gray-400">
+                {showPublicly ? "Public Donation" : "Anonymous"}
+              </span>
               <Switch
                 checked={showPublicly}
                 onCheckedChange={setShowPublicly}
                 disabled={isSubmitting || isProcessing}
               />
-            </div>
+            </label>
           </div>
           <motion.div
             whileHover={{ scale: 1.01 }}
@@ -340,13 +349,7 @@ export default function DonationForm({ project }: DonationFormProps) {
                   "Preparing..."
                 ) : (
                   <>
-                    Send {amount}{" "}
-                    {currency === "ethereum"
-                      ? "ETH"
-                      : currency === "bitcoin"
-                        ? "BTC"
-                        : "SOL"}{" "}
-                    Tip
+                    Send ${usdAmount} Tip
                     <motion.svg
                       className="ml-2 h-5 w-5"
                       fill="none"
