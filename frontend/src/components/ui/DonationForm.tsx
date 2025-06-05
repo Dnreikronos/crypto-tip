@@ -81,7 +81,9 @@ export default function DonationForm({ project }: DonationFormProps) {
 
       const txHash = (await window.ethereum.request({
         method: "eth_sendTransaction",
-        params: [{ from: fromAddress, to: toAddress, value: `0x${amountInWei}` }],
+        params: [
+          { from: fromAddress, to: toAddress, value: `0x${amountInWei}` },
+        ],
       })) as string;
 
       await createDonation({
