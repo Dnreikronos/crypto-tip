@@ -30,7 +30,7 @@ export function useCreateProject() {
 export function useProjects(page: number = 1, limit: number = 10) {
   return useQuery<ProjectResponse[], Error>({
     queryKey: [...PROJECTS_KEY, page, limit],
-    queryFn: () => getProjects(page, limit).then(data => data.projects),
+    queryFn: () => getProjects(page, limit).then((data) => data.projects),
   });
 }
 
