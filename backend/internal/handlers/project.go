@@ -3,7 +3,10 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"strconv"
 	"time"
+
+	"math"
 
 	"github.com/Dnreikronos/crypto-tip/internal/models"
 	"github.com/gin-gonic/gin"
@@ -128,8 +131,34 @@ func UpdateProjectHandler(c *gin.Context) {
 func GetAllProjectHandler(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
+	page := c.DefaultQuery("page", "1")
+	limit := c.DefaultQuery("limit", "10")
+
+	pageNum, err := strconv.Atoi(page)
+	if err != nil || pageNum < 1 {
+		pageNum = 1
+	}
+
+	limitNum, err := strconv.Atoi(limit)
+	if err != nil || limitNum < 1 || limitNum > 100 {
+		limitNum = 10
+	}
+
+	offset := (pageNum - 1) * limitNum
+
+	var total int64
+	if err := db.Model(&models.Project{}).Count(&total).Error; err != nil {
+		log.Printf("error trying to count projects: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch projects"})
+		return
+	}
+
 	var projects []models.Project
-	if err := db.Preload("User").Find(&projects).Error; err != nil {
+	if err := db.Preload("User").
+		Offset(offset).
+		Limit(limitNum).
+		Order("created_at DESC").
+		Find(&projects).Error; err != nil {
 		log.Printf("error trying to get all projects: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch projects"})
 		return
@@ -140,7 +169,15 @@ func GetAllProjectHandler(c *gin.Context) {
 		response = append(response, models.ProjectToResponse(project, false))
 	}
 
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, gin.H{
+		"projects": response,
+		"pagination": gin.H{
+			"total": total,
+			"page":  pageNum,
+			"limit": limitNum,
+			"pages": int(math.Ceil(float64(total) / float64(limitNum))),
+		},
+	})
 }
 
 func GetProjectByIDHandler(c *gin.Context) {
