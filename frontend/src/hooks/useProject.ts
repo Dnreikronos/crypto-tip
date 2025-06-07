@@ -11,7 +11,7 @@ import {
 
 const PROJECTS_KEY = ["projects"] as const;
 const MY_PROJECTS_KEY = ["my-projects"] as const;
-const PROJECT_KEY = (id: string) => ["projects", id] as const;
+const PROJECT_KEY = (id: string) => ["project", id] as const;
 
 /** CREATE */
 export function useCreateProject() {
@@ -27,10 +27,10 @@ export function useCreateProject() {
 }
 
 /** READ ALL */
-export function useProjects() {
+export function useProjects(page: number = 1, limit: number = 10) {
   return useQuery<ProjectResponse[], Error>({
-    queryKey: PROJECTS_KEY,
-    queryFn: getProjects,
+    queryKey: [...PROJECTS_KEY, page, limit],
+    queryFn: () => getProjects(page, limit).then((data) => data.projects),
   });
 }
 
@@ -39,7 +39,6 @@ export function useProject(id: string) {
   return useQuery<ProjectResponse, Error>({
     queryKey: PROJECT_KEY(id),
     queryFn: () => getProject(id),
-    enabled: Boolean(id),
   });
 }
 
