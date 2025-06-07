@@ -40,10 +40,9 @@ export interface ProjectInput {
   repo_link?: string;
 }
 
-export interface ProjectResponse extends z.infer<typeof projectSchema> {}
+export type ProjectResponse = z.infer<typeof projectSchema>;
 
-export interface PaginatedResponse<T>
-  extends z.infer<typeof paginatedResponseSchema> {}
+export type PaginatedResponse = z.infer<typeof paginatedResponseSchema>;
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -93,7 +92,7 @@ export async function createProject(
 export async function getProjects(
   page: number = 1,
   limit: number = 10,
-): Promise<PaginatedResponse<ProjectResponse>> {
+): Promise<PaginatedResponse> {
   const headers = await getAuthHeaders();
 
   const response = await fetch(
