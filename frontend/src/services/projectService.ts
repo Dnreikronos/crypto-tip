@@ -1,4 +1,35 @@
 import { getAuthHeaders } from "@/lib/auth";
+import { z } from "zod";
+
+const userSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string().email(),
+});
+
+const projectSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string(),
+  goal: z.number(),
+  wallet_addr: z.string(),
+  project_link: z.string().url().optional(),
+  repo_link: z.string().url().optional(),
+  created_at: z.string(),
+  updated_at: z.string(),
+  raised: z.number().default(0),
+  creator: userSchema.optional(),
+});
+
+const paginatedResponseSchema = z.object({
+  projects: z.array(projectSchema),
+  pagination: z.object({
+    total: z.number(),
+    page: z.number(),
+    limit: z.number(),
+    pages: z.number(),
+  }),
+});
 
 export interface ProjectInput {
   title: string;
@@ -9,23 +40,10 @@ export interface ProjectInput {
   repo_link?: string;
 }
 
-export interface ProjectResponse {
-  id: string;
-  title: string;
-  description: string;
-  goal: number;
-  wallet_addr: string;
-  project_link: string;
-  repo_link: string;
-  created_at: string;
-  updated_at: string;
-  raised: number;
-  creator?: {
-    id: string;
-    name: string;
-    email: string;
-  };
-}
+export interface ProjectResponse extends z.infer<typeof projectSchema> {}
+
+export interface PaginatedResponse<T>
+  extends z.infer<typeof paginatedResponseSchema> {}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -40,7 +58,6 @@ export async function createProject(
 ): Promise<ProjectResponse> {
   const headers = await getAuthHeaders();
 
-  // Convert goal to number if it's a string
   const formattedData = {
     ...projectData,
     goal:
@@ -67,23 +84,32 @@ export async function createProject(
 }
 
 /**
- * Gets all projects
- * @returns List of projects
+ * Gets all projects with pagination
+ * @param page Page number (1-based)
+ * @param limit Number of items per page
+ * @returns Paginated list of projects
  * @throws Error if the request fails
  */
-export async function getProjects(): Promise<ProjectResponse[]> {
+export async function getProjects(
+  page: number = 1,
+  limit: number = 10,
+): Promise<PaginatedResponse<ProjectResponse>> {
   const headers = await getAuthHeaders();
 
-  const response = await fetch(`${API_URL}/projects`, {
-    headers,
-  });
+  const response = await fetch(
+    `${API_URL}/projects?page=${page}&limit=${limit}`,
+    {
+      headers,
+    },
+  );
 
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.error || "Failed to fetch projects");
   }
 
-  return response.json();
+  const data = await response.json();
+  return paginatedResponseSchema.parse(data);
 }
 
 /**
@@ -120,7 +146,6 @@ export async function updateProject(
 ): Promise<ProjectResponse> {
   const headers = await getAuthHeaders();
 
-  // Convert goal to number if it's a string
   const formattedData = {
     ...projectData,
     goal:
