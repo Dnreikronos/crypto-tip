@@ -31,13 +31,28 @@ const projectSchema = z.object({
   user: userSchema.optional(),
 });
 
+// Schema for the entire API response, including pagination
+const apiResponseSchema = z.object({
+  projects: z.array(projectSchema),
+  pagination: z.object({
+    page: z.number(),
+    limit: z.number(),
+    total: z.number(),
+    pages: z.number(),
+  }),
+});
+
 export default function ProjectsContent() {
   const [page, setPage] = useState(1);
   const limit = 10;
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["projects", page, limit],
-    queryFn: () => getProjects(page, limit),
+    queryFn: async () => {
+      const response = await getProjects(page, limit);
+      // Validate the fetched data against the schema
+      return apiResponseSchema.parse(response);
+    },
   });
 
   if (error) {
@@ -113,6 +128,7 @@ export default function ProjectsContent() {
                 return newPage;
               });
             }}
+            disabled={page === 1}
             style={{ pointerEvents: "auto", zIndex: 1000 }}
           >
             <ChevronLeft className="h-4 w-4" />
@@ -132,6 +148,7 @@ export default function ProjectsContent() {
                 return newPage;
               });
             }}
+            disabled={pagination.page === pagination.pages}
             style={{ pointerEvents: "auto", zIndex: 1000 }}
           >
             Next
