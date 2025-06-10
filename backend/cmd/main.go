@@ -8,6 +8,7 @@ import (
 
 	"github.com/Dnreikronos/crypto-tip/internal/config"
 	"github.com/Dnreikronos/crypto-tip/internal/handlers"
+	"github.com/Dnreikronos/crypto-tip/internal/middleware"
 	"github.com/Dnreikronos/crypto-tip/internal/storage/connection"
 	"github.com/Dnreikronos/crypto-tip/internal/storage/migration"
 	"github.com/gin-contrib/cors"
@@ -34,6 +35,8 @@ func main() {
 	migration.RunMigration(db)
 
 	r := gin.Default()
+
+	r.Use(middleware.RateLimiter())
 
 	r.Use(func(c *gin.Context) {
 		c.Set("db", db)
