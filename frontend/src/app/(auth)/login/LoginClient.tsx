@@ -18,9 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Toaster, toast } from "sonner";
-
+import { toast } from "sonner";
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -99,7 +97,6 @@ export default function LoginClient() {
   return (
     <main className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-gray-950 via-gray-900 to-zinc-900 text-gray-100 relative overflow-hidden">
       <AnimatedBackground />
-      <Toaster richColors />
       <div className="w-full max-w-md z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -120,11 +117,6 @@ export default function LoginClient() {
             </CardHeader>
 
             <CardContent>
-              {mutation.isError && (
-                <Alert variant="destructive" className="mb-4">
-                  <AlertDescription>{mutation.error?.message}</AlertDescription>
-                </Alert>
-              )}
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label
@@ -209,7 +201,7 @@ export default function LoginClient() {
 
             <CardFooter className="flex flex-col items-center space-y-2">
               <p className="text-sm text-gray-400">
-                Don’t have an account?{" "}
+                Don&apos;t have an account?{" "}
                 <Link
                   href="/register"
                   className="text-cyan-400 hover:underline"

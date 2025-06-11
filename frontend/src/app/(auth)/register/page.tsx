@@ -7,6 +7,7 @@ import { Loader2, Lock, Mail, User, Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { z } from "zod";
+import { toast } from "sonner";
 
 import {
   Card,
@@ -19,7 +20,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
 
 import { registerUser } from "../../../lib/auth";
@@ -60,7 +60,20 @@ export default function RegisterPage() {
     }: Omit<RegisterData, "confirmPassword">) =>
       registerUser({ name, email, password }),
     onSuccess: () => {
+      toast.success("Account created", {
+        description: "Your account has been created successfully!",
+        icon: <Lock className="h-4 w-4 text-green-400" />,
+        position: "top-center",
+      });
       router.push("/login");
+    },
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : "An error occurred. Please try again.";
+      toast.error("Registration error", {
+        description: message,
+        icon: <Lock className="h-4 w-4 text-red-400" />,
+        position: "top-center",
+      });
     },
   });
 
@@ -116,17 +129,6 @@ export default function RegisterPage() {
             </CardHeader>
 
             <CardContent>
-              {mutation.isError && (
-                <Alert
-                  variant="destructive"
-                  className="mb-6 bg-red-500/10 border-red-500/50 text-red-500"
-                >
-                  <AlertDescription>
-                    {(mutation.error as Error).message}
-                  </AlertDescription>
-                </Alert>
-              )}
-
               <form onSubmit={handleRegister} className="space-y-4">
                 <div className="space-y-2">
                   <Label
