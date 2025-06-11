@@ -4,8 +4,8 @@ pragma solidity ^0.8.0;
 contract DonationContract {
     address public owner;
     address public feeWallet;
-    uint256 public constant FEE_PERCENTAGE = 5; // 5% fee
-    uint256 public constant BASIS_POINTS = 10000; // For precise percentage calculations
+    uint256 public constant FEE_PERCENTAGE = 5;
+    uint256 public constant BASIS_POINTS = 10000;
 
     struct Donation {
         uint256 amount;
@@ -16,9 +16,7 @@ contract DonationContract {
         uint256 timestamp;
     }
 
-    // Mapping from project address to array of donations
     mapping(address => Donation[]) public projectDonations;
-    // Mapping from donor address to array of donations
     mapping(address => Donation[]) public donorDonations;
 
     event DonationReceived(
@@ -57,15 +55,12 @@ contract DonationContract {
         uint256 fee = (msg.value * FEE_PERCENTAGE) / 100;
         uint256 recipientAmount = msg.value - fee;
 
-        // Transfer fee to fee wallet
         (bool feeSuccess, ) = feeWallet.call{value: fee}("");
         require(feeSuccess, "Fee transfer failed");
 
-        // Transfer remaining amount to recipient
         (bool recipientSuccess, ) = recipient.call{value: recipientAmount}("");
         require(recipientSuccess, "Recipient transfer failed");
 
-        // Create donation record
         Donation memory newDonation = Donation({
             amount: msg.value,
             cryptoType: cryptoType,
@@ -75,7 +70,6 @@ contract DonationContract {
             timestamp: block.timestamp
         });
 
-        // Store donation records
         projectDonations[recipient].push(newDonation);
         if (!anonymous) {
             donorDonations[msg.sender].push(newDonation);
@@ -112,13 +106,11 @@ contract DonationContract {
         owner = _newOwner;
     }
 
-    // Function to receive ETH
     receive() external payable {
         revert("Please use the donate function");
     }
 
-    // Function to get contract balance
     function getBalance() external view returns (uint256) {
         return address(this).balance;
     }
-} 
+}
