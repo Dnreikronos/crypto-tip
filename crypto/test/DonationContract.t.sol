@@ -207,7 +207,6 @@ contract DonationContractTest is Test {
 
     function test_ContractBalance() public {
         uint256 donationAmount = 1 ether;
-        
         vm.startPrank(donor);
         donationContract.donate{value: donationAmount}(
             recipient,
