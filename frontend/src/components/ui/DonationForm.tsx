@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { SiBitcoin, SiEthereum, SiSolana } from "react-icons/si";
+import { ContractService } from "@/services/contractService";
 
 interface DonationFormProps {
   project: ProjectResponse | null;
@@ -65,6 +66,49 @@ export default function DonationForm({ project }: DonationFormProps) {
 
     try {
       setIsSubmitting(true);
+
+      // Switch to Sepolia testnet
+      try {
+        await window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: "0xaa36a7" }], // Sepolia chainId
+        });
+      } catch (switchError: unknown) {
+        // handle only “chain not added” error (4902); otherwise rethrow
+        if (
+          typeof switchError === "object" &&
+          switchError !== null &&
+          "code" in switchError &&
+          (switchError as { code: number }).code === 4902
+        ) {
+          try {
+            await window.ethereum.request({
+              method: "wallet_addEthereumChain",
+              params: [
+                {
+                  chainId: "0xaa36a7",
+                  chainName: "Sepolia",
+                  nativeCurrency: {
+                    name: "SepoliaETH",
+                    symbol: "SEP",
+                    decimals: 18,
+                  },
+                  rpcUrls: ["https://eth-sepolia.g.alchemy.com/v2/demo"],
+                  blockExplorerUrls: ["https://sepolia.etherscan.io"],
+                },
+              ],
+            });
+          } catch {
+            toast.error("Failed to add Sepolia network", {
+              description: "Please add Sepolia network manually in MetaMask.",
+            });
+            return;
+          }
+        } else {
+          throw switchError;
+        }
+      }
+
       const accounts = (await window.ethereum.request({
         method: "eth_requestAccounts",
       })) as string[];
@@ -73,24 +117,23 @@ export default function DonationForm({ project }: DonationFormProps) {
         throw new Error("No accounts found");
       }
 
-      const fromAddress = accounts[0];
-      const toAddress = project.wallet_addr;
-      const amountInWei = (cryptoAmount * 1e18).toString(16);
+      const contractService = new ContractService();
 
       setIsProcessing(true);
 
-      const txHash = (await window.ethereum.request({
-        method: "eth_sendTransaction",
-        params: [
-          { from: fromAddress, to: toAddress, value: `0x${amountInWei}` },
-        ],
-      })) as string;
+      const tx = await contractService.donate({
+        recipient: project.wallet_addr,
+        cryptoType: currency,
+        message,
+        anonymous: !showPublicly,
+        amount: cryptoAmount.toString(),
+      });
 
       await createDonation({
         amount: cryptoAmount,
         crypto_type: currency,
-        tx_hash: txHash,
-        from_addr: fromAddress,
+        tx_hash: tx.transactionHash,
+        from_addr: accounts[0],
         message,
         anonymous: !showPublicly,
         project_id: project.id,
