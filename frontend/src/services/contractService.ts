@@ -1,5 +1,5 @@
-import { ethers } from 'ethers';
-import DonationContractABI from '../contracts/DonationContract.json';
+import { ethers } from "ethers";
+import DonationContractABI from "../contracts/DonationContract.json";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_DONATION_CONTRACT_ADDRESS;
 
@@ -20,8 +20,8 @@ export class ContractService {
   private provider: ethers.BrowserProvider;
 
   constructor() {
-    if (typeof window.ethereum === 'undefined') {
-      throw new Error('MetaMask not found');
+    if (typeof window.ethereum === "undefined") {
+      throw new Error("MetaMask not found");
     }
 
     this.provider = new ethers.BrowserProvider(window.ethereum);
@@ -33,7 +33,7 @@ export class ContractService {
       this.contract = new ethers.Contract(
         CONTRACT_ADDRESS!,
         DonationContractABI.abi,
-        signer
+        signer,
       );
     }
     return this.contract;
@@ -41,7 +41,7 @@ export class ContractService {
 
   async donate(params: DonationParams): Promise<DonationResponse> {
     const { recipient, cryptoType, message, anonymous, amount } = params;
-    
+
     // Convert amount to wei
     const amountInWei = ethers.parseEther(amount);
 
@@ -52,17 +52,17 @@ export class ContractService {
         cryptoType,
         message,
         anonymous,
-        { value: amountInWei }
+        { value: amountInWei },
       );
-      
+
       // Wait for the transaction to be mined
       const receipt = await tx.wait();
-      
+
       return {
-        transactionHash: receipt.hash
+        transactionHash: receipt.hash,
       };
     } catch (error) {
-      console.error('Error in donate:', error);
+      console.error("Error in donate:", error);
       throw error;
     }
   }
@@ -73,7 +73,7 @@ export class ContractService {
       const donations = await contract.getProjectDonations(projectAddress);
       return donations;
     } catch (error) {
-      console.error('Error getting project donations:', error);
+      console.error("Error getting project donations:", error);
       throw error;
     }
   }
@@ -84,8 +84,8 @@ export class ContractService {
       const donations = await contract.getDonorDonations(donorAddress);
       return donations;
     } catch (error) {
-      console.error('Error getting donor donations:', error);
+      console.error("Error getting donor donations:", error);
       throw error;
     }
   }
-} 
+}
