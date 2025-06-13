@@ -11,7 +11,7 @@ contract DonationContract {
         uint256 amount;
         string cryptoType;
         string message;
-        bool anonymous;
+        bool isAnonymous;
         address donor;
         uint256 timestamp;
     }
@@ -26,7 +26,7 @@ contract DonationContract {
         uint256 fee,
         string cryptoType,
         string message,
-        bool anonymous
+        bool isAnonymous
     );
     event FeeWalletUpdated(address indexed newFeeWallet);
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
@@ -46,7 +46,7 @@ contract DonationContract {
         address recipient,
         string memory cryptoType,
         string memory message,
-        bool anonymous
+        bool isAnonymous
     ) external payable {
         require(msg.value > 0, "Donation amount must be greater than 0");
         require(recipient != address(0), "Recipient cannot be zero address");
@@ -65,13 +65,13 @@ contract DonationContract {
             amount: msg.value,
             cryptoType: cryptoType,
             message: message,
-            anonymous: anonymous,
-            donor: anonymous ? address(0) : msg.sender,
+            isAnonymous: isAnonymous,
+            donor: isAnonymous ? address(0) : msg.sender,
             timestamp: block.timestamp
         });
 
         projectDonations[recipient].push(newDonation);
-        if (!anonymous) {
+        if (!isAnonymous) {
             donorDonations[msg.sender].push(newDonation);
         }
 
@@ -82,7 +82,7 @@ contract DonationContract {
             fee,
             cryptoType,
             message,
-            anonymous
+            isAnonymous
         );
     }
 
