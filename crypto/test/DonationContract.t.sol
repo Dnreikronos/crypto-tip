@@ -58,11 +58,12 @@ contract DonationContractTest is Test {
         assertEq(recipient.balance - initialRecipientBalance, expectedRecipientAmount);
 
         // Check donation record
-        DonationContract.Donation memory donation = donationContract.projectDonations(recipient, 0);
+        DonationContract.Donation[] memory donations = donationContract.getProjectDonations(recipient);
+        DonationContract.Donation memory donation = donations[0];
         assertEq(donation.amount, donationAmount);
         assertEq(donation.cryptoType, "ETH");
         assertEq(donation.message, "Test donation");
-        assertEq(donation.anonymous, false);
+        assertEq(donation.isAnonymous, false);
         assertEq(donation.donor, donor);
     }
 
@@ -79,11 +80,12 @@ contract DonationContractTest is Test {
         vm.stopPrank();
 
         // Check donation record
-        DonationContract.Donation memory donation = donationContract.projectDonations(recipient, 0);
+        DonationContract.Donation[] memory donations = donationContract.getProjectDonations(recipient);
+        DonationContract.Donation memory donation = donations[0];
         assertEq(donation.amount, donationAmount);
         assertEq(donation.cryptoType, "ETH");
         assertEq(donation.message, "Anonymous donation");
-        assertEq(donation.anonymous, true);
+        assertEq(donation.isAnonymous, true);
         assertEq(donation.donor, address(0));
     }
 
