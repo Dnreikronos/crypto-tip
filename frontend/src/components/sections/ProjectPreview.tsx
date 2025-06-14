@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Bitcoin, Share2, Clipboard } from "lucide-react";
+import { ArrowLeft, Bitcoin, Clipboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -11,6 +11,7 @@ interface ProjectPreviewProps {
     goal: number;
     raised: number;
     wallet_addr: string;
+    image_url?: string;
   };
   onBack: () => void;
 }
@@ -35,24 +36,29 @@ export function ProjectPreview({ project, onBack }: ProjectPreviewProps) {
         <Button
           onClick={onBack}
           variant="ghost"
-          className="text-cyan-400 hover:bg-gray-800 cursor-pointer"
+          className="text-cyan-400 hover:bg-gray-800 hover:text-white cursor-pointer"
         >
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Edit
         </Button>
 
-        <Button
-          variant="outline"
-          className="text-gray-400 border-gray-700 hover:bg-gray-800 hover:text-white cursor-pointer"
-          onClick={() => {
-            toast.info("Share link copied to clipboard");
-          }}
-        >
-          <Share2 className="mr-2 h-4 w-4" /> Share Preview
-        </Button>
       </div>
 
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-4 text-white">{project.title}</h1>
+        
+        {project.image_url && (
+          <div className="mb-6">
+            <div className="w-full max-w-2xl mx-auto min-h-64 max-h-96 bg-black rounded-lg border border-gray-700 flex items-center justify-center overflow-hidden">
+              <img
+                src={project.image_url}
+                alt={project.title}
+                className="max-w-full max-h-full object-contain"
+                style={{ imageRendering: 'auto' }}
+              />
+            </div>
+          </div>
+        )}
+        
         <div className="max-w-2xl mx-auto">
           <p className="text-gray-400 mb-6 whitespace-pre-line">
             {project.description}
