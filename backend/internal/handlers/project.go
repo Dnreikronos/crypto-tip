@@ -35,6 +35,7 @@ func CreateProjectHandler(c *gin.Context) {
 		WalletAddr:  input.WalletAddr,
 		ProjectLink: input.ProjectLink,
 		RepoLink:    input.RepoLink,
+		ImageURL:    input.ImageURL,
 		UserID:      uuid.MustParse(userID.(string)),
 	}
 
@@ -117,6 +118,9 @@ func UpdateProjectHandler(c *gin.Context) {
 	}
 	if input.RepoLink != "" {
 		updates["repo_link"] = input.RepoLink
+	}
+	if input.ImageURL != "" {
+		updates["image_url"] = input.ImageURL
 	}
 
 	if err := db.Model(&existingProject).Updates(updates).Error; err != nil {
