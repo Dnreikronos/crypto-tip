@@ -15,6 +15,7 @@ const projectSchema = z.object({
   wallet_addr: z.string(),
   project_link: z.string().url().optional(),
   repo_link: z.string().url().optional(),
+  image_url: z.string().optional(),
   created_at: z.string(),
   updated_at: z.string(),
   raised: z.number().default(0),
@@ -38,6 +39,7 @@ export interface ProjectInput {
   wallet_addr: string;
   project_link?: string;
   repo_link?: string;
+  image_url?: string;
 }
 
 export type ProjectResponse = z.infer<typeof projectSchema>;
