@@ -71,7 +71,7 @@ export default function EditProject() {
   const [previewMode, setPreviewMode] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string>("");
-  
+
   const { startUpload, isUploading } = useUploadThing("imageUploader");
 
   const form = useForm<FormValues>({
@@ -106,23 +106,25 @@ export default function EditProject() {
   async function onSubmit(values: FormValues) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { accept_terms, ...projectData } = values;
-    
+
     if (selectedImageFile) {
       try {
         toast.info("Uploading image...");
-        
+
         const uploadResult = await startUpload([selectedImageFile]);
-        
+
         if (uploadResult && uploadResult[0]?.url) {
           projectData.image_url = uploadResult[0].url;
           toast.success("Image uploaded successfully!");
         }
       } catch (error) {
-        toast.error("Failed to upload image. Updating project without new image.");
+        toast.error(
+          "Failed to upload image. Updating project without new image.",
+        );
         console.error("Image upload error:", error);
       }
     }
-    
+
     updateProjectMutation(
       { id: projectId, data: projectData },
       {
@@ -243,7 +245,10 @@ export default function EditProject() {
                   goal: parseFloat(formValues.goal) || project.goal,
                   raised: project.raised,
                   wallet_addr: formValues.wallet_addr || project.wallet_addr,
-                  image_url: imagePreviewUrl || formValues.image_url || project.image_url,
+                  image_url:
+                    imagePreviewUrl ||
+                    formValues.image_url ||
+                    project.image_url,
                 }}
                 onBack={togglePreview}
               />
@@ -515,7 +520,11 @@ export default function EditProject() {
                           className="bg-gradient-to-r from-purple-500 to-cyan-500 text-white hover:shadow-lg hover:shadow-cyan-500/20 transition-all px-8 py-2 cursor-pointer relative overflow-hidden group"
                         >
                           <span className="relative z-10">
-                            {isUploading ? "Uploading..." : isUpdating ? "Saving..." : "Save Changes"}
+                            {isUploading
+                              ? "Uploading..."
+                              : isUpdating
+                                ? "Saving..."
+                                : "Save Changes"}
                           </span>
                           <motion.span
                             className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-purple-500 opacity-0 group-hover:opacity-100"

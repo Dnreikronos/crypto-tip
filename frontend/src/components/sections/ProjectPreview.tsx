@@ -40,12 +40,11 @@ export function ProjectPreview({ project, onBack }: ProjectPreviewProps) {
         >
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Edit
         </Button>
-
       </div>
 
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-4 text-white">{project.title}</h1>
-        
+
         {project.image_url && (
           <div className="mb-6">
             <div className="w-full max-w-2xl mx-auto min-h-64 max-h-96 bg-black rounded-lg border border-gray-700 flex items-center justify-center overflow-hidden">
@@ -53,12 +52,12 @@ export function ProjectPreview({ project, onBack }: ProjectPreviewProps) {
                 src={project.image_url}
                 alt={project.title}
                 className="max-w-full max-h-full object-contain"
-                style={{ imageRendering: 'auto' }}
+                style={{ imageRendering: "auto" }}
               />
             </div>
           </div>
         )}
-        
+
         <div className="max-w-2xl mx-auto">
           <p className="text-gray-400 mb-6 whitespace-pre-line">
             {project.description}

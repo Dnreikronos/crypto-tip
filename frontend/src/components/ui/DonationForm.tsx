@@ -239,9 +239,11 @@ export default function DonationForm({ project }: DonationFormProps) {
                 key={preset}
                 type="button"
                 className={`px-4 py-2 rounded-lg border text-base font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2
-                  ${usdAmount === preset
-                    ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white border-cyan-500 shadow-md"
-                    : "bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700"}
+                  ${
+                    usdAmount === preset
+                      ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white border-cyan-500 shadow-md"
+                      : "bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700"
+                  }
                   ${isSubmitting || isProcessing ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
                 `}
                 onClick={() => setUsdAmount(preset)}
@@ -257,7 +259,8 @@ export default function DonationForm({ project }: DonationFormProps) {
             className="flex items-center bg-gray-800 rounded-lg border border-gray-700 focus-within:border-cyan-500 transition-colors shadow-sm"
             whileHover={{ scale: 1.01 }}
           >
-            <span className="pl-4 pr-2 text-2xl text-gray-400 select-none pointer-events-none">$
+            <span className="pl-4 pr-2 text-2xl text-gray-400 select-none pointer-events-none">
+              $
             </span>
             <Input
               variant="unstyled"
@@ -277,7 +280,9 @@ export default function DonationForm({ project }: DonationFormProps) {
               aria-label="Donation amount in USD"
               autoComplete="off"
             />
-            <span className="pr-4 pl-2 text-lg text-gray-400 select-none">USD</span>
+            <span className="pr-4 pl-2 text-lg text-gray-400 select-none">
+              USD
+            </span>
           </motion.div>
 
           <motion.p
@@ -291,8 +296,6 @@ export default function DonationForm({ project }: DonationFormProps) {
               ? "Loading..."
               : `${cryptoAmount.toFixed(6)} ${currency === "ethereum" ? "ETH" : currency === "bitcoin" ? "BTC" : "SOL"}`}
           </motion.p>
-
-          
 
           {project && (
             <div className="mt-2">
@@ -310,7 +313,6 @@ export default function DonationForm({ project }: DonationFormProps) {
               </div>
             </div>
           )}
-
         </motion.div>
 
         <motion.div

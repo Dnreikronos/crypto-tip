@@ -3,7 +3,17 @@
 import { Suspense, useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, Coffee, Sparkles, ArrowRight, Check, ExternalLink, Github, Eye, EyeOff } from "lucide-react";
+import {
+  Heart,
+  Coffee,
+  Sparkles,
+  ArrowRight,
+  Check,
+  ExternalLink,
+  Github,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import ProfileCard from "@/components/ui/ProfileCard";
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
 import { ContractService } from "@/services/contractService";
@@ -15,17 +25,23 @@ interface DonationPageClientProps {
   project: ProjectResponse | null;
 }
 
-const Switch = ({ checked, onCheckedChange }: { checked: boolean; onCheckedChange: (checked: boolean) => void }) => {
+const Switch = ({
+  checked,
+  onCheckedChange,
+}: {
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+}) => {
   return (
     <button
       onClick={() => onCheckedChange(!checked)}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-        checked ? 'bg-cyan-600' : 'bg-gray-600'
+        checked ? "bg-cyan-600" : "bg-gray-600"
       }`}
     >
       <span
         className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-          checked ? 'translate-x-6' : 'translate-x-1'
+          checked ? "translate-x-6" : "translate-x-1"
         }`}
       />
     </button>
@@ -33,33 +49,34 @@ const Switch = ({ checked, onCheckedChange }: { checked: boolean; onCheckedChang
 };
 
 const formatCurrency = (value: string) => {
-  const cleanValue = value.replace(/\D/g, '');
-  
-  if (!cleanValue) return '';
-  
+  const cleanValue = value.replace(/\D/g, "");
+
+  if (!cleanValue) return "";
+
   const cents = parseInt(cleanValue);
-  
+
   const dollars = cents / 100;
-  
-  return '$' + dollars.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+
+  return (
+    "$" +
+    dollars.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+  );
 };
 
 const extractUSDValue = (formattedValue: string) => {
-  if (!formattedValue) return '';
-  
-  const cleanValue = formattedValue.replace(/[$\s]/g, '');
-  
-  const normalizedValue = cleanValue.replace(/,/g, '');
-  
+  if (!formattedValue) return "";
+
+  const cleanValue = formattedValue.replace(/[$\s]/g, "");
+
+  const normalizedValue = cleanValue.replace(/,/g, "");
+
   const numValue = parseFloat(normalizedValue) || 0;
-  
+
   return numValue.toString();
 };
-
-
 
 // Valores pré-definidos para doação em USD
 const DONATION_PRESETS = [
@@ -72,7 +89,9 @@ const DONATION_PRESETS = [
 export default function DonationPageClient({
   project,
 }: DonationPageClientProps) {
-  const [selectedAmountUSD, setSelectedAmountUSD] = useState<number | null>(null);
+  const [selectedAmountUSD, setSelectedAmountUSD] = useState<number | null>(
+    null,
+  );
   const [customAmountUSD, setCustomAmountUSD] = useState("");
   const [displayValue, setDisplayValue] = useState("");
   const [message, setMessage] = useState("");
@@ -84,21 +103,22 @@ export default function DonationPageClient({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const progress = project && project.goal > 0 ? (project.raised / project.goal) * 100 : 0;
+  const progress =
+    project && project.goal > 0 ? (project.raised / project.goal) * 100 : 0;
 
   useEffect(() => {
     const fetchETHPrice = async () => {
       try {
-        const response = await fetch('/api/quotes?symbol=ETH');
+        const response = await fetch("/api/quotes?symbol=ETH");
         const data = await response.json();
-        
+
         if (!response.ok) {
-          throw new Error(data.error || 'Failed to fetch ETH price');
+          throw new Error(data.error || "Failed to fetch ETH price");
         }
-        
+
         setEthPrice(data.price);
       } catch (error) {
-        console.error('Error fetching ETH price:', error);
+        console.error("Error fetching ETH price:", error);
         setEthPrice(3000); // Fallback price
       } finally {
         setIsLoadingPrice(false);
@@ -208,7 +228,7 @@ export default function DonationPageClient({
 
       setShowThankYou(true);
       setTimeout(() => setShowThankYou(false), 3000);
-      
+
       toast.success("Donation sent successfully!");
     } catch (error: unknown) {
       console.log("Full error object:", error);
@@ -251,22 +271,22 @@ export default function DonationPageClient({
 
   const getSelectedValueETH = () => {
     const usdAmount = getSelectedValueUSD();
-    return (ethPrice && ethPrice > 0) ? usdAmount / ethPrice : 0;
+    return ethPrice && ethPrice > 0 ? usdAmount / ethPrice : 0;
   };
 
   const convertGoalToUSD = (ethAmount: number) => {
-    return (ethPrice && ethPrice > 0) ? ethAmount * ethPrice : 0;
+    return ethPrice && ethPrice > 0 ? ethAmount * ethPrice : 0;
   };
 
   const convertRaisedToUSD = (ethAmount: number) => {
-    return (ethPrice && ethPrice > 0) ? ethAmount * ethPrice : 0;
+    return ethPrice && ethPrice > 0 ? ethAmount * ethPrice : 0;
   };
 
   const handleCustomAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     const formatted = formatCurrency(value);
     const usdValue = extractUSDValue(formatted);
-    
+
     setCustomAmountUSD(usdValue);
     setDisplayValue(formatted);
     setSelectedAmountUSD(null);
@@ -283,7 +303,7 @@ export default function DonationPageClient({
   return (
     <div className="pt-20 pb-16 w-full bg-black text-white relative">
       <AnimatedBackground />
-      
+
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(6)].map((_, i) => (
           <motion.div
@@ -348,14 +368,14 @@ export default function DonationPageClient({
                       />
                     </motion.div>
                   )}
-                  
+
                   <h3 className="text-xl font-semibold mb-4">
                     {project.title}
                   </h3>
                   <p className="text-gray-400 mb-4 leading-relaxed">
                     {project.description}
                   </p>
-                  
+
                   {(project.project_link || project.repo_link) && (
                     <div className="flex flex-wrap gap-2 mb-4">
                       {project.project_link && (
@@ -388,10 +408,17 @@ export default function DonationPageClient({
                   {!isLoadingPrice && ethPrice > 0 && (
                     <div className="mb-4">
                       <div className="flex justify-between text-sm text-gray-400 mb-2">
-                        <span>Goal: ${convertGoalToUSD(project.goal).toFixed(0)} ({project.goal.toFixed(3)} ETH)</span>
-                        <span>Raised: ${convertRaisedToUSD(project.raised).toFixed(0)} ({project.raised.toFixed(3)} ETH)</span>
+                        <span>
+                          Goal: ${convertGoalToUSD(project.goal).toFixed(0)} (
+                          {project.goal.toFixed(3)} ETH)
+                        </span>
+                        <span>
+                          Raised: $
+                          {convertRaisedToUSD(project.raised).toFixed(0)} (
+                          {project.raised.toFixed(3)} ETH)
+                        </span>
                       </div>
-                      
+
                       <div className="w-full bg-gray-700 rounded-full h-2 mb-2 overflow-hidden">
                         <motion.div
                           className="bg-gradient-to-r from-purple-500 to-cyan-500 h-full rounded-full"
@@ -409,9 +436,9 @@ export default function DonationPageClient({
                   {!isLoadingPrice && ethPrice > 0 && (
                     <div className="text-center text-xs text-gray-500 mb-4">
                       1 ETH = ${ethPrice.toFixed(2)} USD
-                  </div>
+                    </div>
                   )}
-                  
+
                   {project.creator && (
                     <div className="mt-4 pt-4 border-t border-gray-800">
                       <p className="text-sm text-gray-400">Created by</p>
@@ -420,8 +447,12 @@ export default function DonationPageClient({
                           {project.creator.name.charAt(0)}
                         </div>
                         <div>
-                          <p className="text-white font-medium">{project.creator.name}</p>
-                          <p className="text-xs text-gray-400">{project.creator.email}</p>
+                          <p className="text-white font-medium">
+                            {project.creator.name}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {project.creator.email}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -453,9 +484,11 @@ export default function DonationPageClient({
                     className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/20 rounded-full border border-purple-500/30 mb-4"
                   >
                     <Sparkles className="w-4 h-4 text-purple-400" />
-                    <span className="text-sm text-purple-300">Support Open Source</span>
+                    <span className="text-sm text-purple-300">
+                      Support Open Source
+                    </span>
                   </motion.div>
-                  
+
                   <h2 className="text-2xl font-bold text-white mb-4">
                     Choose Your Support
                   </h2>
@@ -470,10 +503,13 @@ export default function DonationPageClient({
                       <Coffee className="w-5 h-5 text-cyan-400" />
                       Choose your support
                     </h3>
-                    
+
                     <div className="grid grid-cols-2 gap-3 mb-4">
-                                              {DONATION_PRESETS.map((preset, index) => {
-                        const ethAmount = (ethPrice && ethPrice > 0) ? preset.amountUSD / ethPrice : 0;
+                      {DONATION_PRESETS.map((preset, index) => {
+                        const ethAmount =
+                          ethPrice && ethPrice > 0
+                            ? preset.amountUSD / ethPrice
+                            : 0;
                         return (
                           <motion.button
                             key={preset.amountUSD}
@@ -495,13 +531,25 @@ export default function DonationPageClient({
                             disabled={isLoadingPrice}
                           >
                             <div className="text-left">
-                              <p className="font-semibold text-white">${preset.amountUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                              <p className="text-xs text-gray-400">
-                                {!isLoadingPrice ? `≈ ${ethAmount.toFixed(4)} ETH` : 'Loading...'}
+                              <p className="font-semibold text-white">
+                                $
+                                {preset.amountUSD.toLocaleString("en-US", {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                })}
                               </p>
-                              <p className="text-xs text-gray-500 mt-1">{preset.description}</p>
+                              <p className="text-xs text-gray-400">
+                                {!isLoadingPrice
+                                  ? `≈ ${ethAmount.toFixed(4)} ETH`
+                                  : "Loading..."}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {preset.description}
+                              </p>
                             </div>
-                            <div className="text-right text-lg">{preset.label}</div>
+                            <div className="text-right text-lg">
+                              {preset.label}
+                            </div>
                           </motion.button>
                         );
                       })}
@@ -516,53 +564,64 @@ export default function DonationPageClient({
                       <label className="block text-sm font-medium text-gray-300">
                         Valor Personalizado
                       </label>
-                      
+
                       <div className="relative group">
-                                              <input
-                        type="text"
-                        placeholder="$0.00"
+                        <input
+                          type="text"
+                          placeholder="$0.00"
                           value={displayValue}
                           onChange={handleCustomAmountChange}
                           onFocus={handleInputFocus}
                           onBlur={handleInputBlur}
                           disabled={isLoadingPrice}
                           className={`w-full px-4 py-4 bg-gray-800/50 border-2 rounded-xl text-white placeholder-gray-400 outline-none transition-all duration-300 disabled:opacity-50 ${
-                            inputFocused 
-                              ? 'border-cyan-500 ring-2 ring-cyan-500/20 bg-gray-800/80' 
-                              : customAmountUSD && parseFloat(customAmountUSD) > 0
-                                ? 'border-cyan-500/50 bg-gray-800/70'
-                                : 'border-gray-600 hover:border-gray-500'
+                            inputFocused
+                              ? "border-cyan-500 ring-2 ring-cyan-500/20 bg-gray-800/80"
+                              : customAmountUSD &&
+                                  parseFloat(customAmountUSD) > 0
+                                ? "border-cyan-500/50 bg-gray-800/70"
+                                : "border-gray-600 hover:border-gray-500"
                           }`}
                         />
-                        
-                        {!isLoadingPrice && ethPrice > 0 && customAmountUSD && parseFloat(customAmountUSD) > 0 && (
-                          <motion.div
-                            initial={{ opacity: 0, x: 10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className="absolute right-4 top-1/2 transform -translate-y-1/2"
-                          >
-                            <div className="text-right">
-                              <div className="text-sm text-cyan-400 font-medium">
-                                ≈ {(parseFloat(customAmountUSD) / ethPrice).toFixed(4)} ETH
+
+                        {!isLoadingPrice &&
+                          ethPrice > 0 &&
+                          customAmountUSD &&
+                          parseFloat(customAmountUSD) > 0 && (
+                            <motion.div
+                              initial={{ opacity: 0, x: 10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              className="absolute right-4 top-1/2 transform -translate-y-1/2"
+                            >
+                              <div className="text-right">
+                                <div className="text-sm text-cyan-400 font-medium">
+                                  ≈{" "}
+                                  {(
+                                    parseFloat(customAmountUSD) / ethPrice
+                                  ).toFixed(4)}{" "}
+                                  ETH
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  Ethereum
+                                </div>
                               </div>
-                              <div className="text-xs text-gray-500">
-                                Ethereum
-                              </div>
-                            </div>
-                          </motion.div>
-                        )}
-                        
-                        {displayValue && displayValue !== '$0.00' && (!customAmountUSD || parseFloat(customAmountUSD) <= 0) && (
-                          <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="absolute -bottom-6 left-0 text-xs text-red-400"
-                          >
-                            Digite um valor positivo
-                          </motion.div>
-                        )}
+                            </motion.div>
+                          )}
+
+                        {displayValue &&
+                          displayValue !== "$0.00" &&
+                          (!customAmountUSD ||
+                            parseFloat(customAmountUSD) <= 0) && (
+                            <motion.div
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="absolute -bottom-6 left-0 text-xs text-red-400"
+                            >
+                              Digite um valor positivo
+                            </motion.div>
+                          )}
                       </div>
-                      
+
                       <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
                         <span>Mínimo: $1.00</span>
                         {!isLoadingPrice && ethPrice > 0 && (
@@ -588,7 +647,7 @@ export default function DonationPageClient({
                       rows={3}
                       className="w-full p-3 bg-gray-800 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 outline-none transition-colors resize-none"
                     />
-                    
+
                     <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
                       <div className="flex items-center gap-2">
                         {isAnonymous ? (
@@ -597,7 +656,9 @@ export default function DonationPageClient({
                           <Eye className="w-4 h-4 text-gray-400" />
                         )}
                         <span className="text-sm text-gray-300">
-                          {isAnonymous ? "Anonymous donation" : "Public donation"}
+                          {isAnonymous
+                            ? "Anonymous donation"
+                            : "Public donation"}
                         </span>
                       </div>
                       <Switch
@@ -614,21 +675,27 @@ export default function DonationPageClient({
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={handleDonate}
-                    disabled={getSelectedValueUSD() <= 0 || isLoadingPrice || isSubmitting || isProcessing}
+                    disabled={
+                      getSelectedValueUSD() <= 0 ||
+                      isLoadingPrice ||
+                      isSubmitting ||
+                      isProcessing
+                    }
                     className="w-full p-4 bg-gradient-to-r from-purple-600 to-cyan-600 cursor-pointer hover:from-purple-500 hover:to-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl font-semibold text-white shadow-lg transition-all duration-300 flex items-center justify-center gap-2 group"
                   >
                     {isSubmitting || isProcessing ? (
                       <>
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        {isProcessing ? "Processing transaction..." : "Connecting to MetaMask..."}
+                        {isProcessing
+                          ? "Processing transaction..."
+                          : "Connecting to MetaMask..."}
                       </>
                     ) : (
                       <>
                         <Heart className="w-5 h-5 group-hover:animate-pulse" />
-                        {getSelectedValueUSD() > 0 
-                          ? `Support with $${getSelectedValueUSD().toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${ethPrice > 0 ? ` (≈ ${getSelectedValueETH().toFixed(4)} ETH)` : ''}` 
-                          : "Choose an amount to support"
-                        }
+                        {getSelectedValueUSD() > 0
+                          ? `Support with $${getSelectedValueUSD().toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${ethPrice > 0 ? ` (≈ ${getSelectedValueETH().toFixed(4)} ETH)` : ""}`
+                          : "Choose an amount to support"}
                         <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                       </>
                     )}
@@ -662,12 +729,13 @@ export default function DonationPageClient({
               >
                 <Check className="w-8 h-8 text-white" />
               </motion.div>
-              
+
               <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
                 Thank You! 🎉
               </h3>
               <p className="text-gray-400 mb-4">
-                Your support means the world to us and helps keep this project alive!
+                Your support means the world to us and helps keep this project
+                alive!
               </p>
               <motion.div
                 initial={{ opacity: 0 }}
@@ -675,7 +743,15 @@ export default function DonationPageClient({
                 transition={{ delay: 0.5 }}
                 className="text-lg font-semibold text-cyan-400"
               >
-                ${getSelectedValueUSD().toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} donated{ethPrice > 0 ? ` (≈ ${getSelectedValueETH().toFixed(4)} ETH)` : ''}
+                $
+                {getSelectedValueUSD().toLocaleString("en-US", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}{" "}
+                donated
+                {ethPrice > 0
+                  ? ` (≈ ${getSelectedValueETH().toFixed(4)} ETH)`
+                  : ""}
               </motion.div>
               {isAnonymous && (
                 <motion.div
