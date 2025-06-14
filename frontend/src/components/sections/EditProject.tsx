@@ -25,6 +25,8 @@ import { Button } from "@/components/ui/button";
 import { ProjectPreview } from "./ProjectPreview";
 import { TipsInfoPanel } from "./TipsInfoPanel";
 import { CryptoInfoPanel } from "./CryptoInfoPanel";
+import { ImageUpload } from "@/components/ui/ImageUpload";
+import { useUploadThing } from "@/lib/uploadthing";
 
 const projectSchema = z.object({
   title: z
@@ -44,6 +46,7 @@ const projectSchema = z.object({
     .startsWith("0x", { message: "Ethereum addresses should start with 0x" }),
   project_link: z.string().url({ message: "Please enter a valid URL" }),
   repo_link: z.string().url({ message: "Please enter a valid URL" }),
+  image_url: z.string().optional(),
   accept_terms: z.boolean().refine((val) => val === true, {
     message: "You must accept the terms and conditions",
   }),
@@ -66,6 +69,10 @@ export default function EditProject() {
     useUpdateProject();
 
   const [previewMode, setPreviewMode] = useState(false);
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string>("");
+  
+  const { startUpload, isUploading } = useUploadThing("imageUploader");
 
   const form = useForm<FormValues>({
     resolver: zodResolver(projectSchema),
@@ -76,6 +83,7 @@ export default function EditProject() {
       wallet_addr: "",
       project_link: "",
       repo_link: "",
+      image_url: "",
       accept_terms: false,
     },
   });
@@ -89,14 +97,32 @@ export default function EditProject() {
         wallet_addr: project.wallet_addr,
         project_link: project.project_link,
         repo_link: project.repo_link,
+        image_url: project.image_url || "",
         accept_terms: false,
       });
     }
   }, [project, form]);
 
-  function onSubmit(values: FormValues) {
+  async function onSubmit(values: FormValues) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { accept_terms, ...projectData } = values;
+    
+    if (selectedImageFile) {
+      try {
+        toast.info("Uploading image...");
+        
+        const uploadResult = await startUpload([selectedImageFile]);
+        
+        if (uploadResult && uploadResult[0]?.url) {
+          projectData.image_url = uploadResult[0].url;
+          toast.success("Image uploaded successfully!");
+        }
+      } catch (error) {
+        toast.error("Failed to upload image. Updating project without new image.");
+        console.error("Image upload error:", error);
+      }
+    }
+    
     updateProjectMutation(
       { id: projectId, data: projectData },
       {
@@ -217,6 +243,7 @@ export default function EditProject() {
                   goal: parseFloat(formValues.goal) || project.goal,
                   raised: project.raised,
                   wallet_addr: formValues.wallet_addr || project.wallet_addr,
+                  image_url: imagePreviewUrl || formValues.image_url || project.image_url,
                 }}
                 onBack={togglePreview}
               />
@@ -310,6 +337,32 @@ export default function EditProject() {
                               />
                             </motion.div>
                           </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="image_url"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-gray-400">
+                            Project Image
+                          </FormLabel>
+                          <FormControl>
+                            <ImageUpload
+                              value={imagePreviewUrl || field.value}
+                              onChange={(file, previewUrl) => {
+                                setSelectedImageFile(file);
+                                setImagePreviewUrl(previewUrl || "");
+                              }}
+                              disabled={isUpdating || isUploading}
+                            />
+                          </FormControl>
+                          <FormDescription className="text-gray-400">
+                            Upload an image to showcase your project (optional).
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -458,10 +511,12 @@ export default function EditProject() {
                       >
                         <Button
                           type="submit"
-                          disabled={isUpdating}
+                          disabled={isUpdating || isUploading}
                           className="bg-gradient-to-r from-purple-500 to-cyan-500 text-white hover:shadow-lg hover:shadow-cyan-500/20 transition-all px-8 py-2 cursor-pointer relative overflow-hidden group"
                         >
-                          <span className="relative z-10">Save Changes</span>
+                          <span className="relative z-10">
+                            {isUploading ? "Uploading..." : isUpdating ? "Saving..." : "Save Changes"}
+                          </span>
                           <motion.span
                             className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-purple-500 opacity-0 group-hover:opacity-100"
                             transition={{ duration: 0.3 }}
