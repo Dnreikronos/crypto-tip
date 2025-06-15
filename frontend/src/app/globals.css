@@ -120,5 +120,27 @@ html {
   }
   body {
     @apply bg-background text-foreground;
+    /* Prevent layout shift when scrollbar appears/disappears */
+    overflow-y: scroll;
+  }
+  
+  /* Ensure consistent scrollbar gutter */
+  html {
+    scrollbar-gutter: stable;
+  }
+  
+  /* Prevent layout shifts during interactions */
+  [data-radix-select-content],
+  [data-radix-dropdown-menu-content] {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+  }
+  
+  /* Ensure viewport stability */
+  @media (min-width: 640px) {
+    body {
+      width: 100vw;
+      overflow-x: hidden;
+    }
   }
 }
