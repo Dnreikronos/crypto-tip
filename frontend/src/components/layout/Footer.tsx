@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FaGithub, FaTwitter, FaDiscord } from "react-icons/fa";
+import Logo from "@/components/ui/Logo";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -12,8 +13,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 xl:gap-12">
           <div className="col-span-1 md:col-span-1">
             <div className="flex items-center mb-4">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 mr-2"></div>
-              <h3 className="text-xl font-bold text-white">CryptoTip</h3>
+              <Logo size={32} showText={true} />
             </div>
             <p className="text-gray-400 mb-4">
               The developer-first platform for receiving cryptocurrency
