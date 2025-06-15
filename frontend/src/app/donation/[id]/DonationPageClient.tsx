@@ -13,6 +13,9 @@ import {
   Github,
   Eye,
   EyeOff,
+  Share2,
+  Copy,
+  CheckCheck,
 } from "lucide-react";
 import ProfileCard from "@/components/ui/ProfileCard";
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
@@ -102,9 +105,12 @@ export default function DonationPageClient({
   const [inputFocused, setInputFocused] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   const progress =
     project && project.goal > 0 ? (project.raised / project.goal) * 100 : 0;
+
+  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
 
   useEffect(() => {
     const fetchETHPrice = async () => {
@@ -305,6 +311,24 @@ export default function DonationPageClient({
     setInputFocused(false);
   };
 
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(currentUrl);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+      toast.success('Link copied to clipboard!', {
+        description: 'Share this project with your network',
+      });
+    } catch (err) {
+      console.error('Failed to copy link:', err);
+      toast.error('Failed to copy link', {
+        description: 'Please try again',
+      });
+    }
+  };
+
+
+
   return (
     <div className="pt-20 pb-16 w-full bg-black text-white relative">
       <AnimatedBackground />
@@ -337,12 +361,14 @@ export default function DonationPageClient({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.6 }}
-          className="text-3xl md:text-4xl font-bold mb-6 md:mb-10 text-center bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent"
+          className="text-3xl md:text-4xl font-bold mb-6 text-center bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent"
         >
           {project
             ? `Support ${project.title}`
             : "Support Open-Source Development"}
         </motion.h1>
+
+
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-4 space-y-6">
@@ -501,6 +527,31 @@ export default function DonationPageClient({
                     Help fuel innovation and keep this project growing
                   </p>
                 </div>
+
+                {/* Share Button - Top of Form */}
+                <motion.button
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={copyToClipboard}
+                  className="w-full p-3 cursor-pointer bg-gray-800/50 border border-gray-700 hover:bg-gray-800/70 hover:border-gray-600 rounded-xl font-medium text-gray-300 transition-all duration-300 flex items-center justify-center gap-2 group mb-6"
+                >
+                  {linkCopied ? (
+                    <>
+                      <CheckCheck className="w-4 h-4 text-green-400" />
+                      Link copied!
+                      <CheckCheck className="w-4 h-4 text-green-400" />
+                    </>
+                  ) : (
+                    <>
+                      <Share2 className="w-4 h-4 cur group-hover:text-cyan-400 transition-colors" />
+                      Share this project
+                      <Copy className="w-4 h-4 opacity-60" />
+                    </>
+                  )}
+                </motion.button>
 
                 <div className="space-y-6">
                   <div>
@@ -722,6 +773,9 @@ export default function DonationPageClient({
                         </>
                     )}
                   </motion.button>
+
+
+
                 </div>
               </motion.div>
             </Suspense>
