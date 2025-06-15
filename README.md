@@ -1,6 +1,12 @@
-# Crypto Tip
+<div align="center">
+  <img src="frontend/public/logo.png" alt="CryptoTip Logo" width="120" height="120">
+  
+  # CryptoTip
+  
+  **Get Crypto Funding for Your Code**
+</div>
 
-Crypto-Tip is a decentralized tipping platform where users can register open-source projects to receive financial support. Donations are made using cryptocurrencies through blockchain technology, providing transparency, security, and global accessibility for open-source funding.
+CryptoTip is a developer-first platform where you can register your open-source projects to receive cryptocurrency donations. Built with blockchain technology, it provides transparency, security, and global accessibility for open-source funding.
 
 ## Table of Contents
 
