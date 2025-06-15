@@ -7,6 +7,7 @@ import { Loader2, Lock, Mail, User, Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { z } from "zod";
+import Logo from "@/components/ui/Logo";
 
 import {
   Card,
@@ -104,14 +105,14 @@ export default function RegisterPage() {
         >
           <Card className="backdrop-blur-sm bg-black/30 border-white/10 shadow-xl">
             <CardHeader className="space-y-1 flex flex-col items-center text-center">
-              <div className="w-12 h-12 rounded-full bg-cyan-500/20 flex items-center justify-center mb-2">
-                <User className="h-6 w-6 text-cyan-500" />
+              <div className="mb-4">
+                <Logo size={48} />
               </div>
               <CardTitle className="text-2xl font-semibold tracking-tight text-white">
                 Create an account
               </CardTitle>
               <CardDescription className="text-gray-400">
-                Enter your information to create your account
+                Enter your information to create your CryptoTip account
               </CardDescription>
             </CardHeader>
 

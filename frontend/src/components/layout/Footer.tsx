@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { FaGithub, FaTwitter, FaDiscord } from "react-icons/fa";
+// import { FaGithub, FaTwitter, FaDiscord } from "react-icons/fa";
+import Logo from "@/components/ui/Logo";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -12,14 +13,12 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 xl:gap-12">
           <div className="col-span-1 md:col-span-1">
             <div className="flex items-center mb-4">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 mr-2"></div>
-              <h3 className="text-xl font-bold text-white">CryptoTip</h3>
+              <Logo size={32} showText={true} />
             </div>
             <p className="text-gray-400 mb-4">
-              The developer-first platform for receiving cryptocurrency
-              donations.
+              The irst platform for receiving cryptocurrency donations.
             </p>
-            <div className="flex space-x-4">
+            {/* <div className="flex space-x-4">
               <a
                 href="https://github.com"
                 className="text-gray-400 hover:text-white transition-colors"
@@ -38,10 +37,10 @@ export default function Footer() {
               >
                 <FaDiscord className="h-5 w-5" />
               </a>
-            </div>
+            </div> */}
           </div>
 
-          <div>
+          {/* <div>
             <h4 className="text-white font-medium mb-4">Product</h4>
             <ul className="space-y-2">
               <li>
@@ -115,12 +114,12 @@ export default function Footer() {
                 </Link>
               </li>
             </ul>
-          </div>
+          </div> */}
 
           <div>
             <h4 className="text-white font-medium mb-4">Company</h4>
             <ul className="space-y-2">
-              <li>
+              {/* <li>
                 <Link
                   href="/about"
                   className="text-gray-400 hover:text-cyan-400 transition-colors"
@@ -135,7 +134,7 @@ export default function Footer() {
                 >
                   Careers
                 </Link>
-              </li>
+              </li> */}
               <li>
                 <Link
                   href="/privacy"
@@ -160,14 +159,14 @@ export default function Footer() {
           <p className="text-gray-500 text-sm">
             &copy; {currentYear} CryptoTip. All rights reserved.
           </p>
-          <div className="mt-4 md:mt-0">
+          {/* <div className="mt-4 md:mt-0">
             <select className="bg-gray-800 text-gray-300 border border-gray-700 rounded-lg px-3 py-1 text-sm">
               <option value="en">English</option>
               <option value="es">Español</option>
               <option value="fr">Français</option>
               <option value="de">Deutsch</option>
             </select>
-          </div>
+          </div> */}
         </div>
       </div>
     </footer>

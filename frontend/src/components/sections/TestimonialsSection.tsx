@@ -89,11 +89,11 @@ export default function TestimonialsSection() {
           transition={{ duration: 0.6 }}
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
-            Developers Love CryptoTip
+            We Love CryptoTip
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            Hear from developers who have transformed their open-source funding
-            with our platform.
+            Hear from people who have transformed their open-source funding with
+            our platform.
           </p>
         </motion.div>
 
