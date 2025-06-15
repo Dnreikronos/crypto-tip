@@ -75,7 +75,8 @@ export function EmptyStateModern({
         return {
           icon: Filter,
           title: "No matching projects",
-          description: "No projects match your current filter criteria. Try adjusting your filters or create a new project.",
+          description:
+            "No projects match your current filter criteria. Try adjusting your filters or create a new project.",
           actions: (
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
@@ -101,7 +102,8 @@ export function EmptyStateModern({
         return {
           icon: Rocket,
           title: "No projects available yet",
-          description: "Be the first to share your innovative project with the community. Create a project and inspire others to support your vision.",
+          description:
+            "Be the first to share your innovative project with the community. Create a project and inspire others to support your vision.",
           actions: (
             <Button
               onClick={handleCreateProject}
@@ -118,7 +120,8 @@ export function EmptyStateModern({
         return {
           icon: Rocket,
           title: "Ready to launch your first project?",
-          description: "Transform your ideas into funded reality. Create your first project and start connecting with supporters who believe in your vision.",
+          description:
+            "Transform your ideas into funded reality. Create your first project and start connecting with supporters who believe in your vision.",
           actions: (
             <Button
               onClick={handleCreateProject}
@@ -143,13 +146,10 @@ export function EmptyStateModern({
       initial="hidden"
       animate="visible"
     >
-      <motion.div
-        className="relative mb-8"
-        variants={itemVariants}
-      >
+      <motion.div className="relative mb-8" variants={itemVariants}>
         {/* Background glow effect */}
         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-cyan-500/20 blur-3xl rounded-full scale-150" />
-        
+
         {/* Icon container */}
         <div className="relative bg-black/60 backdrop-blur-sm border border-purple-500/20 rounded-2xl p-6">
           <IconComponent className="h-12 w-12 text-purple-400 mx-auto" />
@@ -160,9 +160,7 @@ export function EmptyStateModern({
         <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
           {content.title}
         </h3>
-        <p className="text-gray-400 leading-relaxed">
-          {content.description}
-        </p>
+        <p className="text-gray-400 leading-relaxed">{content.description}</p>
       </motion.div>
 
       <motion.div className="mt-8" variants={itemVariants}>
@@ -208,4 +206,4 @@ export function EmptyStateModern({
       />
     </motion.div>
   );
-} 
+}

@@ -3,18 +3,18 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { 
-  Eye, 
-  Edit, 
-  Trash2, 
-  Gift, 
-  Calendar, 
-  Target, 
+import {
+  Eye,
+  Edit,
+  Trash2,
+  Gift,
+  Calendar,
+  Target,
   TrendingUp,
   MoreVertical,
   ImageIcon,
   ExternalLink,
-  Github
+  Github,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -100,7 +100,7 @@ async function deleteProject(id: string) {
 
 function getProjectStatus(project: Project | MyProject) {
   const progress = project.goal > 0 ? (project.raised / project.goal) * 100 : 0;
-  
+
   if (progress >= 100) return "completed";
   if (progress > 0) return "active";
   return "active"; // Default status for new projects
@@ -117,7 +117,10 @@ function getStatusColor(status: string) {
   }
 }
 
-export function ProjectsGrid({ projects, isMyProjects = false }: ProjectsGridProps) {
+export function ProjectsGrid({
+  projects,
+  isMyProjects = false,
+}: ProjectsGridProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -197,7 +200,6 @@ export function ProjectsGrid({ projects, isMyProjects = false }: ProjectsGridPro
             className="group relative"
           >
             <div className="relative overflow-hidden rounded-xl border border-purple-500/20 bg-black/60 backdrop-blur-sm transition-all duration-300 hover:border-purple-500/40 hover:shadow-lg hover:shadow-purple-500/10">
-              
               <div className="relative h-48 w-full overflow-hidden">
                 {project.image_url ? (
                   <Image
@@ -212,17 +214,17 @@ export function ProjectsGrid({ projects, isMyProjects = false }: ProjectsGridPro
                     <ImageIcon className="h-16 w-16 text-gray-500" />
                   </div>
                 )}
-                
+
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                
+
                 <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-                  <Badge 
-                    variant="outline" 
+                  <Badge
+                    variant="outline"
                     className={`capitalize backdrop-blur-sm ${getStatusColor(status)}`}
                   >
                     {status}
                   </Badge>
-                  
+
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
@@ -234,8 +236,8 @@ export function ProjectsGrid({ projects, isMyProjects = false }: ProjectsGridPro
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent 
-                      align="end" 
+                    <DropdownMenuContent
+                      align="end"
                       side="bottom"
                       sideOffset={5}
                       className="bg-black border-purple-500/20 z-50 will-change-[transform,opacity]"
@@ -245,7 +247,7 @@ export function ProjectsGrid({ projects, isMyProjects = false }: ProjectsGridPro
                       collisionPadding={8}
                     >
                       {!isMyProjects ? (
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDonate(project.id);
@@ -256,7 +258,7 @@ export function ProjectsGrid({ projects, isMyProjects = false }: ProjectsGridPro
                           Donate
                         </DropdownMenuItem>
                       ) : (
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={(e) => {
                             e.stopPropagation();
                             handleView(project.id);
@@ -267,10 +269,10 @@ export function ProjectsGrid({ projects, isMyProjects = false }: ProjectsGridPro
                           View Details
                         </DropdownMenuItem>
                       )}
-                      
+
                       {isMyProjects && (
                         <>
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             onClick={(e) => {
                               e.stopPropagation();
                               handleEdit(project.id);
@@ -283,7 +285,7 @@ export function ProjectsGrid({ projects, isMyProjects = false }: ProjectsGridPro
                           <DropdownMenuSeparator className="bg-purple-500/20" />
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <DropdownMenuItem 
+                              <DropdownMenuItem
                                 onSelect={(e) => e.preventDefault()}
                                 className="cursor-pointer text-gray-300 hover:text-red-400 focus:text-red-400"
                               >
@@ -297,7 +299,10 @@ export function ProjectsGrid({ projects, isMyProjects = false }: ProjectsGridPro
                                   Delete Project
                                 </AlertDialogTitle>
                                 <AlertDialogDescription className="text-gray-400">
-                                  Are you sure you want to delete &ldquo;{project.title}&rdquo;? This action cannot be undone and will permanently remove your project and all associated data.
+                                  Are you sure you want to delete &ldquo;
+                                  {project.title}&rdquo;? This action cannot be
+                                  undone and will permanently remove your
+                                  project and all associated data.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
@@ -333,10 +338,12 @@ export function ProjectsGrid({ projects, isMyProjects = false }: ProjectsGridPro
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs text-gray-400">Progress</span>
-                    <span className="text-xs text-gray-300">{Math.round(progress)}%</span>
+                    <span className="text-xs text-gray-300">
+                      {Math.round(progress)}%
+                    </span>
                   </div>
-                  <Progress 
-                    value={Math.min(progress, 100)} 
+                  <Progress
+                    value={Math.min(progress, 100)}
                     className="h-2 bg-gray-800"
                   />
                 </div>
@@ -364,7 +371,8 @@ export function ProjectsGrid({ projects, isMyProjects = false }: ProjectsGridPro
 
                 <div className="flex items-center gap-1 text-xs text-gray-400 mb-3">
                   <Calendar className="h-3 w-3" />
-                  Created {createdAt.toLocaleDateString("en-US", {
+                  Created{" "}
+                  {createdAt.toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "short",
                     day: "numeric",
@@ -372,9 +380,10 @@ export function ProjectsGrid({ projects, isMyProjects = false }: ProjectsGridPro
                 </div>
 
                 {/* Project Links */}
-                {(('project_link' in project && project.project_link) || ('repo_link' in project && project.repo_link)) && (
+                {(("project_link" in project && project.project_link) ||
+                  ("repo_link" in project && project.repo_link)) && (
                   <div className="flex items-center gap-3 text-xs mb-4">
-                    {'project_link' in project && project.project_link && (
+                    {"project_link" in project && project.project_link && (
                       <a
                         href={project.project_link}
                         target="_blank"
@@ -386,7 +395,7 @@ export function ProjectsGrid({ projects, isMyProjects = false }: ProjectsGridPro
                         <span>Project</span>
                       </a>
                     )}
-                    {'repo_link' in project && project.repo_link && (
+                    {"repo_link" in project && project.repo_link && (
                       <a
                         href={project.repo_link}
                         target="_blank"
@@ -438,4 +447,4 @@ export function ProjectsGrid({ projects, isMyProjects = false }: ProjectsGridPro
       })}
     </motion.div>
   );
-} 
+}

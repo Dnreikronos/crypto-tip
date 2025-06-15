@@ -3,7 +3,13 @@
 import { useMemo, useState } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { ProjectFilters, ViewMode, SortField, SortOrder, ProjectStatus } from "@/components/ui/ProjectFilters";
+import {
+  ProjectFilters,
+  ViewMode,
+  SortField,
+  SortOrder,
+  ProjectStatus,
+} from "@/components/ui/ProjectFilters";
 import { ProjectsGrid } from "@/components/ui/ProjectsGrid";
 import { ProjectsTable } from "@/components/ui/ProjectsTable";
 import { EmptyStateModern } from "@/components/ui/EmptyStateModern";
@@ -28,15 +34,16 @@ function useProjectFilters(projects: Project[]) {
       filtered = filtered.filter(
         (project) =>
           project.title.toLowerCase().includes(query) ||
-          project.description.toLowerCase().includes(query)
+          project.description.toLowerCase().includes(query),
       );
     }
 
     // Apply status filter
     if (statusFilter !== "all") {
       filtered = filtered.filter((project) => {
-        const progress = project.goal > 0 ? (project.raised / project.goal) * 100 : 0;
-        
+        const progress =
+          project.goal > 0 ? (project.raised / project.goal) * 100 : 0;
+
         switch (statusFilter) {
           case "completed":
             return progress >= 100;
@@ -118,7 +125,7 @@ function useProjectFilters(projects: Project[]) {
 
 export default function ProjectsContentModern() {
   return (
-    <Suspense 
+    <Suspense
       fallback={
         <div className="space-y-6">
           {/* Filters skeleton */}
@@ -167,7 +174,10 @@ function Projects() {
   } = useProjectFilters(projects);
 
   // Determine empty state variant
-  const getEmptyStateVariant = (): "no-projects" | "no-results" | "filtered" => {
+  const getEmptyStateVariant = ():
+    | "no-projects"
+    | "no-results"
+    | "filtered" => {
     if (projects.length === 0) return "no-projects";
     if (filteredAndSortedProjects.length === 0 && hasActiveFilters) {
       return searchQuery.trim() ? "no-results" : "filtered";
@@ -176,7 +186,7 @@ function Projects() {
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="space-y-6 min-h-screen"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -215,18 +225,18 @@ function Projects() {
           transition={{ duration: 0.3 }}
         >
           {viewMode === "grid" ? (
-            <ProjectsGrid 
-              projects={filteredAndSortedProjects} 
-              isMyProjects={true} 
+            <ProjectsGrid
+              projects={filteredAndSortedProjects}
+              isMyProjects={true}
             />
           ) : (
-            <ProjectsTable 
-              initialProjects={filteredAndSortedProjects} 
-              isMyProjects={true} 
+            <ProjectsTable
+              initialProjects={filteredAndSortedProjects}
+              isMyProjects={true}
             />
           )}
         </motion.div>
       )}
     </motion.div>
   );
-} 
+}

@@ -13,11 +13,13 @@ const ProjectSchema = z.object({
   image_url: z.string().optional(),
   project_link: z.string().optional(),
   repo_link: z.string().optional(),
-  user: z.object({
-    id: z.string(),
-    name: z.string(),
-    email: z.string(),
-  }).optional(),
+  user: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      email: z.string(),
+    })
+    .optional(),
 });
 
 const ProjectsSchema = z.array(ProjectSchema);

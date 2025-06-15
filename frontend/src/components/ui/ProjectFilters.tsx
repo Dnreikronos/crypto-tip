@@ -129,13 +129,17 @@ export function ProjectFilters({
         <div className="border border-purple-500/20 rounded-lg bg-black/20 p-4 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-300">Status</label>
+              <label className="text-sm font-medium text-gray-300">
+                Status
+              </label>
               <Select value={statusFilter} onValueChange={onStatusFilterChange}>
                 <SelectTrigger className="bg-black/40 border-purple-500/20 cursor-pointer text-white">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-black text-white border-purple-500/20 ">
-                  <SelectItem value="all" className="cursor-pointer">All Projects</SelectItem>
+                  <SelectItem value="all" className="cursor-pointer">
+                    All Projects
+                  </SelectItem>
                   {/* <SelectItem value="active" className="cursor-pointer">Active</SelectItem>
                   <SelectItem value="completed" className="cursor-pointer">Completed</SelectItem>
                   <SelectItem value="archived" className="cursor-pointer">Archived</SelectItem> */}
@@ -145,17 +149,29 @@ export function ProjectFilters({
 
             {/* Sort Field */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-300">Sort by</label>
+              <label className="text-sm font-medium text-gray-300">
+                Sort by
+              </label>
               <Select value={sortField} onValueChange={onSortFieldChange}>
                 <SelectTrigger className="bg-black/40 border-purple-500/20 cursor-pointer text-white">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-black text-white border-purple-500/20">
-                  <SelectItem value="created_at" className="cursor-pointer">Date Created</SelectItem>
-                  <SelectItem value="title" className="cursor-pointer">Title</SelectItem>
-                  <SelectItem value="goal" className="cursor-pointer">Goal Amount</SelectItem>
-                  <SelectItem value="raised" className="cursor-pointer">Amount Raised</SelectItem>
-                  <SelectItem value="progress" className="cursor-pointer">Progress</SelectItem>
+                  <SelectItem value="created_at" className="cursor-pointer">
+                    Date Created
+                  </SelectItem>
+                  <SelectItem value="title" className="cursor-pointer">
+                    Title
+                  </SelectItem>
+                  <SelectItem value="goal" className="cursor-pointer">
+                    Goal Amount
+                  </SelectItem>
+                  <SelectItem value="raised" className="cursor-pointer">
+                    Amount Raised
+                  </SelectItem>
+                  <SelectItem value="progress" className="cursor-pointer">
+                    Progress
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -165,7 +181,9 @@ export function ProjectFilters({
               <label className="text-sm font-medium text-gray-300">Order</label>
               <Button
                 variant="outline"
-                onClick={() => onSortOrderChange(sortOrder === "asc" ? "desc" : "asc")}
+                onClick={() =>
+                  onSortOrderChange(sortOrder === "asc" ? "desc" : "asc")
+                }
                 className="w-full justify-start bg-black/40 border-purple-500/20 text-white hover:bg-purple-500/10 hover:text-purple-400 cursor-pointer"
               >
                 {sortOrder === "asc" ? (
@@ -181,4 +199,4 @@ export function ProjectFilters({
       </motion.div>
     </motion.div>
   );
-} 
+}

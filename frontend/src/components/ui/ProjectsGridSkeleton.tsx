@@ -106,4 +106,4 @@ export function ProjectsGridSkeleton({ count = 6 }: ProjectsGridSkeletonProps) {
       ))}
     </motion.div>
   );
-} 
+}

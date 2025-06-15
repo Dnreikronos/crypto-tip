@@ -4,7 +4,13 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { ProjectFilters, ViewMode, SortField, SortOrder, ProjectStatus } from "@/components/ui/ProjectFilters";
+import {
+  ProjectFilters,
+  ViewMode,
+  SortField,
+  SortOrder,
+  ProjectStatus,
+} from "@/components/ui/ProjectFilters";
 import { ProjectsGrid } from "@/components/ui/ProjectsGrid";
 import { ProjectsTable } from "@/components/ui/ProjectsTable";
 import { EmptyStateModern } from "@/components/ui/EmptyStateModern";
@@ -67,16 +73,19 @@ function useProjectFilters(projects: Project[]) {
         (project) =>
           project.title.toLowerCase().includes(query) ||
           project.description.toLowerCase().includes(query) ||
-          (project.user?.name && project.user.name.toLowerCase().includes(query)) ||
-          (project.creator?.name && project.creator.name.toLowerCase().includes(query))
+          (project.user?.name &&
+            project.user.name.toLowerCase().includes(query)) ||
+          (project.creator?.name &&
+            project.creator.name.toLowerCase().includes(query)),
       );
     }
 
     // Apply status filter
     if (statusFilter !== "all") {
       filtered = filtered.filter((project) => {
-        const progress = project.goal > 0 ? (project.raised / project.goal) * 100 : 0;
-        
+        const progress =
+          project.goal > 0 ? (project.raised / project.goal) * 100 : 0;
+
         switch (statusFilter) {
           case "completed":
             return progress >= 100;
@@ -185,8 +194,13 @@ export default function ProjectsContentModern() {
   } = useProjectFilters(data?.projects || []);
 
   // Determine empty state variant
-  const getEmptyStateVariant = (): "no-projects" | "no-results" | "filtered" | "no-public-projects" => {
-    if (!data?.projects || data.projects.length === 0) return "no-public-projects";
+  const getEmptyStateVariant = ():
+    | "no-projects"
+    | "no-results"
+    | "filtered"
+    | "no-public-projects" => {
+    if (!data?.projects || data.projects.length === 0)
+      return "no-public-projects";
     if (filteredAndSortedProjects.length === 0 && hasActiveFilters) {
       return searchQuery.trim() ? "no-results" : "filtered";
     }
@@ -237,10 +251,7 @@ export default function ProjectsContentModern() {
   if (!data) {
     return (
       <main className="container max-w-6xl mx-auto px-4 md:px-6 lg:px-8 relative z-10 w-full">
-        <PageHeader 
-          title="Error" 
-          description="No data available" 
-        />
+        <PageHeader title="Error" description="No data available" />
       </main>
     );
   }
@@ -253,8 +264,8 @@ export default function ProjectsContentModern() {
         title="Discover Projects"
         description="Explore and support innovative blockchain projects from our community"
       />
-      
-      <motion.div 
+
+      <motion.div
         className="space-y-6 min-h-screen"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -293,14 +304,14 @@ export default function ProjectsContentModern() {
             transition={{ duration: 0.3 }}
           >
             {viewMode === "grid" ? (
-              <ProjectsGrid 
-                projects={filteredAndSortedProjects} 
-                isMyProjects={false} 
+              <ProjectsGrid
+                projects={filteredAndSortedProjects}
+                isMyProjects={false}
               />
             ) : (
-              <ProjectsTable 
-                initialProjects={filteredAndSortedProjects} 
-                isMyProjects={false} 
+              <ProjectsTable
+                initialProjects={filteredAndSortedProjects}
+                isMyProjects={false}
               />
             )}
           </motion.div>
@@ -308,7 +319,7 @@ export default function ProjectsContentModern() {
 
         {/* Modern Pagination */}
         {projects.length > 0 && (
-          <motion.div 
+          <motion.div
             className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 p-6 rounded-xl border border-purple-500/20 bg-black/40 backdrop-blur-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -329,7 +340,7 @@ export default function ProjectsContentModern() {
               </span>{" "}
               projects
             </div>
-            
+
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
@@ -343,7 +354,7 @@ export default function ProjectsContentModern() {
                 <ChevronLeft className="h-4 w-4 mr-1" />
                 Previous
               </Button>
-              
+
               <div className="flex items-center gap-1 px-3 py-1 rounded-md bg-purple-500/10 border border-purple-500/20">
                 <span className="text-sm text-gray-400">Page</span>
                 <span className="text-sm font-medium text-purple-400">
@@ -354,7 +365,7 @@ export default function ProjectsContentModern() {
                   {pagination.pages}
                 </span>
               </div>
-              
+
               <Button
                 variant="outline"
                 size="sm"
@@ -373,4 +384,4 @@ export default function ProjectsContentModern() {
       </motion.div>
     </main>
   );
-} 
+}

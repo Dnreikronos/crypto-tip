@@ -110,7 +110,7 @@ export default function DonationPageClient({
   const progress =
     project && project.goal > 0 ? (project.raised / project.goal) * 100 : 0;
 
-  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+  const currentUrl = typeof window !== "undefined" ? window.location.href : "";
 
   useEffect(() => {
     const fetchETHPrice = async () => {
@@ -316,18 +316,16 @@ export default function DonationPageClient({
       await navigator.clipboard.writeText(currentUrl);
       setLinkCopied(true);
       setTimeout(() => setLinkCopied(false), 2000);
-      toast.success('Link copied to clipboard!', {
-        description: 'Share this project with your network',
+      toast.success("Link copied to clipboard!", {
+        description: "Share this project with your network",
       });
     } catch (err) {
-      console.error('Failed to copy link:', err);
-      toast.error('Failed to copy link', {
-        description: 'Please try again',
+      console.error("Failed to copy link:", err);
+      toast.error("Failed to copy link", {
+        description: "Please try again",
       });
     }
   };
-
-
 
   return (
     <div className="pt-20 pb-16 w-full bg-black text-white relative">
@@ -367,8 +365,6 @@ export default function DonationPageClient({
             ? `Support ${project.title}`
             : "Support Open-Source Development"}
         </motion.h1>
-
-
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-4 space-y-6">
@@ -664,32 +660,32 @@ export default function DonationPageClient({
                             </motion.div>
                           )}
 
-                                                {displayValue &&
-                           displayValue !== "$0.00" &&
-                           customAmountUSD &&
-                           parseFloat(customAmountUSD) > 0 &&
-                           parseFloat(customAmountUSD) < 1 && (
-                             <motion.div
-                               initial={{ opacity: 0, y: -10 }}
-                               animate={{ opacity: 1, y: 0 }}
-                               className="absolute -bottom-6 left-0 text-xs text-red-400"
-                             >
-                               Minimum amount is $1.00
-                             </motion.div>
-                           )}
-                         
-                         {displayValue &&
-                           displayValue !== "$0.00" &&
-                           (!customAmountUSD ||
-                             parseFloat(customAmountUSD) <= 0) && (
-                             <motion.div
-                               initial={{ opacity: 0, y: -10 }}
-                               animate={{ opacity: 1, y: 0 }}
-                               className="absolute -bottom-6 left-0 text-xs text-red-400"
-                             >
-                               Enter a positive amount
-                             </motion.div>
-                           )}
+                        {displayValue &&
+                          displayValue !== "$0.00" &&
+                          customAmountUSD &&
+                          parseFloat(customAmountUSD) > 0 &&
+                          parseFloat(customAmountUSD) < 1 && (
+                            <motion.div
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="absolute -bottom-6 left-0 text-xs text-red-400"
+                            >
+                              Minimum amount is $1.00
+                            </motion.div>
+                          )}
+
+                        {displayValue &&
+                          displayValue !== "$0.00" &&
+                          (!customAmountUSD ||
+                            parseFloat(customAmountUSD) <= 0) && (
+                            <motion.div
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="absolute -bottom-6 left-0 text-xs text-red-400"
+                            >
+                              Enter a positive amount
+                            </motion.div>
+                          )}
                       </div>
 
                       <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
@@ -734,7 +730,6 @@ export default function DonationPageClient({
                       <Switch
                         checked={isAnonymous}
                         onCheckedChange={setIsAnonymous}
-
                       />
                     </div>
                   </motion.div>
@@ -746,12 +741,12 @@ export default function DonationPageClient({
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={handleDonate}
-                                         disabled={
-                       getSelectedValueUSD() < 1 ||
-                       isLoadingPrice ||
-                       isSubmitting ||
-                       isProcessing
-                     }
+                    disabled={
+                      getSelectedValueUSD() < 1 ||
+                      isLoadingPrice ||
+                      isSubmitting ||
+                      isProcessing
+                    }
                     className="w-full p-4 bg-gradient-to-r from-purple-600 to-cyan-600 cursor-pointer hover:from-purple-500 hover:to-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl font-semibold text-white shadow-lg transition-all duration-300 flex items-center justify-center gap-2 group"
                   >
                     {isSubmitting || isProcessing ? (
@@ -762,20 +757,18 @@ export default function DonationPageClient({
                           : "Connecting to MetaMask..."}
                       </>
                     ) : (
-                                              <>
-                          <Heart className="w-5 h-5 group-hover:animate-pulse" />
-                          {getSelectedValueUSD() >= 1
-                            ? `Support with $${getSelectedValueUSD().toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${ethPrice > 0 ? ` (≈ ${getSelectedValueETH().toFixed(4)} ETH)` : ""}`
-                            : getSelectedValueUSD() > 0 && getSelectedValueUSD() < 1
-                              ? "Minimum donation is $1.00"
-                              : "Choose an amount to support"}
-                          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                        </>
+                      <>
+                        <Heart className="w-5 h-5 group-hover:animate-pulse" />
+                        {getSelectedValueUSD() >= 1
+                          ? `Support with $${getSelectedValueUSD().toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${ethPrice > 0 ? ` (≈ ${getSelectedValueETH().toFixed(4)} ETH)` : ""}`
+                          : getSelectedValueUSD() > 0 &&
+                              getSelectedValueUSD() < 1
+                            ? "Minimum donation is $1.00"
+                            : "Choose an amount to support"}
+                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      </>
                     )}
                   </motion.button>
-
-
-
                 </div>
               </motion.div>
             </Suspense>
