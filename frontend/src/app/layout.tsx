@@ -19,8 +19,38 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Crypto Tip",
-  description: "Donations with Crypto",
+  title: "CryptoTip - Get Crypto Funding for Your Code",
+  description:
+    "The developer-first platform to receive cryptocurrency donations for your open-source projects. Accept Bitcoin, Ethereum, and 12+ other cryptocurrencies.",
+  keywords: [
+    "crypto",
+    "donations",
+    "funding",
+    "bitcoin",
+    "ethereum",
+    "open source",
+    "developers",
+  ],
+  authors: [{ name: "CryptoTip Team" }],
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
+  openGraph: {
+    title: "CryptoTip - Get Crypto Funding for Your Code",
+    description:
+      "The developer-first platform to receive cryptocurrency donations for your open-source projects.",
+    images: ["/logo.png"],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "CryptoTip - Get Crypto Funding for Your Code",
+    description:
+      "The developer-first platform to receive cryptocurrency donations for your open-source projects.",
+    images: ["/logo.png"],
+  },
 };
 
 export default function RootLayout({

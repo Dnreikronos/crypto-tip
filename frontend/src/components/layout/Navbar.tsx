@@ -7,7 +7,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu,
   X,
-  Coins,
   LogOut,
   Briefcase,
   LayoutDashboard,
@@ -15,6 +14,7 @@ import {
   LogIn as LogInIcon,
 } from "lucide-react";
 import { getCurrentUser, logoutUser, User } from "@/lib/auth";
+import Logo from "@/components/ui/Logo";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -88,10 +88,7 @@ export default function Navbar() {
         <div className="relative flex justify-between items-center py-4">
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 mr-2 flex items-center justify-center">
-                <Coins className="h-4 w-4 text-white" />
-              </div>
-              <span className="text-xl font-bold text-white">CryptoTip</span>
+              <Logo size={32} showText={true} />
             </Link>
           </div>
 
