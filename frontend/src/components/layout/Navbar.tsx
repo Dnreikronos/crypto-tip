@@ -87,7 +87,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative flex justify-between items-center py-4">
           <div className="flex-shrink-0">
-            <Link href="/" className="flex items-center">
+            <Link href={user ? "/projects" : "/"} className="flex items-center">
               <Logo size={32} showText={true} />
             </Link>
           </div>
