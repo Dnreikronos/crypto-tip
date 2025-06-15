@@ -244,27 +244,27 @@ export function ProjectsGrid({ projects, isMyProjects = false }: ProjectsGridPro
                       avoidCollisions={true}
                       collisionPadding={8}
                     >
-                      <DropdownMenuItem 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleView(project.id);
-                        }}
-                        className="cursor-pointer text-gray-300 hover:text-cyan-400 focus:text-cyan-400"
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        View Details
-                      </DropdownMenuItem>
-                      
-                      {!isMyProjects && (
+                      {!isMyProjects ? (
                         <DropdownMenuItem 
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDonate(project.id);
                           }}
-                          className="cursor-pointer text-gray-300 hover:text-green-400 focus:text-green-400"
+                          className="cursor-pointer bg-black/30 text-gray-300 hover:text-green-400 focus:text-green-400"
                         >
                           <Gift className="h-4 w-4 mr-2" />
                           Donate
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleView(project.id);
+                          }}
+                          className="cursor-pointer text-gray-300 hover:text-cyan-400 focus:text-cyan-400"
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          View Details
                         </DropdownMenuItem>
                       )}
                       
@@ -402,27 +402,27 @@ export function ProjectsGrid({ projects, isMyProjects = false }: ProjectsGridPro
                 )}
 
                 <div className="flex gap-2">
-                  {!isMyProjects && (
+                  {!isMyProjects ? (
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleDonate(project.id)}
-                      className="flex-1 border-green-500/30 text-green-400 hover:bg-green-500/10 hover:border-green-500/50"
+                      className="w-full hover:scale-105 transition-all duration-300 border-green-500/30 cursor-pointer bg-black/30 hover:text-white text-green-400 hover:bg-green-500/10 hover:border-green-500/50"
                     >
                       <Gift className="h-4 w-4 mr-1" />
                       Donate
                     </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleView(project.id)}
+                      className="w-full border-cyan-500/30 bg-black text-cyan-400 cursor-pointer hover:text-white hover:bg-cyan-500/10 hover:border-cyan-500/50"
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      View
+                    </Button>
                   )}
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleView(project.id)}
-                    className="flex-1 border-cyan-500/30 bg-black text-cyan-400 cursor-pointer hover:text-white hover:bg-cyan-500/10 hover:border-cyan-500/50"
-                  >
-                    <Eye className="h-4 w-4 mr-1" />
-                    View
-                  </Button>
                 </div>
               </div>
 

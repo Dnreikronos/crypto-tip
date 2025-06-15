@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
 interface EmptyStateModernProps {
-  variant?: "no-projects" | "no-results" | "filtered";
+  variant?: "no-projects" | "no-results" | "filtered" | "no-public-projects";
   searchQuery?: string;
   hasFilters?: boolean;
   onClearFilters?: () => void;
@@ -94,6 +94,23 @@ export function EmptyStateModern({
                 Create Project
               </Button>
             </div>
+          ),
+        };
+
+      case "no-public-projects":
+        return {
+          icon: Rocket,
+          title: "No projects available yet",
+          description: "Be the first to share your innovative project with the community. Create a project and inspire others to support your vision.",
+          actions: (
+            <Button
+              onClick={handleCreateProject}
+              size="lg"
+              className="bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 font-medium px-8 py-3"
+            >
+              <Plus className="mr-2 h-5 w-5" />
+              Create First Project
+            </Button>
           ),
         };
 
