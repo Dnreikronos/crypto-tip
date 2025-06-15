@@ -11,28 +11,28 @@ export default function FaqSection() {
     {
       question: "How does CryptoTip work?",
       answer:
-        "CryptoTip provides developers with a customizable donation page where they can showcase their projects and receive cryptocurrency donations. Supporters can donate directly to the developer's wallet with just a few clicks. The platform doesn't hold any funds—all transactions happen directly between wallets.",
+        "CryptoTip provides developers with a customizable donation page to receive cryptocurrency donations. Supporters can donate directly to the developer's wallet quickly and easily. All transactions happen directly between wallets—no funds are held by the platform.",
     },
     {
-      question: "What cryptocurrencies are supported?",
+      question: "Which cryptocurrencies are supported?",
       answer:
-        "We currently support Bitcoin (BTC), Ethereum (ETH), Solana (SOL), Polygon (MATIC), Avalanche (AVAX), Binance Coin (BNB), and several other popular cryptocurrencies. We're continually adding more options based on developer demand.",
+        "We currently support only Ethereum (ETH). We plan to add other cryptocurrencies such as Bitcoin (BTC) and Solana (SOL) soon.",
     },
     {
-      question: "Are there any fees?",
+      question: "What are the fees?",
       answer:
-        "CryptoTip doesn't charge any platform fees on donations. The only costs are the standard network transaction fees for each blockchain, which vary depending on network congestion. We offer a Pro tier with additional features for a small monthly subscription.",
+        "We charge a 5% fee for facilitating donations (not including the blockchain network fee). In addition to the standard Ethereum network fee, there is a 5% platform service fee.",
     },
     {
-      question: "How do I withdraw my donations?",
+      question: "How do I receive my donations?",
       answer:
-        "You don't need to! All donations are sent directly to your connected wallet address. There's no need to withdraw or transfer funds from our platform, which means immediate access and reduced security risks.",
+        "You don't need to withdraw! All donations are sent directly to your connected wallet address, giving you immediate access to your funds and increased security.",
     },
-    {
-      question: "Can I embed CryptoTip on my website or GitHub?",
-      answer:
-        "Absolutely! We provide customizable widgets and buttons that can be embedded on your personal website, GitHub repositories, or any other platform where you showcase your work. This makes it easy for supporters to donate from anywhere.",
-    },
+    // {
+    //   question: "Can I embed CryptoTip on my website or GitHub?",
+    //   answer:
+    //     "Absolutely! We provide customizable widgets and buttons that can be embedded on your personal website, GitHub repositories, or any other platform where you showcase your work. This makes it easy for supporters to donate from anywhere.",
+    // },
   ];
 
   const toggleItem = (index: number) => {
@@ -100,24 +100,6 @@ export default function FaqSection() {
           ))}
         </motion.div>
 
-        <motion.div
-          className="mt-12 text-center"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-        >
-          <p className="text-gray-300">
-            Have more questions?{" "}
-            <a
-              href="/support"
-              className="text-cyan-400 hover:text-cyan-300 underline"
-            >
-              Contact our support team
-            </a>{" "}
-            for assistance.
-          </p>
-        </motion.div>
       </div>
     </section>
   );

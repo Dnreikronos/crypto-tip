@@ -6,6 +6,7 @@ export const PROTECTED_ROUTES = [
   "/donation",
   "/create-project",
   "/edit-project/:id",
+  "/projects",
 ];
 
 // Rotas públicas - redirecionam para o dashboard se estiver logado

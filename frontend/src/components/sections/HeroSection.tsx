@@ -72,10 +72,10 @@ export default function HeroSection() {
           className="flex flex-col sm:flex-row gap-4 justify-center mb-12"
           variants={fadeInUp}
         >
-          <ButtonPrimary href="/signup">
+          <ButtonPrimary href="/create-project">
             Create Your Page <ArrowRight className="ml-2 h-4 w-4" />
           </ButtonPrimary>
-          <ButtonSecondary href="/showcase">
+          <ButtonSecondary href="/projects">
             See Examples <Code className="ml-2 h-4 w-4" />
           </ButtonSecondary>
         </motion.div>

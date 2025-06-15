@@ -72,26 +72,18 @@ export default function CtaSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.6 }}
           >
-            <ButtonPrimary href="/register" className="text-lg px-8 py-4">
+            <ButtonPrimary href="/create-project" className="text-lg px-8 py-4">
               Create Your Page <ArrowRight className="ml-2 h-5 w-5" />
             </ButtonPrimary>
             <a
-              href="/demo"
+              href="/projects"
               className="inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-cyan-400 bg-gray-800/80 hover:bg-gray-800 border border-gray-700 hover:border-cyan-500/50 rounded-lg transition-all duration-200"
             >
-              View Demo
+              Examples
             </a>
           </motion.div>
 
-          <motion.p
-            className="mt-6 text-gray-400 text-sm"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.8 }}
-          >
-            No platform fees. Get started for free.
-          </motion.p>
+
         </div>
       </motion.div>
     </section>
