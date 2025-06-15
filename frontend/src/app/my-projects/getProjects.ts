@@ -10,6 +10,14 @@ const ProjectSchema = z.object({
   goal: z.number(),
   raised: z.number(),
   created_at: z.coerce.date(),
+  image_url: z.string().optional(),
+  project_link: z.string().optional(),
+  repo_link: z.string().optional(),
+  user: z.object({
+    id: z.string(),
+    name: z.string(),
+    email: z.string(),
+  }).optional(),
 });
 
 const ProjectsSchema = z.array(ProjectSchema);
