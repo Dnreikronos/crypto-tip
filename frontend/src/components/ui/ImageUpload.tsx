@@ -15,19 +15,20 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file');
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
       return;
     }
 
-    if (file.size > 4 * 1024 * 1024) { // 4MB
-      toast.error('Image must be smaller than 4MB');
+    if (file.size > 4 * 1024 * 1024) {
+      // 4MB
+      toast.error("Image must be smaller than 4MB");
       return;
     }
 
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
-    
+
     onChange(file, url);
   };
 
@@ -58,7 +59,7 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    
+
     if (disabled) return;
 
     const file = e.dataTransfer.files?.[0];
@@ -68,7 +69,7 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
   };
 
   const removeImage = () => {
-    if (previewUrl && previewUrl.startsWith('blob:')) {
+    if (previewUrl && previewUrl.startsWith("blob:")) {
       URL.revokeObjectURL(previewUrl);
     }
     setPreviewUrl(null);
@@ -87,7 +88,7 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
             src={previewUrl}
             alt="Project preview"
             className="max-w-full max-h-full object-contain"
-            style={{ imageRendering: 'auto' }}
+            style={{ imageRendering: "auto" }}
           />
         </div>
         <motion.button
@@ -100,8 +101,8 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
         >
           <X className="h-4 w-4" />
         </motion.button>
-        
-        {previewUrl.startsWith('blob:') && (
+
+        {previewUrl.startsWith("blob:") && (
           <div className="absolute bottom-2 left-2 bg-yellow-500/90 text-black text-xs px-2 py-1 rounded">
             Preview - Save to upload
           </div>
@@ -115,11 +116,12 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
       className={`
         w-full h-48 border-2 border-dashed rounded-lg cursor-pointer
         transition-all duration-300 flex flex-col items-center justify-center
-        ${isDragging 
-          ? 'border-cyan-400 bg-cyan-400/10' 
-          : 'border-gray-600 hover:border-gray-500'
+        ${
+          isDragging
+            ? "border-cyan-400 bg-cyan-400/10"
+            : "border-gray-600 hover:border-gray-500"
         }
-        ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-800/50'}
+        ${disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-800/50"}
       `}
       onClick={handleClick}
       onDragOver={handleDragOver}
@@ -136,7 +138,7 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
         className="hidden"
         disabled={disabled}
       />
-      
+
       <motion.div
         className="text-center"
         initial={{ opacity: 0.7 }}
@@ -147,15 +149,15 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
         ) : (
           <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
         )}
-        
+
         <p className="text-gray-300 font-medium mb-2">
-          {isDragging ? 'Drop your image here' : 'Click to select or drag and drop'}
+          {isDragging
+            ? "Drop your image here"
+            : "Click to select or drag and drop"}
         </p>
-        
-        <p className="text-gray-500 text-sm">
-          PNG, JPG, GIF up to 4MB
-        </p>
-        
+
+        <p className="text-gray-500 text-sm">PNG, JPG, GIF up to 4MB</p>
+
         <motion.div
           className="mt-4 bg-gradient-to-r from-purple-500 to-cyan-500 text-white px-4 py-2 rounded-lg inline-block"
           whileHover={{ scale: 1.05 }}
@@ -165,4 +167,4 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
       </motion.div>
     </motion.div>
   );
-} 
+}

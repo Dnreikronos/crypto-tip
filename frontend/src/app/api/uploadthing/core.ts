@@ -8,7 +8,7 @@ const f = createUploadthing();
 // const auth = async () => {
 //   const cookieStore = await cookies();
 //   const token = cookieStore.get("token")?.value;
-//   
+//
 //   if (!token) {
 //     return null;
 //   }
@@ -22,7 +22,7 @@ export const ourFileRouter = {
   imageUploader: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
     .middleware(async () => {
       console.log("Upload middleware called");
-      
+
       // Temporariamente removendo autenticação para testar
       // const user = await auth();
       // if (!user) throw new UploadThingError("Unauthorized - Please login first");
@@ -37,4 +37,4 @@ export const ourFileRouter = {
     }),
 } satisfies FileRouter;
 
-export type OurFileRouter = typeof ourFileRouter; 
+export type OurFileRouter = typeof ourFileRouter;
