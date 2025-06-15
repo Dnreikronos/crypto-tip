@@ -26,6 +26,8 @@ import { useCreateProject } from "@/hooks/useProject";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useWalletProviders } from "@/hooks/useWalletProviders";
+import { ImageUpload } from "@/components/ui/ImageUpload";
+import { useUploadThing } from "@/lib/uploadthing";
 
 const projectSchema = z.object({
   title: z
@@ -45,6 +47,7 @@ const projectSchema = z.object({
     .startsWith("0x", { message: "Ethereum addresses should start with 0x" }),
   project_link: z.string().url({ message: "Please enter a valid URL" }),
   repo_link: z.string().url({ message: "Please enter a valid URL" }),
+  image_url: z.string().optional(),
   accept_terms: z.boolean().refine((val) => val === true, {
     message: "You must accept the terms and conditions",
   }),
@@ -54,9 +57,13 @@ type FormValues = z.infer<typeof projectSchema>;
 
 export default function CreateProjectPage() {
   const [previewMode, setPreviewMode] = useState(false);
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string>("");
   const router = useRouter();
   const providers = useWalletProviders();
   const metaMaskProvider = providers.find((p) => p.info.name === "MetaMask");
+
+  const { startUpload, isUploading } = useUploadThing("imageUploader");
 
   const form = useForm<FormValues>({
     resolver: zodResolver(projectSchema),
@@ -67,6 +74,7 @@ export default function CreateProjectPage() {
       wallet_addr: "",
       project_link: "",
       repo_link: "",
+      image_url: "",
       accept_terms: false,
     },
   });
@@ -100,8 +108,24 @@ export default function CreateProjectPage() {
     }
   };
 
-  function onSubmit(values: FormValues) {
+  async function onSubmit(values: FormValues) {
     const { accept_terms: _, ...projectData } = values; // eslint-disable-line @typescript-eslint/no-unused-vars
+
+    if (selectedImageFile) {
+      try {
+        toast.info("Uploading image...");
+
+        const uploadResult = await startUpload([selectedImageFile]);
+
+        if (uploadResult && uploadResult[0]?.url) {
+          projectData.image_url = uploadResult[0].url;
+          toast.success("Image uploaded successfully!");
+        }
+      } catch (error) {
+        toast.error("Failed to upload image. Creating project without image.");
+        console.error("Image upload error:", error);
+      }
+    }
 
     createProjectMutation(projectData, {
       onSuccess: () => {
@@ -201,6 +225,7 @@ export default function CreateProjectPage() {
                     goal: parseFloat(formValues.goal || "0"),
                     raised: 0,
                     wallet_addr: formValues.wallet_addr || "0x...",
+                    image_url: imagePreviewUrl || formValues.image_url,
                   }}
                   onBack={togglePreview}
                 />
@@ -302,6 +327,33 @@ export default function CreateProjectPage() {
 
                       <FormField
                         control={form.control}
+                        name="image_url"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-gray-400">
+                              Project Image
+                            </FormLabel>
+                            <FormControl>
+                              <ImageUpload
+                                value={imagePreviewUrl || field.value}
+                                onChange={(file, previewUrl) => {
+                                  setSelectedImageFile(file);
+                                  setImagePreviewUrl(previewUrl || "");
+                                }}
+                                disabled={isPending}
+                              />
+                            </FormControl>
+                            <FormDescription className="text-gray-400">
+                              Upload an image to showcase your project
+                              (optional).
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
                         name="goal"
                         render={({ field }) => (
                           <FormItem>
@@ -361,7 +413,7 @@ export default function CreateProjectPage() {
                                 <Button
                                   type="button"
                                   onClick={handleConnectWallet}
-                                  className="bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/25"
+                                  className="bg-gradient-to-r cursor-pointer from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/25"
                                 >
                                   Connect Wallet
                                 </Button>
@@ -462,10 +514,10 @@ export default function CreateProjectPage() {
                         >
                           <Button
                             type="submit"
-                            disabled={isPending}
+                            disabled={isPending || isUploading}
                             className="bg-gradient-to-r from-purple-500 to-cyan-500 text-white hover:shadow-lg hover:shadow-cyan-500/20 transition-all px-8 py-2 cursor-pointer relative overflow-hidden group"
                           >
-                            {isPending ? (
+                            {isPending || isUploading ? (
                               <span className="flex items-center">
                                 <svg
                                   className="animate-spin -ml-1 mr-3 h-4 w-4 text-white"
@@ -487,7 +539,7 @@ export default function CreateProjectPage() {
                                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                                   ></path>
                                 </svg>
-                                Creating...
+                                {isUploading ? "Uploading..." : "Creating..."}
                               </span>
                             ) : (
                               <span className="relative z-10">

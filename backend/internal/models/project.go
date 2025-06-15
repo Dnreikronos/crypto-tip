@@ -20,6 +20,7 @@ type Project struct {
 	UpdatedAt   time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 	ProjectLink string    `json:"project_link" gorm:"not null"`
 	RepoLink    string    `json:"repo_link"`
+	ImageURL    string    `json:"image_url"`
 }
 
 type ProjectInput struct {
@@ -29,6 +30,7 @@ type ProjectInput struct {
 	WalletAddr  string  `json:"wallet_addr" binding:"required"`
 	ProjectLink string  `json:"project_link" binding:"required"`
 	RepoLink    string  `json:"repo_link"`
+	ImageURL    string  `json:"image_url"`
 }
 
 type ProjectUpdate struct {
@@ -38,6 +40,7 @@ type ProjectUpdate struct {
 	WalletAddr  string  `json:"wallet_addr"`
 	ProjectLink string  `json:"project_link"`
 	RepoLink    string  `json:"repo_link"`
+	ImageURL    string  `json:"image_url"`
 }
 
 type ProjectResponse struct {
@@ -52,6 +55,7 @@ type ProjectResponse struct {
 	UpdatedAt   time.Time    `json:"updated_at"`
 	ProjectLink string       `json:"project_link"`
 	RepoLink    string       `json:"repo_link"`
+	ImageURL    string       `json:"image_url"`
 }
 
 func (p *Project) BeforeCreate(db *gorm.DB) error {
@@ -72,6 +76,7 @@ func ProjectToResponse(project Project, includeDonations bool) ProjectResponse {
 		UpdatedAt:   project.UpdatedAt,
 		ProjectLink: project.ProjectLink,
 		RepoLink:    project.RepoLink,
+		ImageURL:    project.ImageURL,
 	}
 
 	return response

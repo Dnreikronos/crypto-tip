@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { createDonation } from "@/services/donationService";
@@ -20,7 +19,7 @@ interface DonationFormProps {
 
 export default function DonationForm({ project }: DonationFormProps) {
   const router = useRouter();
-  const [usdAmount, setUsdAmount] = useState("50");
+  const [usdAmount, setUsdAmount] = useState("5000");
   const [currency, setCurrency] = useState("ethereum");
   const [conversionRate, setConversionRate] = useState<number>(0);
   const [isRateLoading, setIsRateLoading] = useState<boolean>(false);
@@ -29,7 +28,7 @@ export default function DonationForm({ project }: DonationFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const usdAmountNumber = parseFloat(usdAmount) || 0;
+  const usdAmountNumber = parseFloat((Number(usdAmount) / 100).toFixed(2)) || 0;
   const cryptoAmount = conversionRate ? usdAmountNumber / conversionRate : 0;
 
   useEffect(() => {
@@ -74,7 +73,7 @@ export default function DonationForm({ project }: DonationFormProps) {
           params: [{ chainId: "0xaa36a7" }], // Sepolia chainId
         });
       } catch (switchError: unknown) {
-        // handle only “chain not added” error (4902); otherwise rethrow
+        // handle only "chain not added" error (4902); otherwise rethrow
         if (
           typeof switchError === "object" &&
           switchError !== null &&
@@ -233,18 +232,57 @@ export default function DonationForm({ project }: DonationFormProps) {
           transition={{ delay: 0.3 }}
         >
           <p className="text-sm text-gray-400 mb-2">Donation Amount</p>
+
+          <div className="flex gap-2 mb-3">
+            {["5", "10", "15", "50"].map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                className={`px-4 py-2 rounded-lg border text-base font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2
+                  ${
+                    usdAmount === preset
+                      ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white border-cyan-500 shadow-md"
+                      : "bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700"
+                  }
+                  ${isSubmitting || isProcessing ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
+                `}
+                onClick={() => setUsdAmount(preset)}
+                disabled={isSubmitting || isProcessing}
+                aria-pressed={usdAmount === preset}
+              >
+                ${preset}
+              </button>
+            ))}
+          </div>
+
           <motion.div
-            className="flex items-center bg-gray-800 rounded-lg border border-gray-700 focus-within:border-cyan-500 transition-colors"
+            className="flex items-center bg-gray-800 rounded-lg border border-gray-700 focus-within:border-cyan-500 transition-colors shadow-sm"
             whileHover={{ scale: 1.01 }}
           >
-            <span className="text-4xl font-bold text-gray-400 pl-4">$</span>
+            <span className="pl-4 pr-2 text-2xl text-gray-400 select-none pointer-events-none">
+              $
+            </span>
             <Input
-              type="number"
-              value={usdAmount}
-              onChange={(e) => setUsdAmount(e.target.value)}
-              className="text-4xl font-bold bg-transparent border-none focus:ring-0 h-auto p-3 flex-1"
+              variant="unstyled"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={formatCurrency(usdAmount)}
+              onChange={(e) => {
+                let val = e.target.value.replace(/\D/g, "");
+                if (!val) val = "0";
+                val = val.slice(0, 8);
+                setUsdAmount(val);
+              }}
+              className="text-4xl font-bold bg-transparent border-none h-auto p-3 flex-1 appearance-none focus:outline-none focus:ring-0"
+              placeholder="0,00"
               disabled={isSubmitting || isProcessing}
+              aria-label="Donation amount in USD"
+              autoComplete="off"
             />
+            <span className="pr-4 pl-2 text-lg text-gray-400 select-none">
+              USD
+            </span>
           </motion.div>
 
           <motion.p
@@ -275,22 +313,6 @@ export default function DonationForm({ project }: DonationFormProps) {
               </div>
             </div>
           )}
-
-          <div className="my-4">
-            <Slider
-              value={[usdAmountNumber]}
-              min={5}
-              max={500}
-              step={1}
-              onValueChange={(vals) => setUsdAmount(vals[0].toString())}
-              className="bg-gradient-to-r from-purple-500 to-cyan-500 h-2 rounded-full"
-              disabled={isSubmitting || isProcessing}
-            />
-            <div className="flex justify-between text-xs text-gray-400 mt-1">
-              <span>$5</span>
-              <span>$500</span>
-            </div>
-          </div>
         </motion.div>
 
         <motion.div
@@ -444,4 +466,14 @@ export default function DonationForm({ project }: DonationFormProps) {
       </div>
     </motion.div>
   );
+}
+
+// Helper para formatar centavos em moeda pt-BR
+function formatCurrency(value: string): string {
+  const number = Number(value);
+  return (number / 100).toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    style: "decimal",
+  });
 }
