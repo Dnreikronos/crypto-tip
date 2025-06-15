@@ -1,105 +1,172 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import SectionTransition from "@/components/ui/SectionTransition";
+
+const faqs = [
+  {
+    question: "How does CryptoTip work?",
+    answer:
+      "CryptoTip allows developers to create personalized donation pages where supporters can send cryptocurrency directly to their wallets. Simply sign up, customize your page, add your wallet addresses, and start receiving donations.",
+  },
+  {
+    question: "Which cryptocurrencies are supported?",
+    answer:
+      "Currently we support Ethereum (ETH). We're working on adding Bitcoin (BTC) and Solana (SOL) support soon. More cryptocurrencies will be added based on community demand.",
+  },
+  {
+    question: "Are there any fees?",
+    answer:
+      "CryptoTip charges a 5% platform fee on all donations. This fee does not include blockchain network transaction fees, which are paid separately. The platform fee helps us maintain and improve our services.",
+  },
+  {
+    question: "Is it safe to share my wallet addresses?",
+    answer:
+      "Yes, sharing your public wallet addresses is completely safe. These are designed to be public for receiving transactions. Never share your private keys or seed phrases.",
+  },
+];
 
 export default function FaqSection() {
-  const [activeIndex, setActiveIndex] = useState<number | null>(0);
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-  const faqs = [
-    {
-      question: "How does CryptoTip work?",
-      answer:
-        "CryptoTip provides developers with a customizable donation page to receive cryptocurrency donations. Supporters can donate directly to the developer's wallet quickly and easily. All transactions happen directly between wallets—no funds are held by the platform.",
-    },
-    {
-      question: "Which cryptocurrencies are supported?",
-      answer:
-        "We currently support only Ethereum (ETH). We plan to add other cryptocurrencies such as Bitcoin (BTC) and Solana (SOL) soon.",
-    },
-    {
-      question: "What are the fees?",
-      answer:
-        "We charge a 5% fee for facilitating donations (not including the blockchain network fee). In addition to the standard Ethereum network fee, there is a 5% platform service fee.",
-    },
-    {
-      question: "How do I receive my donations?",
-      answer:
-        "You don't need to withdraw! All donations are sent directly to your connected wallet address, giving you immediate access to your funds and increased security.",
-    },
-    // {
-    //   question: "Can I embed CryptoTip on my website or GitHub?",
-    //   answer:
-    //     "Absolutely! We provide customizable widgets and buttons that can be embedded on your personal website, GitHub repositories, or any other platform where you showcase your work. This makes it easy for supporters to donate from anywhere.",
-    // },
-  ];
-
-  const toggleItem = (index: number) => {
-    setActiveIndex(activeIndex === index ? null : index);
+  const toggleFaq = (index: number) => {
+    setOpenIndex(openIndex === index ? null : index);
   };
 
   return (
-    <section className="py-24 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+    <section
+      id="faq"
+      className="min-h-screen w-full py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden flex items-center"
+    >
+      {/* Interactive Transition */}
+      <SectionTransition type="flow" />
+
+      {/* Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
         <motion.div
-          className="text-center mb-16"
-          initial={{ opacity: 0, y: 20 }}
+          className="absolute top-1/4 left-1/3 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.1, 0.2, 0.1],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+        <motion.div
+          className="absolute bottom-1/4 right-1/3 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl"
+          animate={{
+            scale: [1.2, 1, 1.2],
+            opacity: [0.1, 0.2, 0.1],
+          }}
+          transition={{
+            duration: 6,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1,
+          }}
+        />
+      </div>
+
+      {/* Interactive Transition Bottom */}
+      {/* Transição Minimalista */}
+      <SectionTransition />
+
+      <div className="max-w-4xl mx-auto relative z-10">
+        {/* Section Header */}
+        <motion.div
+          className="text-center mb-8 sm:mb-12"
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
+          <motion.h2
+            className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            viewport={{ once: true }}
+          >
             Frequently Asked Questions
-          </h2>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            Everything you need to know about receiving crypto donations for
-            your development work.
-          </p>
+          </motion.h2>
+          <motion.p
+            className="text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto px-4 sm:px-0"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            viewport={{ once: true }}
+          >
+            Everything you need to know about getting started with CryptoTip
+          </motion.p>
         </motion.div>
 
+        {/* FAQ List */}
         <motion.div
-          className="space-y-4"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
+          className="space-y-3 sm:space-y-4 max-w-3xl mx-auto px-4 sm:px-0"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.2 }}
         >
           {faqs.map((faq, index) => (
-            <div
+            <motion.div
               key={index}
-              className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl overflow-hidden"
+              className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl overflow-hidden w-full"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              viewport={{ once: true }}
+              whileHover={{
+                borderColor: "rgba(0, 229, 255, 0.3)",
+                boxShadow: "0 4px 20px -4px rgba(0, 229, 255, 0.1)",
+              }}
             >
-              <button
-                className="flex justify-between items-center w-full text-left p-6"
-                onClick={() => toggleItem(index)}
+              <motion.button
+                className="w-full px-4 sm:px-6 py-4 sm:py-6 text-left flex items-center justify-between hover:bg-gray-700/30 transition-colors duration-300"
+                onClick={() => toggleFaq(index)}
+                data-magnetic
+                data-magnetic-text="Toggle Answer"
               >
-                <h3 className="text-lg font-semibold text-white">
+                <h3 className="text-base sm:text-lg font-semibold text-white pr-3 sm:pr-4">
                   {faq.question}
                 </h3>
                 <motion.div
-                  animate={{ rotate: activeIndex === index ? 180 : 0 }}
+                  animate={{ rotate: openIndex === index ? 180 : 0 }}
                   transition={{ duration: 0.3 }}
+                  className="flex-shrink-0"
                 >
-                  <ChevronDown className="h-5 w-5 text-cyan-400" />
+                  <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                 </motion.div>
-              </button>
-              <AnimatePresence>
-                {activeIndex === index && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <div className="px-6 pb-6 text-gray-300">{faq.answer}</div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+              </motion.button>
+
+              {/* Resposta sempre presente - apenas opacity muda */}
+              <div className="border-t border-gray-700/30">
+                <motion.div
+                  className="px-4 sm:px-6 overflow-hidden"
+                  animate={{
+                    maxHeight: openIndex === index ? "500px" : 0,
+                    paddingTop: openIndex === index ? "1rem" : 0,
+                    paddingBottom: openIndex === index ? "1.5rem" : 0,
+                    opacity: openIndex === index ? 1 : 0,
+                  }}
+                  transition={{
+                    duration: 0.5,
+                    ease: [0.4, 0, 0.2, 1],
+                  }}
+                >
+                  <p className="text-sm sm:text-base text-gray-300 leading-relaxed">
+                    {faq.answer}
+                  </p>
+                </motion.div>
+              </div>
+            </motion.div>
           ))}
         </motion.div>
-
       </div>
     </section>
   );
