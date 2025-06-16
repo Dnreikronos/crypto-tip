@@ -18,8 +18,9 @@ services:
       POSTGRES_TIME_ZONE: ${POSTGRES_TIME_ZONE}
     depends_on:
       - postgres
+      - redis
     networks:
-      - elk-network
+      - app-network
 
   postgres:
     image: postgres:latest
@@ -31,7 +32,7 @@ services:
     env_file:
       - .env
     networks:
-      - elk-network
+      - app-network
 
   pgadmin:
     image: dpage/pgadmin4
@@ -46,18 +47,7 @@ services:
     env_file:
       - .env
     networks:
-      - elk-network
-
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.5.1
-    container_name: elasticsearch
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-    ports:
-      - "9200:9200"
-    networks:
-      - elk-network
+      - app-network
 
   redis:
     image: redis:latest
@@ -65,40 +55,51 @@ services:
     ports:
       - "6379:6379"
     networks:
-      - elk-network
+      - app-network
 
-  logstash:
-    image: docker.elastic.co/logstash/logstash:8.5.1
-    container_name: logstash
-    volumes:
-      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
-    environment:
-      - "LS_JAVA_OPTS=-Xmx256m -Xms256m"
-    ports:
-      - "5044:5044"
-      - "5000:5000"
-      - "9600:9600"
-    depends_on:
-      - elasticsearch
-    networks:
-      - elk-network
+  # elasticsearch:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:8.5.1
+  #   container_name: elasticsearch
+  #   environment:
+  #     - discovery.type=single-node
+  #     - xpack.security.enabled=false
+  #   ports:
+  #     - "9200:9200"
+  #   networks:
+  #     - elk-network
 
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.5.1
-    container_name: kibana
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    ports:
-      - "5601:5601"
-    depends_on:
-      - elasticsearch
-    networks:
-      - elk-network
+  # logstash:
+  #   image: docker.elastic.co/logstash/logstash:8.5.1
+  #   container_name: logstash
+  #   volumes:
+  #     - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+  #   environment:
+  #     - "LS_JAVA_OPTS=-Xmx256m -Xms256m"
+  #   ports:
+  #     - "5044:5044"
+  #     - "5000:5000"
+  #     - "9600:9600"
+  #   depends_on:
+  #     - elasticsearch
+  #   networks:
+  #     - elk-network
+
+  # kibana:
+  #   image: docker.elastic.co/kibana/kibana:8.5.1
+  #   container_name: kibana
+  #   environment:
+  #     - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+  #   ports:
+  #     - "5601:5601"
+  #   depends_on:
+  #     - elasticsearch
+  #   networks:
+  #     - elk-network
 
 volumes:
   postgresDB:
 
 networks:
-  elk-network:
+  app-network:
     driver: bridge
 
