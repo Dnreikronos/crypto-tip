@@ -2,6 +2,7 @@ package config
 
 import (
 	"log"
+	"os"
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
@@ -52,9 +53,14 @@ func Load() error {
 		}
 	}
 
+	envPort := os.Getenv("PORT")
+	if envPort == "" {
+		envPort = "9090"
+	}
+
 	cfg = &config{
 		API: APIConfig{
-			Port: viper.GetString("api.port"),
+			Port: envPort,
 		},
 		DB: DBConfig{
 			Host:     viper.GetString("database.host"),

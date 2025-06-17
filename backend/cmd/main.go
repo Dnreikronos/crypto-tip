@@ -22,6 +22,11 @@ func main() {
 		panic(err)
 	}
 
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "9090"
+	}
+
 	err = config.Load()
 	if err != nil {
 		panic(fmt.Sprintf("Failed to load configuration: %v", err))
