@@ -1,12 +1,12 @@
+version: "3.8"
+
 services:
   crypto-tip:
     container_name: crypto-tip
     build:
       context: .
     ports:
-      - 9090:9090
-    volumes:
-      - .:/app
+      - "9090:9090"
     env_file:
       - .env
     environment:
@@ -17,8 +17,10 @@ services:
       DB_NAME: ${DB_NAME}
       POSTGRES_TIME_ZONE: ${POSTGRES_TIME_ZONE}
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy   # wait until Postgres healthcheck passes
+      redis:
+        condition: service_started   # wait until Redis container is started
     networks:
       - app-network
 
@@ -31,21 +33,23 @@ services:
       - postgresDB:/var/lib/postgresql/data
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]  # check DB readiness
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - app-network
 
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    env_file:
+      - .env
     ports:
       - "8080:80"
     depends_on:
       - postgres
-    env_file:
-      - .env
     networks:
       - app-network
 
