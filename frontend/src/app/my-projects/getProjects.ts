@@ -23,6 +23,7 @@ const ProjectSchema = z.object({
 });
 
 const ProjectsSchema = z.array(ProjectSchema);
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 export type Project = z.infer<typeof ProjectSchema>;
 
 export async function getProjects() {
@@ -33,7 +34,7 @@ export async function getProjects() {
   const token = Cookies.get("token");
   if (!token) return [];
 
-  const res = await fetch("http://localhost:9090/user/projects", {
+  const res = await fetch(`${API_URL}/user/projects`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
