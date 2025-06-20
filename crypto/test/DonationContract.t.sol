@@ -39,7 +39,7 @@ contract DonationContractTest is Test {
 
     function test_Donation() public {
         uint256 donationAmount = 1 ether;
-        uint256 expectedFee = (donationAmount * 5) / 100;
+        uint256 expectedFee = (donationAmount * 10) / 100;
         uint256 expectedRecipientAmount = donationAmount - expectedFee;
 
         uint256 initialFeeWalletBalance = feeWallet.balance;
