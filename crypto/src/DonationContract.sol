@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 contract DonationContract {
     address public owner;
     address public feeWallet;
-    uint256 public constant FEE_PERCENTAGE = 5;
+    uint256 public constant FEE_PERCENTAGE = 10;
     uint256 public constant BASIS_POINTS = 10000;
 
     struct Donation {
