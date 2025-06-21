@@ -1,12 +1,12 @@
+version: "3.8"
+
 services:
   crypto-tip:
     container_name: crypto-tip
     build:
       context: .
     ports:
-      - 9090:9090
-    volumes:
-      - .:/app
+      - "9090:9090"
     env_file:
       - .env
     environment:
@@ -17,9 +17,12 @@ services:
       DB_NAME: ${DB_NAME}
       POSTGRES_TIME_ZONE: ${POSTGRES_TIME_ZONE}
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy   # wait until Postgres healthcheck passes
+      redis:
+        condition: service_started   # wait until Redis container is started
     networks:
-      - elk-network
+      - app-network
 
   postgres:
     image: postgres:latest
@@ -30,34 +33,25 @@ services:
       - postgresDB:/var/lib/postgresql/data
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]  # check DB readiness
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
-      - elk-network
+      - app-network
 
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    env_file:
+      - .env
     ports:
       - "8080:80"
     depends_on:
       - postgres
-    env_file:
-      - .env
     networks:
-      - elk-network
-
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.5.1
-    container_name: elasticsearch
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-    ports:
-      - "9200:9200"
-    networks:
-      - elk-network
+      - app-network
 
   redis:
     image: redis:latest
@@ -65,40 +59,51 @@ services:
     ports:
       - "6379:6379"
     networks:
-      - elk-network
+      - app-network
 
-  logstash:
-    image: docker.elastic.co/logstash/logstash:8.5.1
-    container_name: logstash
-    volumes:
-      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
-    environment:
-      - "LS_JAVA_OPTS=-Xmx256m -Xms256m"
-    ports:
-      - "5044:5044"
-      - "5000:5000"
-      - "9600:9600"
-    depends_on:
-      - elasticsearch
-    networks:
-      - elk-network
+  # elasticsearch:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:8.5.1
+  #   container_name: elasticsearch
+  #   environment:
+  #     - discovery.type=single-node
+  #     - xpack.security.enabled=false
+  #   ports:
+  #     - "9200:9200"
+  #   networks:
+  #     - elk-network
 
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.5.1
-    container_name: kibana
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    ports:
-      - "5601:5601"
-    depends_on:
-      - elasticsearch
-    networks:
-      - elk-network
+  # logstash:
+  #   image: docker.elastic.co/logstash/logstash:8.5.1
+  #   container_name: logstash
+  #   volumes:
+  #     - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+  #   environment:
+  #     - "LS_JAVA_OPTS=-Xmx256m -Xms256m"
+  #   ports:
+  #     - "5044:5044"
+  #     - "5000:5000"
+  #     - "9600:9600"
+  #   depends_on:
+  #     - elasticsearch
+  #   networks:
+  #     - elk-network
+
+  # kibana:
+  #   image: docker.elastic.co/kibana/kibana:8.5.1
+  #   container_name: kibana
+  #   environment:
+  #     - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+  #   ports:
+  #     - "5601:5601"
+  #   depends_on:
+  #     - elasticsearch
+  #   networks:
+  #     - elk-network
 
 volumes:
   postgresDB:
 
 networks:
-  elk-network:
+  app-network:
     driver: bridge
 
