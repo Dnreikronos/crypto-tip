@@ -50,13 +50,13 @@ export default function Navbar() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
-      if (!target.closest('.profile-dropdown')) {
+      if (!target.closest(".profile-dropdown")) {
         setIsProfileDropdownOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleLogout = async () => {
@@ -125,7 +125,10 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative flex justify-between items-center py-4">
             <div className="flex-shrink-0">
-              <Link href={user ? "/projects" : "/"} className="flex items-center">
+              <Link
+                href={user ? "/projects" : "/"}
+                className="flex items-center"
+              >
                 <Logo size={32} showText={true} />
               </Link>
             </div>
@@ -144,10 +147,12 @@ export default function Navbar() {
                     <Plus className="h-4 w-4 mr-2" />
                     Create Project
                   </Link>
-                  
+
                   <div className="relative profile-dropdown">
                     <button
-                      onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                      onClick={() =>
+                        setIsProfileDropdownOpen(!isProfileDropdownOpen)
+                      }
                       className={`${navInteractiveBaseStyles} text-gray-300 bg-gray-700 hover:bg-gray-600 focus:ring-gray-500 px-3 py-2 text-sm`}
                     >
                       <UserIcon className="h-4 w-4 mr-1" />
@@ -307,7 +312,8 @@ export default function Navbar() {
                   Confirm Logout
                 </h3>
                 <p className="text-sm text-gray-400 mb-6">
-                  Are you sure you want to logout? You will need to sign in again to access your account.
+                  Are you sure you want to logout? You will need to sign in
+                  again to access your account.
                 </p>
                 <div className="flex space-x-3">
                   <button

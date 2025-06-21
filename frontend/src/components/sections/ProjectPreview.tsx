@@ -1,6 +1,20 @@
 "use client";
 
-import { ArrowLeft, Heart, Coffee, Sparkles, ArrowRight, Check, ExternalLink, Github, Eye, EyeOff, Share2, Copy, CheckCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  Heart,
+  Coffee,
+  Sparkles,
+  ArrowRight,
+  Check,
+  ExternalLink,
+  Github,
+  Eye,
+  EyeOff,
+  Share2,
+  Copy,
+  CheckCheck,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -66,7 +80,9 @@ const DONATION_PRESETS = [
 ];
 
 export function ProjectPreview({ project, onBack }: ProjectPreviewProps) {
-  const [selectedAmountUSD, setSelectedAmountUSD] = useState<number | null>(null);
+  const [selectedAmountUSD, setSelectedAmountUSD] = useState<number | null>(
+    null,
+  );
   const [customAmountUSD, setCustomAmountUSD] = useState("");
   const [displayValue, setDisplayValue] = useState("");
   const [message, setMessage] = useState("");
@@ -93,7 +109,9 @@ export function ProjectPreview({ project, onBack }: ProjectPreviewProps) {
 
     setShowThankYou(true);
     setTimeout(() => setShowThankYou(false), 3000);
-    toast.success("This is a preview - donation functionality will work when project is live!");
+    toast.success(
+      "This is a preview - donation functionality will work when project is live!",
+    );
   };
 
   const getSelectedValueUSD = () => {
@@ -125,7 +143,7 @@ export function ProjectPreview({ project, onBack }: ProjectPreviewProps) {
     const cleanValue = formatted.replace(/[$\s]/g, "");
     const normalizedValue = cleanValue.replace(/,/g, "");
     const numValue = parseFloat(normalizedValue) || 0;
-    
+
     setCustomAmountUSD(numValue.toString());
     setDisplayValue(formatted);
     setSelectedAmountUSD(null);
@@ -133,7 +151,9 @@ export function ProjectPreview({ project, onBack }: ProjectPreviewProps) {
 
   const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText("https://example.com/project-preview");
+      await navigator.clipboard.writeText(
+        "https://example.com/project-preview",
+      );
       setLinkCopied(true);
       setTimeout(() => setLinkCopied(false), 2000);
       toast.success("Preview link copied to clipboard!");
@@ -230,7 +250,11 @@ export function ProjectPreview({ project, onBack }: ProjectPreviewProps) {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   className="inline-flex items-center gap-2 px-3 py-2 bg-purple-600/20 text-purple-400 rounded-lg border border-purple-600/30 hover:bg-purple-600/30 transition-colors text-sm"
-                  onClick={() => toast.info("This is a preview - links will work when project is live")}
+                  onClick={() =>
+                    toast.info(
+                      "This is a preview - links will work when project is live",
+                    )
+                  }
                 >
                   <ExternalLink className="w-3 h-3" />
                   Visit Project
@@ -238,7 +262,11 @@ export function ProjectPreview({ project, onBack }: ProjectPreviewProps) {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   className="inline-flex items-center gap-2 px-3 py-2 bg-cyan-600/20 text-cyan-400 rounded-lg border border-cyan-600/30 hover:bg-cyan-600/30 transition-colors text-sm"
-                  onClick={() => toast.info("This is a preview - links will work when project is live")}
+                  onClick={() =>
+                    toast.info(
+                      "This is a preview - links will work when project is live",
+                    )
+                  }
                 >
                   <Github className="w-3 h-3" />
                   Source Code
@@ -314,11 +342,17 @@ export function ProjectPreview({ project, onBack }: ProjectPreviewProps) {
                   className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/20 rounded-full border border-purple-500/30 mb-4"
                 >
                   <Sparkles className="w-4 h-4 text-purple-400" />
-                  <span className="text-sm text-purple-300">Support Open Source</span>
+                  <span className="text-sm text-purple-300">
+                    Support Open Source
+                  </span>
                 </motion.div>
 
-                <h2 className="text-2xl font-bold text-white mb-4">Choose Your Support</h2>
-                <p className="text-gray-400">Help fuel innovation and keep this project growing</p>
+                <h2 className="text-2xl font-bold text-white mb-4">
+                  Choose Your Support
+                </h2>
+                <p className="text-gray-400">
+                  Help fuel innovation and keep this project growing
+                </p>
               </div>
 
               {/* Share Section */}
@@ -338,10 +372,16 @@ export function ProjectPreview({ project, onBack }: ProjectPreviewProps) {
                       : "bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-800/70 hover:border-gray-600"
                   }`}
                 >
-                  <Share2 className={`w-4 h-4 transition-colors ${
-                    showShareOptions ? "text-cyan-400" : "group-hover:text-cyan-400"
-                  }`} />
-                  {showShareOptions ? "Hide share options" : "Share this project"}
+                  <Share2
+                    className={`w-4 h-4 transition-colors ${
+                      showShareOptions
+                        ? "text-cyan-400"
+                        : "group-hover:text-cyan-400"
+                    }`}
+                  />
+                  {showShareOptions
+                    ? "Hide share options"
+                    : "Share this project"}
                   <motion.div
                     animate={{ rotate: showShareOptions ? 90 : 0 }}
                     transition={{ duration: 0.2 }}
@@ -371,12 +411,16 @@ export function ProjectPreview({ project, onBack }: ProjectPreviewProps) {
                         {linkCopied ? (
                           <>
                             <CheckCheck className="w-4 h-4 text-green-400" />
-                            <span className="text-sm text-green-400">Preview link copied!</span>
+                            <span className="text-sm text-green-400">
+                              Preview link copied!
+                            </span>
                           </>
                         ) : (
                           <>
                             <Copy className="w-4 h-4 text-gray-400 group-hover:text-gray-300" />
-                            <span className="text-sm text-gray-300 group-hover:text-white">Copy Preview Link</span>
+                            <span className="text-sm text-gray-300 group-hover:text-white">
+                              Copy Preview Link
+                            </span>
                           </>
                         )}
                       </motion.button>
@@ -406,18 +450,24 @@ export function ProjectPreview({ project, onBack }: ProjectPreviewProps) {
                           onClick={() => {
                             setSelectedAmountUSD(preset.amountUSD);
                             setCustomAmountUSD(preset.amountUSD.toString());
-                            setDisplayValue(formatCurrency((preset.amountUSD * 100).toString()));
+                            setDisplayValue(
+                              formatCurrency(
+                                (preset.amountUSD * 100).toString(),
+                              ),
+                            );
                           }}
                           className={`p-4 rounded-xl border-2 transition-all duration-300 cursor-pointer ${
-                            (selectedAmountUSD === preset.amountUSD) || 
-                            (customAmountUSD && parseFloat(customAmountUSD) === preset.amountUSD)
+                            selectedAmountUSD === preset.amountUSD ||
+                            (customAmountUSD &&
+                              parseFloat(customAmountUSD) === preset.amountUSD)
                               ? "border-cyan-500 bg-cyan-500/10 shadow-lg shadow-cyan-500/20"
                               : "border-gray-600 bg-gray-800/50 hover:border-gray-500"
                           }`}
                         >
                           <div className="text-left">
                             <p className="font-semibold text-white">
-                              ${preset.amountUSD.toLocaleString("en-US", {
+                              $
+                              {preset.amountUSD.toLocaleString("en-US", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2,
                               })}
@@ -472,9 +522,12 @@ export function ProjectPreview({ project, onBack }: ProjectPreviewProps) {
                         >
                           <div className="text-right">
                             <div className="text-sm text-cyan-400 font-medium">
-                              ≈ {(getSelectedValueUSD() / ethPrice).toFixed(4)} ETH
+                              ≈ {(getSelectedValueUSD() / ethPrice).toFixed(4)}{" "}
+                              ETH
                             </div>
-                            <div className="text-xs text-gray-500">Ethereum</div>
+                            <div className="text-xs text-gray-500">
+                              Ethereum
+                            </div>
                           </div>
                         </motion.div>
                       )}
@@ -582,11 +635,15 @@ export function ProjectPreview({ project, onBack }: ProjectPreviewProps) {
                 transition={{ delay: 0.5 }}
                 className="text-lg font-semibold text-cyan-400"
               >
-                ${getSelectedValueUSD().toLocaleString("en-US", {
+                $
+                {getSelectedValueUSD().toLocaleString("en-US", {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
-                })} preview donation
-                {ethPrice > 0 ? ` (≈ ${getSelectedValueETH().toFixed(4)} ETH)` : ""}
+                })}{" "}
+                preview donation
+                {ethPrice > 0
+                  ? ` (≈ ${getSelectedValueETH().toFixed(4)} ETH)`
+                  : ""}
               </motion.div>
             </motion.div>
           </motion.div>

@@ -55,25 +55,25 @@ const Switch = ({
 // Social Media Icons
 const TwitterIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" className={className} fill="currentColor">
-    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
   </svg>
 );
 
 const FacebookIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" className={className} fill="currentColor">
-    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
   </svg>
 );
 
 const LinkedInIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" className={className} fill="currentColor">
-    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
   </svg>
 );
 
 const WhatsAppIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" className={className} fill="currentColor">
-    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.465 3.488"/>
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.465 3.488" />
   </svg>
 );
 
@@ -132,7 +132,7 @@ export default function DonationPageClient({
     isLoading: isLoadingPrice,
     error: priceError,
   } = useCryptoPrice({
-    symbol: 'ETH',
+    symbol: "ETH",
     refreshInterval: 120000, // 2 minutes
     autoRefresh: true,
   });
@@ -151,7 +151,7 @@ export default function DonationPageClient({
   useEffect(() => {
     if (priceError) {
       console.error("ETH price error:", priceError);
-      
+
       // Show more specific error messages
       if (priceError.includes("rate limit")) {
         toast.error("Rate limit exceeded", {
@@ -159,15 +159,17 @@ export default function DonationPageClient({
         });
       } else if (priceError.includes("Failed to fetch")) {
         toast.error("Network error", {
-          description: "Unable to connect to price services. Please check your internet connection.",
+          description:
+            "Unable to connect to price services. Please check your internet connection.",
         });
       } else if (priceError.includes("all sources")) {
         toast.error("All price services unavailable", {
-          description: "Multiple price services are currently down. Please try again later.",
+          description:
+            "Multiple price services are currently down. Please try again later.",
         });
       } else {
         toast.error("Failed to fetch ETH price", {
-          description: priceError.split('\n')[0], // Show only the first line of error
+          description: priceError.split("\n")[0], // Show only the first line of error
         });
       }
     }
@@ -377,9 +379,9 @@ export default function DonationPageClient({
   };
 
   const shareToX = () => {
-    const text = `Check out this amazing project: ${project?.title || 'Open Source Project'}! 🚀\n\nSupport innovation with crypto donations 💰`;
+    const text = `Check out this amazing project: ${project?.title || "Open Source Project"}! 🚀\n\nSupport innovation with crypto donations 💰`;
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(currentUrl)}`;
-    window.open(url, '_blank', 'width=550,height=420');
+    window.open(url, "_blank", "width=550,height=420");
     toast.success("Opening X (Twitter)", {
       description: "Share this project with your followers!",
     });
@@ -387,26 +389,26 @@ export default function DonationPageClient({
 
   const shareToFacebook = () => {
     const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`;
-    window.open(url, '_blank', 'width=580,height=296');
+    window.open(url, "_blank", "width=580,height=296");
     toast.success("Opening Facebook", {
       description: "Share this project with your friends!",
     });
   };
 
   const shareToLinkedIn = () => {
-    const title = `Support ${project?.title || 'Open Source Project'}`;
+    const title = `Support ${project?.title || "Open Source Project"}`;
     const summary = `Help fund this amazing open-source project with cryptocurrency donations. Every contribution makes a difference!`;
     const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentUrl)}&title=${encodeURIComponent(title)}&summary=${encodeURIComponent(summary)}`;
-    window.open(url, '_blank', 'width=520,height=570');
+    window.open(url, "_blank", "width=520,height=570");
     toast.success("Opening LinkedIn", {
       description: "Share this project with your professional network!",
     });
   };
 
   const shareToWhatsApp = () => {
-    const text = `🚀 Check out this amazing project: ${project?.title || 'Open Source Project'}!\n\nSupport innovation with crypto donations 💰\n\n${currentUrl}`;
+    const text = `🚀 Check out this amazing project: ${project?.title || "Open Source Project"}!\n\nSupport innovation with crypto donations 💰\n\n${currentUrl}`;
     const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank');
+    window.open(url, "_blank");
     toast.success("Opening WhatsApp", {
       description: "Share this project with your contacts!",
     });
@@ -626,10 +628,16 @@ export default function DonationPageClient({
                         : "bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-800/70 hover:border-gray-600"
                     }`}
                   >
-                    <Share2 className={`w-4 h-4 transition-colors ${
-                      showShareOptions ? "text-cyan-400" : "group-hover:text-cyan-400"
-                    }`} />
-                    {showShareOptions ? "Hide share options" : "Share this project"}
+                    <Share2
+                      className={`w-4 h-4 transition-colors ${
+                        showShareOptions
+                          ? "text-cyan-400"
+                          : "group-hover:text-cyan-400"
+                      }`}
+                    />
+                    {showShareOptions
+                      ? "Hide share options"
+                      : "Share this project"}
                     <motion.div
                       animate={{ rotate: showShareOptions ? 90 : 0 }}
                       transition={{ duration: 0.2 }}
@@ -658,7 +666,9 @@ export default function DonationPageClient({
                           className="flex items-center gap-2 p-3 bg-black/50 hover:bg-black/70 border border-gray-700 hover:border-gray-600 rounded-lg transition-all duration-200 group"
                         >
                           <TwitterIcon className="w-5 h-5 text-white" />
-                          <span className="text-sm text-gray-300 group-hover:text-white">X</span>
+                          <span className="text-sm text-gray-300 group-hover:text-white">
+                            X
+                          </span>
                         </motion.button>
 
                         {/* Facebook */}
@@ -672,7 +682,9 @@ export default function DonationPageClient({
                           className="flex items-center gap-2 p-3 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-600/30 hover:border-blue-600/50 rounded-lg transition-all duration-200 group"
                         >
                           <FacebookIcon className="w-5 h-5 text-blue-400" />
-                          <span className="text-sm text-gray-300 group-hover:text-white">Facebook</span>
+                          <span className="text-sm text-gray-300 group-hover:text-white">
+                            Facebook
+                          </span>
                         </motion.button>
 
                         {/* LinkedIn */}
@@ -686,7 +698,9 @@ export default function DonationPageClient({
                           className="flex items-center gap-2 p-3 bg-blue-700/20 hover:bg-blue-700/30 border border-blue-700/30 hover:border-blue-700/50 rounded-lg transition-all duration-200 group"
                         >
                           <LinkedInIcon className="w-5 h-5 text-blue-300" />
-                          <span className="text-sm text-gray-300 group-hover:text-white">LinkedIn</span>
+                          <span className="text-sm text-gray-300 group-hover:text-white">
+                            LinkedIn
+                          </span>
                         </motion.button>
 
                         {/* WhatsApp */}
@@ -700,7 +714,9 @@ export default function DonationPageClient({
                           className="flex items-center gap-2 p-3 bg-green-600/20 hover:bg-green-600/30 border border-green-600/30 hover:border-green-600/50 rounded-lg transition-all duration-200 group"
                         >
                           <WhatsAppIcon className="w-5 h-5 text-green-400" />
-                          <span className="text-sm text-gray-300 group-hover:text-white">WhatsApp</span>
+                          <span className="text-sm text-gray-300 group-hover:text-white">
+                            WhatsApp
+                          </span>
                         </motion.button>
 
                         {/* Copy Link */}
@@ -716,12 +732,16 @@ export default function DonationPageClient({
                           {linkCopied ? (
                             <>
                               <CheckCheck className="w-4 h-4 text-green-400" />
-                              <span className="text-sm text-green-400">Link copied!</span>
+                              <span className="text-sm text-green-400">
+                                Link copied!
+                              </span>
                             </>
                           ) : (
                             <>
                               <Copy className="w-4 h-4 text-gray-400 group-hover:text-gray-300" />
-                              <span className="text-sm text-gray-300 group-hover:text-white">Copy Link</span>
+                              <span className="text-sm text-gray-300 group-hover:text-white">
+                                Copy Link
+                              </span>
                             </>
                           )}
                         </motion.button>
@@ -754,11 +774,17 @@ export default function DonationPageClient({
                             onClick={() => {
                               setSelectedAmountUSD(preset.amountUSD);
                               setCustomAmountUSD(preset.amountUSD.toString());
-                              setDisplayValue(formatCurrency((preset.amountUSD * 100).toString()));
+                              setDisplayValue(
+                                formatCurrency(
+                                  (preset.amountUSD * 100).toString(),
+                                ),
+                              );
                             }}
                             className={`p-4 rounded-xl border-2 transition-all duration-300 cursor-pointer ${
-                              (selectedAmountUSD === preset.amountUSD) || 
-                              (customAmountUSD && parseFloat(customAmountUSD) === preset.amountUSD)
+                              selectedAmountUSD === preset.amountUSD ||
+                              (customAmountUSD &&
+                                parseFloat(customAmountUSD) ===
+                                  preset.amountUSD)
                                 ? "border-cyan-500 bg-cyan-500/10 shadow-lg shadow-cyan-500/20"
                                 : "border-gray-600 bg-gray-800/50 hover:border-gray-500"
                             }`}
@@ -775,8 +801,8 @@ export default function DonationPageClient({
                               <p className="text-xs text-gray-400">
                                 {!isLoadingPrice && ethPrice && ethPrice > 0
                                   ? `≈ ${ethAmount.toFixed(4)} ETH`
-                                  : isLoadingPrice 
-                                    ? "Loading..." 
+                                  : isLoadingPrice
+                                    ? "Loading..."
                                     : "Price unavailable"}
                               </p>
                               <p className="text-xs text-gray-500 mt-1">
@@ -820,7 +846,8 @@ export default function DonationPageClient({
                         />
 
                         {!isLoadingPrice &&
-                          ethPrice && ethPrice > 0 &&
+                          ethPrice &&
+                          ethPrice > 0 &&
                           getSelectedValueUSD() > 0 && (
                             <motion.div
                               initial={{ opacity: 0, x: 10 }}
@@ -830,7 +857,11 @@ export default function DonationPageClient({
                               <div className="text-right">
                                 <div className="text-sm text-cyan-400 font-medium">
                                   ≈{" "}
-                                  {ethPrice ? (getSelectedValueUSD() / ethPrice).toFixed(4) : "0.0000"}{" "}
+                                  {ethPrice
+                                    ? (
+                                        getSelectedValueUSD() / ethPrice
+                                      ).toFixed(4)
+                                    : "0.0000"}{" "}
                                   ETH
                                 </div>
                                 <div className="text-xs text-gray-500">
@@ -925,7 +956,8 @@ export default function DonationPageClient({
                     disabled={
                       getSelectedValueUSD() < 1 ||
                       isLoadingPrice ||
-                      !ethPrice || ethPrice <= 0 ||
+                      !ethPrice ||
+                      ethPrice <= 0 ||
                       isSubmitting ||
                       isProcessing
                     }

@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { cryptoPriceService } from '@/lib/crypto-price';
+import { useState, useEffect, useCallback } from "react";
+import { cryptoPriceService } from "@/lib/crypto-price";
 
 interface UseCryptoPriceOptions {
   symbol: string;
@@ -26,25 +26,32 @@ export function useCryptoPrice({
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  const fetchPrice = useCallback(async (forceRefresh = false) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      const fetchedPrice = await cryptoPriceService.getPrice(symbol, forceRefresh);
-      
-      setPrice(fetchedPrice);
-      setLastUpdated(new Date());
-      
-      console.log(`Price updated for ${symbol}:`, fetchedPrice);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      setError(errorMessage);
-      console.error(`Error fetching ${symbol} price:`, err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [symbol]);
+  const fetchPrice = useCallback(
+    async (forceRefresh = false) => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const fetchedPrice = await cryptoPriceService.getPrice(
+          symbol,
+          forceRefresh,
+        );
+
+        setPrice(fetchedPrice);
+        setLastUpdated(new Date());
+
+        console.log(`Price updated for ${symbol}:`, fetchedPrice);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Unknown error";
+        setError(errorMessage);
+        console.error(`Error fetching ${symbol} price:`, err);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [symbol],
+  );
 
   const refresh = useCallback(async () => {
     await fetchPrice(true); // Force refresh
@@ -59,7 +66,7 @@ export function useCryptoPrice({
     fetchPrice();
 
     let interval: NodeJS.Timeout | null = null;
-    
+
     if (autoRefresh && refreshInterval > 0) {
       interval = setInterval(() => {
         fetchPrice();
@@ -113,22 +120,22 @@ export function useMultipleCryptoPrices({
     try {
       setIsLoading(true);
       setErrors({});
-      
+
       const fetchedPrices = await cryptoPriceService.getPrices(symbols);
-      
+
       setPrices(fetchedPrices);
       setLastUpdated(new Date());
-      
-      console.log('Prices updated:', fetchedPrices);
+
+      console.log("Prices updated:", fetchedPrices);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
       // Set error for all symbols if batch fetch fails
       const allErrors: Record<string, string> = {};
-      symbols.forEach(symbol => {
+      symbols.forEach((symbol) => {
         allErrors[symbol] = errorMessage;
       });
       setErrors(allErrors);
-      console.error('Error fetching multiple prices:', err);
+      console.error("Error fetching multiple prices:", err);
     } finally {
       setIsLoading(false);
     }
@@ -149,7 +156,7 @@ export function useMultipleCryptoPrices({
     fetchPrices();
 
     let interval: NodeJS.Timeout | null = null;
-    
+
     if (autoRefresh && refreshInterval > 0) {
       interval = setInterval(() => {
         fetchPrices();
@@ -171,4 +178,4 @@ export function useMultipleCryptoPrices({
     refresh,
     clearCache,
   };
-} 
+}

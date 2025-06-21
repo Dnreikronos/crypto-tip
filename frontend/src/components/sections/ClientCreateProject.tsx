@@ -36,7 +36,7 @@ function PageSkeleton() {
     <div className="pt-20 pb-16 w-full bg-black text-white relative">
       {/* Animated background placeholder */}
       <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-900"></div>
-      
+
       {/* Floating particles skeleton */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(6)].map((_, i) => (
@@ -64,10 +64,10 @@ function PageSkeleton() {
               <div className="p-6 space-y-4">
                 {/* Image placeholder */}
                 <Skeleton className="w-full h-48 bg-gray-800 rounded-xl animate-pulse" />
-                
+
                 {/* Title */}
                 <Skeleton className="h-6 w-3/4 bg-gray-800 rounded animate-pulse" />
-                
+
                 {/* Description lines */}
                 <div className="space-y-2">
                   <Skeleton className="h-4 w-full bg-gray-800 rounded animate-pulse pulse-width" />
@@ -131,10 +131,13 @@ function PageSkeleton() {
                     <Skeleton className="h-5 w-5 bg-cyan-900/40 rounded animate-pulse" />
                     <Skeleton className="h-6 w-40 bg-gray-800 rounded animate-pulse" />
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-3">
                     {[1, 2, 3, 4].map((item) => (
-                      <Skeleton key={item} className="h-20 bg-gray-800/50 border border-gray-600 rounded-xl animate-pulse p-4">
+                      <Skeleton
+                        key={item}
+                        className="h-20 bg-gray-800/50 border border-gray-600 rounded-xl animate-pulse p-4"
+                      >
                         <div className="flex justify-between items-start h-full">
                           <div className="space-y-1">
                             <Skeleton className="h-4 w-16 bg-gray-700 rounded animate-pulse" />
@@ -162,7 +165,7 @@ function PageSkeleton() {
                 <div className="space-y-3">
                   <Skeleton className="h-4 w-40 bg-gray-800 rounded animate-pulse" />
                   <Skeleton className="h-20 w-full bg-gray-800 border border-gray-600 rounded-xl animate-pulse" />
-                  
+
                   {/* Anonymous toggle */}
                   <Skeleton className="h-12 w-full bg-gray-800/50 rounded-lg animate-pulse p-3">
                     <div className="flex items-center justify-between">

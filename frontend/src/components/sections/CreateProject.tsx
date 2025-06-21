@@ -82,8 +82,6 @@ export default function CreateProjectPage() {
 
   const { mutate: createProjectMutation, isPending } = useCreateProject();
 
-
-
   async function onSubmit(values: FormValues) {
     const { accept_terms: _, ...projectData } = values; // eslint-disable-line @typescript-eslint/no-unused-vars
 
@@ -158,7 +156,7 @@ export default function CreateProjectPage() {
               transition: { duration: 0.5 },
             }}
           >
-              <Coins className="h-8 w-8 text-cyan-500" />
+            <Coins className="h-8 w-8 text-cyan-500" />
           </motion.div>
           <motion.h1
             className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text text-transparent"
@@ -383,7 +381,8 @@ export default function CreateProjectPage() {
                               </motion.div>
                             </FormControl>
                             <FormDescription className="text-gray-400">
-                              Enter your Ethereum wallet address to receive ETH donations.
+                              Enter your Ethereum wallet address to receive ETH
+                              donations.
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
