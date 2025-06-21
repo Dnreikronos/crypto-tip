@@ -11,6 +11,7 @@ export const PROTECTED_ROUTES = [
 
 // Rotas públicas - redirecionam para o dashboard se estiver logado
 export const PUBLIC_ROUTES = [
+  
   "/login",
   "/register",
   "/forgot-password",
