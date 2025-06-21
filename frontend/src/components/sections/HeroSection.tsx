@@ -10,85 +10,85 @@ import SectionTransition from "@/components/ui/SectionTransition";
 import Logo from "@/components/ui/Logo";
 
 // Component for animated numbers
-function AnimatedNumber({
-  value,
-  delay = 0,
-}: {
-  value: string;
-  delay?: number;
-}) {
-  const [displayValue, setDisplayValue] = useState("0");
+// function AnimatedNumber({
+//   value,
+//   delay = 0,
+// }: {
+//   value: string;
+//   delay?: number;
+// }) {
+//   const [displayValue, setDisplayValue] = useState("0");
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      // Parse different formats: "1,000+", "$250K+", "14+"
-      let targetNum = 0;
-      let prefix = "";
-      let suffix = "";
+//   useEffect(() => {
+//     const timer = setTimeout(() => {
+//       // Parse different formats: "1,000+", "$250K+", "14+"
+//       let targetNum = 0;
+//       let prefix = "";
+//       let suffix = "";
 
-      if (value.includes("K+")) {
-        // Handle format like "$250K+"
-        const match = value.match(/^(\$?)(\d+)K\+$/);
-        if (match) {
-          prefix = match[1]; // "$"
-          targetNum = parseInt(match[2]); // 250
-          suffix = "K+";
-        }
-      } else if (value.includes("M+")) {
-        // Handle format like "$2.5M+"
-        const match = value.match(/^(\$?)([\d.]+)M\+$/);
-        if (match) {
-          prefix = match[1]; // "$"
-          targetNum = parseFloat(match[2]) * 1000; // Convert to thousands for animation
-          suffix = "M+";
-        }
-      } else if (value.includes(",")) {
-        // Handle format like "1,000+"
-        const match = value.match(/^([\d,]+)\+?$/);
-        if (match) {
-          targetNum = parseInt(match[1].replace(/,/g, ""));
-          suffix = "+";
-        }
-      } else {
-        // Handle simple format like "14+"
-        const match = value.match(/^(\d+)\+?$/);
-        if (match) {
-          targetNum = parseInt(match[1]);
-          suffix = "+";
-        }
-      }
+//       if (value.includes("K+")) {
+//         // Handle format like "$250K+"
+//         const match = value.match(/^(\$?)(\d+)K\+$/);
+//         if (match) {
+//           prefix = match[1]; // "$"
+//           targetNum = parseInt(match[2]); // 250
+//           suffix = "K+";
+//         }
+//       } else if (value.includes("M+")) {
+//         // Handle format like "$2.5M+"
+//         const match = value.match(/^(\$?)([\d.]+)M\+$/);
+//         if (match) {
+//           prefix = match[1]; // "$"
+//           targetNum = parseFloat(match[2]) * 1000; // Convert to thousands for animation
+//           suffix = "M+";
+//         }
+//       } else if (value.includes(",")) {
+//         // Handle format like "1,000+"
+//         const match = value.match(/^([\d,]+)\+?$/);
+//         if (match) {
+//           targetNum = parseInt(match[1].replace(/,/g, ""));
+//           suffix = "+";
+//         }
+//       } else {
+//         // Handle simple format like "14+"
+//         const match = value.match(/^(\d+)\+?$/);
+//         if (match) {
+//           targetNum = parseInt(match[1]);
+//           suffix = "+";
+//         }
+//       }
 
-      let current = 0;
-      const increment = targetNum / 60; // 60 frames for smooth animation
-      const interval = setInterval(() => {
-        current += increment;
-        if (current >= targetNum) {
-          current = targetNum;
-          clearInterval(interval);
-        }
+//       let current = 0;
+//       const increment = targetNum / 60; // 60 frames for smooth animation
+//       const interval = setInterval(() => {
+//         current += increment;
+//         if (current >= targetNum) {
+//           current = targetNum;
+//           clearInterval(interval);
+//         }
 
-        let formattedValue;
-        if (suffix === "M+") {
-          formattedValue = (current / 1000).toFixed(1);
-        } else if (suffix === "K+") {
-          formattedValue = Math.floor(current).toString();
-        } else if (suffix === "+" && targetNum >= 1000) {
-          formattedValue = Math.floor(current).toLocaleString();
-        } else {
-          formattedValue = Math.floor(current).toString();
-        }
+//         let formattedValue;
+//         if (suffix === "M+") {
+//           formattedValue = (current / 1000).toFixed(1);
+//         } else if (suffix === "K+") {
+//           formattedValue = Math.floor(current).toString();
+//         } else if (suffix === "+" && targetNum >= 1000) {
+//           formattedValue = Math.floor(current).toLocaleString();
+//         } else {
+//           formattedValue = Math.floor(current).toString();
+//         }
 
-        setDisplayValue(prefix + formattedValue + suffix);
-      }, 50);
+//         setDisplayValue(prefix + formattedValue + suffix);
+//       }, 50);
 
-      return () => clearInterval(interval);
-    }, delay);
+//       return () => clearInterval(interval);
+//     }, delay);
 
-    return () => clearTimeout(timer);
-  }, [value, delay]);
+//     return () => clearTimeout(timer);
+//   }, [value, delay]);
 
-  return <span>{displayValue}</span>;
-}
+//   return <span>{displayValue}</span>;
+// }
 
 export default function HeroSection() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -147,14 +147,6 @@ export default function HeroSection() {
     },
   };
 
-  const floatingAnimation = {
-    y: [0, -10, 0],
-    transition: {
-      duration: 4,
-      repeat: Infinity,
-      ease: "easeInOut",
-    },
-  };
 
   return (
     <section
@@ -321,70 +313,6 @@ export default function HeroSection() {
           </motion.div>
         </motion.div>
 
-        {/* Stats Cards with continuous animations */}
-        <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-8 sm:mt-12 w-full"
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 2.5 }}
-        >
-          {[
-            {
-              value: "1,000+",
-              label: "Developers Funded",
-              color: "cyan",
-              delay: 0.5,
-              icon: "💻",
-            },
-            {
-              value: "$250K+",
-              label: "Crypto Donated",
-              color: "blue",
-              delay: 0.7,
-              icon: "💰",
-            },
-            {
-              value: "14+",
-              label: "Cryptocurrencies",
-              color: "purple",
-              delay: 0.9,
-              icon: "🪙",
-            },
-          ].map((stat, index) => (
-            <motion.div
-              key={index}
-              className="bg-gray-800/50 backdrop-blur-sm p-4 sm:p-6 rounded-xl border border-gray-700/50 relative group overflow-hidden"
-              whileHover={{
-                scale: 1.02,
-                boxShadow: "0 10px 30px -10px rgba(0, 224, 255, 0.2)",
-              }}
-              transition={{ duration: 0.3 }}
-              data-magnetic
-              data-magnetic-text={stat.label}
-              animate={floatingAnimation}
-            >
-              <motion.div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-purple-500/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-              <motion.div className="flex items-center mb-2 sm:mb-3">
-                <span className="text-xl sm:text-2xl mr-2">{stat.icon}</span>
-                <div className="h-4 sm:h-6 w-[1px] bg-gray-700/50 mx-2"></div>
-                <span className="text-xs sm:text-sm font-medium text-gray-400">
-                  {stat.label}
-                </span>
-              </motion.div>
-
-              <motion.h3
-                className={`text-2xl sm:text-3xl font-extrabold text-${stat.color}-400 relative z-10`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 1, delay: stat.delay }}
-                whileHover={{ scale: 1.05 }}
-              >
-                <AnimatedNumber value={stat.value} delay={stat.delay * 1000} />
-              </motion.h3>
-            </motion.div>
-          ))}
-        </motion.div>
       </motion.div>
 
       {/* Floating Code Block with enhanced animation - Oculto em mobile */}
