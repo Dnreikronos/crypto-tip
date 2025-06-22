@@ -13,8 +13,8 @@ export const PROTECTED_ROUTES = [
 export const PUBLIC_ROUTES = [
   "/login",
   "/register",
-  "/forgot-password",
-  "/reset-password",
+  // "/forgot-password",
+  // "/reset-password",
 ];
 
 // Cookie options

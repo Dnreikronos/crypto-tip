@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Bitcoin, Coins, ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, Coins } from "lucide-react";
+import { SiEthereum } from "react-icons/si";
 import { TipsInfoPanel } from "./TipsInfoPanel";
 import { CryptoInfoPanel } from "./CryptoInfoPanel";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useCreateProject } from "@/hooks/useProject";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useWalletProviders } from "@/hooks/useWalletProviders";
+
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { useUploadThing } from "@/lib/uploadthing";
 
@@ -60,8 +61,6 @@ export default function CreateProjectPage() {
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string>("");
   const router = useRouter();
-  const providers = useWalletProviders();
-  const metaMaskProvider = providers.find((p) => p.info.name === "MetaMask");
 
   const { startUpload, isUploading } = useUploadThing("imageUploader");
 
@@ -82,31 +81,6 @@ export default function CreateProjectPage() {
   const formValues = form.watch();
 
   const { mutate: createProjectMutation, isPending } = useCreateProject();
-
-  const handleConnectWallet = async () => {
-    if (!metaMaskProvider) {
-      window.open("https://metamask.io/download/", "_blank");
-      return;
-    }
-
-    try {
-      const accounts = (await metaMaskProvider.provider.request({
-        method: "eth_requestAccounts",
-      })) as string[] | undefined;
-
-      if (accounts?.[0]) {
-        form.setValue("wallet_addr", accounts[0]);
-        toast.success("Wallet Connected", {
-          description: "Your MetaMask wallet has been connected successfully.",
-        });
-      }
-    } catch (error) {
-      console.error("Failed to connect:", error);
-      toast.error("Connection Failed", {
-        description: "Unable to connect to MetaMask. Please try again.",
-      });
-    }
-  };
 
   async function onSubmit(values: FormValues) {
     const { accept_terms: _, ...projectData } = values; // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -358,7 +332,7 @@ export default function CreateProjectPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-gray-400">
-                              Funding Goal
+                              Funding Goal (ETH)
                             </FormLabel>
                             <FormControl>
                               <div className="relative">
@@ -377,12 +351,12 @@ export default function CreateProjectPage() {
                                   initial={{ opacity: 0.7 }}
                                   whileHover={{ opacity: 1, scale: 1.1 }}
                                 >
-                                  <Bitcoin className="h-4 w-4 text-cyan-400" />
+                                  <SiEthereum className="h-4 w-4 text-cyan-400" />
                                 </motion.div>
                               </div>
                             </FormControl>
                             <FormDescription className="text-gray-400">
-                              Set a reasonable goal to attract supporters.
+                              Set your funding goal in Ethereum (ETH).
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -395,32 +369,20 @@ export default function CreateProjectPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-gray-400">
-                              Wallet Address
+                              Ethereum Wallet Address
                             </FormLabel>
                             <FormControl>
-                              <div className="relative flex gap-2">
-                                <motion.div
-                                  whileFocus={{ scale: 1.01 }}
-                                  className="flex-1"
-                                >
-                                  <Input
-                                    placeholder="0x..."
-                                    {...field}
-                                    disabled
-                                    className="bg-gray-800/70 border-gray-700 text-white focus:border-cyan-500 transition-all duration-300 cursor-not-allowed"
-                                  />
-                                </motion.div>
-                                <Button
-                                  type="button"
-                                  onClick={handleConnectWallet}
-                                  className="bg-gradient-to-r cursor-pointer from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/25"
-                                >
-                                  Connect Wallet
-                                </Button>
-                              </div>
+                              <motion.div whileFocus={{ scale: 1.01 }}>
+                                <Input
+                                  placeholder="0x..."
+                                  {...field}
+                                  className="bg-gray-800/70 border-gray-700 text-white focus:border-cyan-500 transition-all duration-300"
+                                />
+                              </motion.div>
                             </FormControl>
                             <FormDescription className="text-gray-400">
-                              Your Ethereum wallet address to receive funds.
+                              Enter your Ethereum wallet address to receive ETH
+                              donations.
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
