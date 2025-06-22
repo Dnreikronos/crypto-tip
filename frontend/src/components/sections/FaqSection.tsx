@@ -19,7 +19,7 @@ const faqs = [
   {
     question: "Are there any fees?",
     answer:
-      "CryptoTip charges a 5% platform fee on all donations. This fee does not include blockchain network transaction fees, which are paid separately. The platform fee helps us maintain and improve our services.",
+      "CryptoTip charges a 10% platform fee on all donations. This fee does not include blockchain network transaction fees, which are paid separately. The platform fee helps us maintain and improve our services.",
   },
   {
     question: "Is it safe to share my wallet addresses?",
