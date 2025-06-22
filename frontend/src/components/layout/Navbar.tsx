@@ -37,10 +37,6 @@ export default function Navbar() {
 
   useEffect(() => {
     async function fetchUser() {
-      console.log(
-        "Navbar: Fetching user state on mount or pathname change:",
-        pathname,
-      );
       const current = await getCurrentUser();
       setUser(current);
     }
@@ -54,7 +50,6 @@ export default function Navbar() {
         setIsProfileDropdownOpen(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
@@ -68,13 +63,8 @@ export default function Navbar() {
     router.push("/login");
   };
 
-  const confirmLogout = () => {
-    setShowLogoutConfirm(true);
-  };
-
-  const cancelLogout = () => {
-    setShowLogoutConfirm(false);
-  };
+  const confirmLogout = () => setShowLogoutConfirm(true);
+  const cancelLogout = () => setShowLogoutConfirm(false);
 
   const menuVariants = {
     hidden: { opacity: 0, height: 0 },
@@ -108,10 +98,8 @@ export default function Navbar() {
 
   const navInteractiveBaseStyles =
     "inline-flex items-center justify-center font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 cursor-pointer";
-
   const textLinkStylesDesktop =
     "text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors";
-
   const mobileMenuItemSharedSizeStyles = "w-full px-4 h-12 text-base";
   const mobileLogoutButtonStyles = `${navInteractiveBaseStyles} ${mobileMenuItemSharedSizeStyles} text-white bg-red-600 hover:bg-red-700 focus:ring-red-400`;
   const mobileCreateAccountButtonStyles = `${navInteractiveBaseStyles} ${mobileMenuItemSharedSizeStyles} text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 focus:ring-cyan-400`;
@@ -120,7 +108,11 @@ export default function Navbar() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-gray-900/80 backdrop-blur-lg shadow-lg" : "bg-transparent"}`}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          scrolled
+            ? "bg-gray-900/80 backdrop-blur-lg shadow-lg"
+            : "bg-transparent"
+        }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative flex justify-between items-center py-4">
@@ -140,14 +132,15 @@ export default function Navbar() {
             <div className="hidden md:flex flex-shrink-0 items-center space-x-4">
               {user ? (
                 <div className="flex items-center space-x-3">
-                  <Link
-                    href="/create-project"
-                    className={`${navInteractiveBaseStyles} text-white bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 focus:ring-cyan-300 px-4 py-2 text-sm animate-[heartbeat_2s_ease-in-out_infinite] hover:animate-none`}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Project
-                  </Link>
-
+                  {pathname !== "/my-projects" && (
+                    <Link
+                      href="/create-project"
+                      className={`${navInteractiveBaseStyles} text-white bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 focus:ring-cyan-300 px-4 py-2 text-sm animate-[heartbeat_2s_ease-in-out_infinite] hover:animate-none`}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Project
+                    </Link>
+                  )}
                   <div className="relative profile-dropdown">
                     <button
                       onClick={() =>
@@ -158,7 +151,6 @@ export default function Navbar() {
                       <UserIcon className="h-4 w-4 mr-1" />
                       <ChevronDown className="h-3 w-3" />
                     </button>
-
                     <AnimatePresence>
                       {isProfileDropdownOpen && (
                         <motion.div
@@ -231,7 +223,7 @@ export default function Navbar() {
               className="md:hidden bg-gray-900/95 backdrop-blur-lg shadow-xl"
             >
               <div className="px-4 pt-4 pb-5 space-y-3">
-                {user && (
+                {user && pathname !== "/my-projects" && (
                   <Link
                     href="/create-project"
                     className={`${navInteractiveBaseStyles} ${mobileMenuItemSharedSizeStyles} text-white bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 focus:ring-cyan-300 animate-[heartbeat_2s_ease-in-out_infinite] hover:animate-none`}
@@ -251,7 +243,6 @@ export default function Navbar() {
                     My Projects
                   </Link>
                 )}
-
                 {user ? (
                   <button
                     onClick={() => {
@@ -289,7 +280,6 @@ export default function Navbar() {
         </AnimatePresence>
       </header>
 
-      {/* Logout Confirmation Modal */}
       <AnimatePresence>
         {showLogoutConfirm && (
           <motion.div
