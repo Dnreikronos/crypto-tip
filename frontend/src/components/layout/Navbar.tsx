@@ -187,7 +187,7 @@ export default function Navbar() {
                 <>
                   <Link href="/login" className={textLinkStylesDesktop}>
                     Login
-                 </Link>
+                  </Link>
                   <Link
                     href="/register"
                     className={`${navInteractiveBaseStyles} text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 focus:ring-cyan-400 px-4 py-2 text-sm`}
@@ -204,7 +204,11 @@ export default function Navbar() {
               aria-label="Toggle menu"
               aria-expanded={isMenuOpen}
             >
-              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {isMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
             </button>
           </div>
         </div>
@@ -272,27 +276,46 @@ export default function Navbar() {
                 )}
               </div>
             </motion.div>
-          )}  
+          )}
         </AnimatePresence>
       </header>
 
       <AnimatePresence>
         {showLogoutConfirm && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-gray-800 rounded-lg shadow-xl border border-gray-700 p-6 max-w-sm mx-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-gray-800 rounded-lg shadow-xl border border-gray-700 p-6 max-w-sm mx-4"
+            >
               <div className="text-center">
                 <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
                   <LogOut className="h-6 w-6 text-red-600" />
                 </div>
-                <h3 className="text-lg font-medium text-white mb-2">Confirm Logout</h3>
+                <h3 className="text-lg font-medium text-white mb-2">
+                  Confirm Logout
+                </h3>
                 <p className="text-sm text-gray-400 mb-6">
-                  Are you sure you want to logout? You will need to sign in again to access your account.
+                  Are you sure you want to logout? You will need to sign in
+                  again to access your account.
                 </p>
                 <div className="flex space-x-3">
-                  <button onClick={cancelLogout} className="flex-1 px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500">
+                  <button
+                    onClick={cancelLogout}
+                    className="flex-1 px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  >
                     Cancel
                   </button>
-                  <button onClick={handleLogout} className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-red-500">
+                  <button
+                    onClick={handleLogout}
+                    className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
+                  >
                     Logout
                   </button>
                 </div>
@@ -304,4 +327,3 @@ export default function Navbar() {
     </>
   );
 }
-
