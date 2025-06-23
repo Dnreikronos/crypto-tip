@@ -408,7 +408,7 @@ export default function CreateProjectPage() {
                             </FormLabel>
                             <FormControl>
                               <div className="flex gap-2">
-                                <motion.div 
+                                <motion.div
                                   whileFocus={{ scale: 1.01 }}
                                   className="flex-1"
                                 >
@@ -464,7 +464,8 @@ export default function CreateProjectPage() {
                               </div>
                             </FormControl>
                             <FormDescription className="text-gray-400">
-                              Enter your Ethereum wallet address manually or connect your wallet to auto-fill.
+                              Enter your Ethereum wallet address manually or
+                              connect your wallet to auto-fill.
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
