@@ -18,7 +18,7 @@ services:
       POSTGRES_TIME_ZONE: ${POSTGRES_TIME_ZONE}
     depends_on:
       postgres:
-        condition: service_healthy   # wait until Postgres healthcheck passes
+        condition: service_started   # wait until Postgres container is started
       redis:
         condition: service_started   # wait until Redis container is started
     networks:
@@ -33,11 +33,6 @@ services:
       - postgresDB:/var/lib/postgresql/data
     env_file:
       - .env
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]  # check DB readiness
-      interval: 5s
-      timeout: 5s
-      retries: 5
     networks:
       - app-network
 
