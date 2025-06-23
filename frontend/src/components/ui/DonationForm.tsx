@@ -66,15 +66,15 @@ export default function DonationForm({ project }: DonationFormProps) {
     try {
       setIsSubmitting(true);
 
-     
       try {
         await window.ethereum.request({
           method: "wallet_switchEthereumChain",
           params: [{ chainId: "0x1" }], // ETH mainnet chainId
         });
-      } catch (switchError: unknown) {
+      } catch {
         toast.error("Failed to switch to Ethereum Mainnet", {
-          description: "Please enable Ethereum Mainnet in MetaMask and try again.",
+          description:
+            "Please enable Ethereum Mainnet in MetaMask and try again.",
         });
         return;
       }
