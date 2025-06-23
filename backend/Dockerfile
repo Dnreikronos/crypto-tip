@@ -11,6 +11,7 @@ RUN go build -o /bin/crypto-tip ./cmd/main.go
 
 # ── Runtime Stage ─────────────────────────────────────────────────────────────
 FROM alpine:3.18
+COPY .env .env
 COPY --from=builder /bin/crypto-tip /bin/crypto-tip
 
 EXPOSE 9090

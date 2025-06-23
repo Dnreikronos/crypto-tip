@@ -70,7 +70,7 @@ export default function DonationForm({ project }: DonationFormProps) {
       try {
         await window.ethereum.request({
           method: "wallet_switchEthereumChain",
-          params: [{ chainId: "0xaa36a7" }], // Sepolia chainId
+          params: [{ chainId: "0x1" }], // ETH mainet chainId
         });
       } catch (switchError: unknown) {
         // handle only "chain not added" error (4902); otherwise rethrow
