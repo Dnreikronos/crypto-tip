@@ -213,42 +213,14 @@ export default function DonationPageClient({
       try {
         await window.ethereum.request({
           method: "wallet_switchEthereumChain",
-          params: [{ chainId: "0xaa36a7" }], // Sepolia chainId
+          params: [{ chainId: "0x1" }], // ETH mainnet chainId
         });
-      } catch (switchError: unknown) {
-        // handle only "chain not added" error (4902); otherwise rethrow
-        if (
-          typeof switchError === "object" &&
-          switchError !== null &&
-          "code" in switchError &&
-          (switchError as { code: number }).code === 4902
-        ) {
-          try {
-            await window.ethereum.request({
-              method: "wallet_addEthereumChain",
-              params: [
-                {
-                  chainId: "0xaa36a7",
-                  chainName: "Sepolia",
-                  nativeCurrency: {
-                    name: "SepoliaETH",
-                    symbol: "SEP",
-                    decimals: 18,
-                  },
-                  rpcUrls: ["https://eth-sepolia.g.alchemy.com/v2/demo"],
-                  blockExplorerUrls: ["https://sepolia.etherscan.io"],
-                },
-              ],
-            });
-          } catch {
-            toast.error("Failed to add Sepolia network", {
-              description: "Please add Sepolia network manually in MetaMask.",
-            });
-            return;
-          }
-        } else {
-          throw switchError;
-        }
+      } catch {
+        toast.error("Failed to switch to Ethereum Mainnet", {
+          description:
+            "Please enable Ethereum Mainnet in MetaMask and try again.",
+        });
+        return;
       }
 
       const accounts = (await window.ethereum.request({
