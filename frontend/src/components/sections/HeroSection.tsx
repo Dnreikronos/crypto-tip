@@ -147,7 +147,6 @@ export default function HeroSection() {
     },
   };
 
-
   return (
     <section
       id="hero"
@@ -312,7 +311,6 @@ export default function HeroSection() {
             </ButtonSecondary>
           </motion.div>
         </motion.div>
-
       </motion.div>
 
       {/* Floating Code Block with enhanced animation - Oculto em mobile */}
