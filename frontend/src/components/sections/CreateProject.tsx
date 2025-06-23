@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowRight, Sparkles, Coins } from "lucide-react";
+import { ArrowRight, Sparkles, Coins, Wallet } from "lucide-react";
 import { SiEthereum } from "react-icons/si";
 import { TipsInfoPanel } from "./TipsInfoPanel";
 import { CryptoInfoPanel } from "./CryptoInfoPanel";
@@ -26,6 +26,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useCreateProject } from "@/hooks/useProject";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useWalletProviders } from "@/hooks/useWalletProviders";
 
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { useUploadThing } from "@/lib/uploadthing";
@@ -60,9 +61,12 @@ export default function CreateProjectPage() {
   const [previewMode, setPreviewMode] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string>("");
+  const [isConnectingWallet, setIsConnectingWallet] = useState(false);
   const router = useRouter();
 
   const { startUpload, isUploading } = useUploadThing("imageUploader");
+  const providers = useWalletProviders();
+  const metaMaskProvider = providers.find((p) => p.info.name === "MetaMask");
 
   const form = useForm<FormValues>({
     resolver: zodResolver(projectSchema),
@@ -132,6 +136,37 @@ export default function CreateProjectPage() {
   function togglePreview() {
     setPreviewMode(!previewMode);
   }
+
+  const handleConnectWallet = async () => {
+    if (!metaMaskProvider) {
+      toast.error("MetaMask not found", {
+        description: "Please install MetaMask to connect your wallet.",
+      });
+      window.open("https://metamask.io/download/", "_blank");
+      return;
+    }
+
+    try {
+      setIsConnectingWallet(true);
+      const accounts = (await metaMaskProvider.provider.request({
+        method: "eth_requestAccounts",
+      })) as string[] | undefined;
+
+      if (accounts?.[0]) {
+        form.setValue("wallet_addr", accounts[0]);
+        toast.success("Wallet Connected", {
+          description: "Your wallet address has been automatically filled.",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to connect:", error);
+      toast.error("Connection Failed", {
+        description: "Unable to connect to MetaMask. Please try again.",
+      });
+    } finally {
+      setIsConnectingWallet(false);
+    }
+  };
 
   return (
     <div className="min-h-screen text-gray-100 relative overflow-hidden w-full">
@@ -372,17 +407,64 @@ export default function CreateProjectPage() {
                               Ethereum Wallet Address
                             </FormLabel>
                             <FormControl>
-                              <motion.div whileFocus={{ scale: 1.01 }}>
-                                <Input
-                                  placeholder="0x..."
-                                  {...field}
-                                  className="bg-gray-800/70 border-gray-700 text-white focus:border-cyan-500 transition-all duration-300"
-                                />
-                              </motion.div>
+                              <div className="flex gap-2">
+                                <motion.div 
+                                  whileFocus={{ scale: 1.01 }}
+                                  className="flex-1"
+                                >
+                                  <Input
+                                    placeholder="0x... or connect your wallet"
+                                    {...field}
+                                    className="bg-gray-800/70 border-gray-700 text-white focus:border-cyan-500 transition-all duration-300"
+                                  />
+                                </motion.div>
+                                <motion.div
+                                  whileHover={{ scale: 1.05 }}
+                                  whileTap={{ scale: 0.95 }}
+                                >
+                                  <Button
+                                    type="button"
+                                    onClick={handleConnectWallet}
+                                    disabled={isConnectingWallet || isPending}
+                                    variant="outline"
+                                    className="bg-gray-800/70 border-gray-700 hover:border-cyan-500 hover:bg-gray-700/70 text-cyan-400 hover:text-cyan-300 transition-all duration-300 px-4 whitespace-nowrap"
+                                  >
+                                    {isConnectingWallet ? (
+                                      <span className="flex items-center gap-2">
+                                        <svg
+                                          className="animate-spin h-4 w-4"
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                        >
+                                          <circle
+                                            className="opacity-25"
+                                            cx="12"
+                                            cy="12"
+                                            r="10"
+                                            stroke="currentColor"
+                                            strokeWidth="4"
+                                          ></circle>
+                                          <path
+                                            className="opacity-75"
+                                            fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                          ></path>
+                                        </svg>
+                                        Connecting...
+                                      </span>
+                                    ) : (
+                                      <span className="flex items-center gap-2">
+                                        <Wallet className="h-4 w-4" />
+                                        Connect Wallet
+                                      </span>
+                                    )}
+                                  </Button>
+                                </motion.div>
+                              </div>
                             </FormControl>
                             <FormDescription className="text-gray-400">
-                              Enter your Ethereum wallet address to receive ETH
-                              donations.
+                              Enter your Ethereum wallet address manually or connect your wallet to auto-fill.
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
