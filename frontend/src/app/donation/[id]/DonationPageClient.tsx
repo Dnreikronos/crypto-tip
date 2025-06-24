@@ -77,48 +77,20 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const formatCurrency = (value: string) => {
-  const cleanValue = value.replace(/\D/g, "");
-
-  if (!cleanValue) return "";
-
-  const cents = parseInt(cleanValue);
-
-  const dollars = cents / 100;
-
-  return (
-    "$" +
-    dollars.toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })
-  );
-};
-
-const extractUSDValue = (formattedValue: string) => {
-  if (!formattedValue) return "";
-
-  const cleanValue = formattedValue.replace(/[$\s]/g, "");
-
-  const normalizedValue = cleanValue.replace(/,/g, "");
-
-  const numValue = parseFloat(normalizedValue) || 0;
-
-  return numValue.toString();
-};
-
 // Valores pré-definidos para doação em USD
 const DONATION_PRESETS = [
   { amountETH: 0.002, label: "☕ Tea", description: "Buy me a tea" },
   { amountETH: 0.006, label: "🍕 Pizza", description: "Buy me a pizza slice" },
-  { amountETH: 0.010, label: "🍔 Meal", description: "Buy me a meal" },
+  { amountETH: 0.01, label: "🍔 Meal", description: "Buy me a meal" },
   { amountETH: 0.041, label: "💝 Generous", description: "Super generous!" },
 ];
 
 export default function DonationPageClient({
   project,
 }: DonationPageClientProps) {
-  const [selectedAmountETH, setSelectedAmountETH] = useState<number | null>(null);
+  const [selectedAmountETH, setSelectedAmountETH] = useState<number | null>(
+    null,
+  );
   const [customAmountETH, setCustomAmountETH] = useState("");
   const [displayValue, setDisplayValue] = useState("");
   const [message, setMessage] = useState("");
@@ -486,8 +458,7 @@ export default function DonationPageClient({
                           {getSelectedValueETH().toFixed(3)} ETH)
                         </span>
                         <span>
-                          Raised: $
-                          {getSelectedValueUSD().toFixed(0)} (
+                          Raised: ${getSelectedValueUSD().toFixed(0)} (
                           {getSelectedValueETH().toFixed(3)} ETH)
                         </span>
                       </div>
@@ -718,7 +689,10 @@ export default function DonationPageClient({
 
                     <div className="grid grid-cols-2 gap-3 mb-4">
                       {DONATION_PRESETS.map((preset, index) => {
-                        const usdAmount = ethPrice && ethPrice > 0 ? preset.amountETH * ethPrice : 0;
+                        const usdAmount =
+                          ethPrice && ethPrice > 0
+                            ? preset.amountETH * ethPrice
+                            : 0;
                         return (
                           <motion.button
                             key={preset.amountETH}
@@ -735,7 +709,8 @@ export default function DonationPageClient({
                             className={`p-4 rounded-xl border-2 transition-all duration-300 cursor-pointer ${
                               selectedAmountETH === preset.amountETH ||
                               (customAmountETH &&
-                                parseFloat(customAmountETH) === preset.amountETH)
+                                parseFloat(customAmountETH) ===
+                                  preset.amountETH)
                                 ? "border-cyan-500 bg-cyan-500/10 shadow-lg shadow-cyan-500/20"
                                 : "border-gray-600 bg-gray-800/50 hover:border-gray-500"
                             }`}
@@ -803,7 +778,14 @@ export default function DonationPageClient({
                             >
                               <div className="text-right">
                                 <div className="text-sm text-cyan-400 font-medium">
-                                  ≈ $ {getSelectedValueUSD().toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  ≈ ${" "}
+                                  {getSelectedValueUSD().toLocaleString(
+                                    "en-US",
+                                    {
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2,
+                                    },
+                                  )}
                                 </div>
                                 <div className="text-xs text-gray-500">
                                   Ethereum
