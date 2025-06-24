@@ -165,8 +165,16 @@ export default function Navbar() {
                             className="flex items-center px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
                             onClick={() => setIsProfileDropdownOpen(false)}
                           >
-                            <LayoutDashboard className="h-4 w-4 mr-3" />
+                            <Plus className="h-4 w-4 mr-3" />
                             My Projects
+                          </Link>
+                          <Link
+                            href="/projects"
+                            className="flex items-center px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
+                            onClick={() => setIsProfileDropdownOpen(false)}
+                          >
+                            <LayoutDashboard className="h-4 w-4 mr-3" />
+                            Projects
                           </Link>
                           <button
                             onClick={() => {
