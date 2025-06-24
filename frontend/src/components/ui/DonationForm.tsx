@@ -240,7 +240,9 @@ export default function DonationForm({ project }: DonationFormProps) {
               pattern="^[0-9]*[.,]?[0-9]*$"
               value={ethAmount}
               onChange={(e) => {
-                let val = e.target.value.replace(/[^\d.,]/g, "").replace(",", ".");
+                let val = e.target.value
+                  .replace(/[^\d.,]/g, "")
+                  .replace(",", ".");
                 if (!val) val = "0";
                 setEthAmount(val);
               }}
@@ -261,7 +263,10 @@ export default function DonationForm({ project }: DonationFormProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            ≈ {isRateLoading ? "Loading..." : `$${usdAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} USD`}
+            ≈{" "}
+            {isRateLoading
+              ? "Loading..."
+              : `$${usdAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`}
           </motion.p>
 
           {project && (
