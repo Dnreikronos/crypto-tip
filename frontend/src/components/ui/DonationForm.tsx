@@ -19,7 +19,7 @@ interface DonationFormProps {
 
 export default function DonationForm({ project }: DonationFormProps) {
   const router = useRouter();
-  const [usdAmount, setUsdAmount] = useState("5000");
+  const [ethAmount, setEthAmount] = useState("0.01");
   const [currency, setCurrency] = useState("ethereum");
   const [conversionRate, setConversionRate] = useState<number>(0);
   const [isRateLoading, setIsRateLoading] = useState<boolean>(false);
@@ -28,8 +28,8 @@ export default function DonationForm({ project }: DonationFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const usdAmountNumber = parseFloat((Number(usdAmount) / 100).toFixed(2)) || 0;
-  const cryptoAmount = conversionRate ? usdAmountNumber / conversionRate : 0;
+  const ethAmountNumber = parseFloat(ethAmount) || 0;
+  const usdAmount = conversionRate ? ethAmountNumber * conversionRate : 0;
 
   useEffect(() => {
     async function fetchRate() {
@@ -96,11 +96,11 @@ export default function DonationForm({ project }: DonationFormProps) {
         cryptoType: currency,
         message,
         anonymous: !showPublicly,
-        amount: cryptoAmount.toString(),
+        amount: ethAmountNumber.toString(),
       });
 
       await createDonation({
-        amount: cryptoAmount,
+        amount: ethAmountNumber,
         crypto_type: currency,
         tx_hash: tx.transactionHash,
         from_addr: accounts[0],
@@ -202,26 +202,26 @@ export default function DonationForm({ project }: DonationFormProps) {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          <p className="text-sm text-gray-400 mb-2">Donation Amount</p>
+          <p className="text-sm text-gray-400 mb-2">Donation Amount (ETH)</p>
 
           <div className="flex gap-2 mb-3">
-            {["5", "10", "15", "50"].map((preset) => (
+            {["0.01", "0.05", "0.1", "0.5"].map((preset) => (
               <button
                 key={preset}
                 type="button"
                 className={`px-4 py-2 rounded-lg border text-base font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2
                   ${
-                    usdAmount === preset
+                    ethAmount === preset
                       ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white border-cyan-500 shadow-md"
                       : "bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700"
                   }
                   ${isSubmitting || isProcessing ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
                 `}
-                onClick={() => setUsdAmount(preset)}
+                onClick={() => setEthAmount(preset)}
                 disabled={isSubmitting || isProcessing}
-                aria-pressed={usdAmount === preset}
+                aria-pressed={ethAmount === preset}
               >
-                ${preset}
+                {preset} ETH
               </button>
             ))}
           </div>
@@ -231,41 +231,42 @@ export default function DonationForm({ project }: DonationFormProps) {
             whileHover={{ scale: 1.01 }}
           >
             <span className="pl-4 pr-2 text-2xl text-gray-400 select-none pointer-events-none">
-              $
+              Ξ
             </span>
             <Input
               variant="unstyled"
               type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={formatCurrency(usdAmount)}
+              inputMode="decimal"
+              pattern="^[0-9]*[.,]?[0-9]*$"
+              value={ethAmount}
               onChange={(e) => {
-                let val = e.target.value.replace(/\D/g, "");
+                let val = e.target.value
+                  .replace(/[^\d.,]/g, "")
+                  .replace(",", ".");
                 if (!val) val = "0";
-                val = val.slice(0, 8);
-                setUsdAmount(val);
+                setEthAmount(val);
               }}
               className="text-4xl font-bold bg-transparent border-none h-auto p-3 flex-1 appearance-none focus:outline-none focus:ring-0"
-              placeholder="0,00"
+              placeholder="0.00"
               disabled={isSubmitting || isProcessing}
-              aria-label="Donation amount in USD"
+              aria-label="Donation amount in ETH"
               autoComplete="off"
             />
             <span className="pr-4 pl-2 text-lg text-gray-400 select-none">
-              USD
+              ETH
             </span>
           </motion.div>
 
           <motion.p
             className="text-right text-gray-400 text-sm mt-2"
-            key={cryptoAmount}
+            key={usdAmount}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
             ≈{" "}
             {isRateLoading
               ? "Loading..."
-              : `${cryptoAmount.toFixed(6)} ${currency === "ethereum" ? "ETH" : currency === "bitcoin" ? "BTC" : "SOL"}`}
+              : `$${usdAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`}
           </motion.p>
 
           {project && (
@@ -387,7 +388,7 @@ export default function DonationForm({ project }: DonationFormProps) {
                   "Preparing..."
                 ) : (
                   <>
-                    Send ${usdAmount} Tip
+                    Send {ethAmount} ETH Tip
                     <motion.svg
                       className="ml-2 h-5 w-5"
                       fill="none"
@@ -437,14 +438,4 @@ export default function DonationForm({ project }: DonationFormProps) {
       </div>
     </motion.div>
   );
-}
-
-// Helper para formatar centavos em moeda pt-BR
-function formatCurrency(value: string): string {
-  const number = Number(value);
-  return (number / 100).toLocaleString("pt-BR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-    style: "decimal",
-  });
 }
