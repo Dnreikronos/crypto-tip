@@ -66,7 +66,9 @@ const DONATION_PRESETS = [
 ];
 
 export function ProjectPreview({ project, onBack }: ProjectPreviewProps) {
-  const [selectedAmountETH, setSelectedAmountETH] = useState<number | null>(null);
+  const [selectedAmountETH, setSelectedAmountETH] = useState<number | null>(
+    null,
+  );
   const [customAmountETH, setCustomAmountETH] = useState("");
   const [displayValue, setDisplayValue] = useState("");
   const [message, setMessage] = useState("");
@@ -418,7 +420,10 @@ export function ProjectPreview({ project, onBack }: ProjectPreviewProps) {
 
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     {DONATION_PRESETS.map((preset, index) => {
-                      const usdAmount = ethPrice && ethPrice > 0 ? preset.amountETH * ethPrice : 0;
+                      const usdAmount =
+                        ethPrice && ethPrice > 0
+                          ? preset.amountETH * ethPrice
+                          : 0;
                       return (
                         <motion.button
                           key={preset.amountETH}
@@ -445,7 +450,11 @@ export function ProjectPreview({ project, onBack }: ProjectPreviewProps) {
                               {preset.amountETH} ETH
                             </p>
                             <p className="text-xs text-gray-400">
-                              ≈ ${usdAmount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              ≈ $
+                              {usdAmount.toLocaleString("en-US", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
                             </p>
                             <p className="text-xs text-gray-500 mt-1">
                               {preset.description}
@@ -494,7 +503,11 @@ export function ProjectPreview({ project, onBack }: ProjectPreviewProps) {
                         >
                           <div className="text-right">
                             <div className="text-sm text-cyan-400 font-medium">
-                              ≈ ${getSelectedValueUSD().toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              ≈ $
+                              {getSelectedValueUSD().toLocaleString("en-US", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
                             </div>
                             <div className="text-xs text-gray-500">
                               Ethereum
@@ -559,7 +572,8 @@ export function ProjectPreview({ project, onBack }: ProjectPreviewProps) {
                   <Heart className="w-5 h-5 group-hover:animate-pulse" />
                   {getSelectedValueETH() >= 0.0001
                     ? `Preview Support with ${getSelectedValueETH().toFixed(4)} ETH (≈ $${getSelectedValueUSD().toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`
-                    : getSelectedValueETH() > 0 && getSelectedValueETH() < 0.0001
+                    : getSelectedValueETH() > 0 &&
+                        getSelectedValueETH() < 0.0001
                       ? "Minimum donation is 0.0001 ETH"
                       : "Choose an amount to support"}
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
