@@ -77,7 +77,7 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-// Valores pré-definidos para doação em USD
+// Valores pré-definidos para doação em ETH
 const DONATION_PRESETS = [
   { amountETH: 0.002, label: "☕ Tea", description: "Buy me a tea" },
   { amountETH: 0.006, label: "🍕 Pizza", description: "Buy me a pizza slice" },
