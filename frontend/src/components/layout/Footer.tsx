@@ -16,7 +16,7 @@ export default function Footer() {
               <Logo size={32} showText={true} />
             </div>
             <p className="text-gray-400 mb-4">
-              The irst platform for receiving cryptocurrency donations.
+              The first platform for receiving cryptocurrency donations.
             </p>
             {/* <div className="flex space-x-4">
               <a
