@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/Dnreikronos/budgetMannager---Back/handlers"
-	"github.com/Dnreikronos/budgetMannager---Back/models"
+	"github.com/Dnreikronos/crypto-tip/internal/handlers"
+	"github.com/Dnreikronos/crypto-tip/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/sqlite"

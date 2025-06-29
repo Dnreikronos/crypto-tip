@@ -113,7 +113,8 @@ func TestGetProjectDonationsHandler_Success(t *testing.T) {
 	require.NoError(t, db.Create(&user).Error)
 	require.NoError(t, db.Create(&project).Error)
 
-	donation := models.Donation{ID: uuid.New(), Amount: 100.0, CryptoType: "ETH", ProjectID: project.ID, DonorID: user.ID}
+	donation := models.Donation{ID: uuid.New(), Amount: 100.0, CryptoType: "ETH", ProjectID: project.ID}
+	//DonorID: user.ID
 	require.NoError(t, db.Create(&donation).Error)
 
 	w := httptest.NewRecorder()
@@ -138,7 +139,8 @@ func TestGetUserDonationsHandler_Success(t *testing.T) {
 	require.NoError(t, db.Create(&user).Error)
 	require.NoError(t, db.Create(&project).Error)
 
-	donation := models.Donation{ID: uuid.New(), Amount: 100.0, CryptoType: "ETH", ProjectID: project.ID, DonorID: user.ID}
+	donation := models.Donation{ID: uuid.New(), Amount: 100.0, CryptoType: "ETH", ProjectID: project.ID}
+	//, DonorID: user.ID
 	require.NoError(t, db.Create(&donation).Error)
 
 	w := httptest.NewRecorder()
@@ -175,7 +177,8 @@ func TestGetDonationByIDHandler_Success(t *testing.T) {
 	require.NoError(t, db.Create(&user).Error)
 	require.NoError(t, db.Create(&project).Error)
 
-	donation := models.Donation{ID: uuid.New(), Amount: 100.0, CryptoType: "ETH", ProjectID: project.ID, DonorID: user.ID}
+	donation := models.Donation{ID: uuid.New(), Amount: 100.0, CryptoType: "ETH", ProjectID: project.ID}
+	//, DonorID: user.ID
 	require.NoError(t, db.Create(&donation).Error)
 
 	w := httptest.NewRecorder()

@@ -105,7 +105,7 @@ func TestGetProjectDonationsHandler_Success(t *testing.T) {
 		Amount:     100.0,
 		CryptoType: "ETH",
 		ProjectID:  project.ID,
-		DonorID:    testUserID,
+		//DonorID:    testUserID,
 	}
 	db.Create(&donation)
 
@@ -146,7 +146,7 @@ func TestGetUserDonationsHandler_Success(t *testing.T) {
 		Amount:     100.0,
 		CryptoType: "ETH",
 		ProjectID:  project.ID,
-		DonorID:    testUserID,
+		//DonorID:    testUserID,
 	}
 	db.Create(&donation)
 
@@ -188,7 +188,7 @@ func TestGetDonationByIDHandler_Success(t *testing.T) {
 		Amount:     100.0,
 		CryptoType: "ETH",
 		ProjectID:  project.ID,
-		DonorID:    testUserID,
+		//DonorID:    testUserID,
 	}
 	db.Create(&donation)
 
