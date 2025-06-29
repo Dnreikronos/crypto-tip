@@ -47,7 +47,7 @@ func createTestUser(t *testing.T, db *gorm.DB, email, password string, verified 
 		t.Fatalf("failed to hash password: %v", err)
 	}
 
-	user := models.User{Email: email, Password: hashedPassword, Verified: verified}
+	user := models.User{Name: "Test User", Email: email, Password: hashedPassword, Verified: verified}
 	if err := db.Create(&user).Error; err != nil {
 		t.Fatalf("failed to create test user: %v", err)
 	}
@@ -74,19 +74,23 @@ func loginUser(t *testing.T, router *gin.Engine, email, password string) string 
 		t.Fatalf("login failed with code %d", w.Code)
 	}
 
-	var resp map[string]string
+	var resp handlers.TokenResponse
 	err = json.Unmarshal(w.Body.Bytes(), &resp)
 	if err != nil {
 		t.Fatalf("failed to parse login response: %v", err)
 	}
 
-	return resp["token"]
+	return resp.Token
 }
 
 func TestCreateUserHandler(t *testing.T) {
 	router, db := setupRouter(t)
 
-	userInput := models.SignInInput{Email: "test@example.com", Password: "password123"}
+	userInput := models.RegisterInput{
+		Name:     "Test User",
+		Email:    "test@example.com",
+		Password: "password123",
+	}
 	body, err := json.Marshal(userInput)
 	if err != nil {
 		t.Fatalf("failed to marshal input: %v", err)
@@ -106,13 +110,13 @@ func TestCreateUserHandler(t *testing.T) {
 	err = db.Where("email = ?", userInput.Email).First(&user).Error
 	assert.NoError(t, err)
 	assert.NotEmpty(t, user.ID)
-	assert.True(t, user.Verified)
+	assert.False(t, user.Verified)
 }
 
 func TestCreateUserBadRequest(t *testing.T) {
 	router, _ := setupRouter(t)
 
-	body := []byte(`{"email": "test@example.com"}`) // Missing password
+	body := []byte(`{"email": "test@example.com"}`) // Missing password and name
 	req, err := http.NewRequest("POST", "/create", bytes.NewBuffer(body))
 	if err != nil {
 		t.Fatalf("failed to create request: %v", err)
@@ -136,10 +140,10 @@ func TestLoginHandler(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var response map[string]string
+		var response handlers.TokenResponse
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.NotEmpty(t, response["token"])
+		assert.NotEmpty(t, response.Token)
 	})
 
 	t.Run("Invalid password", func(t *testing.T) {
@@ -171,7 +175,7 @@ func TestProfileHandler(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create profile request: %v", err)
 	}
-	reqProfile.Header.Set("Authorization", token)
+	reqProfile.Header.Set("Authorization", "Bearer "+token)
 
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, reqProfile)
@@ -192,7 +196,7 @@ func TestAuthMiddleware(t *testing.T) {
 
 	t.Run("Invalid token", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/profile", nil)
-		req.Header.Set("Authorization", "invalid-token")
+		req.Header.Set("Authorization", "Bearer invalid-token")
 		w := httptest.NewRecorder()
 		router.ServeHTTP(w, req)
 
