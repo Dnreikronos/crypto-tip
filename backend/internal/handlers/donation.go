@@ -6,11 +6,13 @@ import (
 
 	"github.com/Dnreikronos/crypto-tip/internal/models"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+
+	//"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 func CreateDonationHandler(c *gin.Context) {
+	log.Println("CreateDonationHandler called")
 	var input models.DonationInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		log.Printf("error binding input json: %v", err)
@@ -18,11 +20,11 @@ func CreateDonationHandler(c *gin.Context) {
 		return
 	}
 
-	userID, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
-		return
-	}
+	//userID, exists := c.Get("userID")
+	//if !exists {
+	///	c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+	//	return
+	//}
 
 	db := c.MustGet("db").(*gorm.DB)
 
@@ -40,8 +42,8 @@ func CreateDonationHandler(c *gin.Context) {
 		FromAddr:   input.FromAddr,
 		Message:    input.Message,
 		ProjectID:  input.ProjectID,
-		DonorID:    uuid.MustParse(userID.(string)),
-		Anonymous:  input.Anonymous,
+		//DonorID:    uuid.MustParse(userID.(string)),
+		Anonymous: input.Anonymous,
 	}
 
 	if err := db.Create(&donation).Error; err != nil {
@@ -81,10 +83,10 @@ func GetProjectDonationsHandler(c *gin.Context) {
 			CreatedAt:  donation.CreatedAt,
 		}
 
-		if !donation.Anonymous && donation.DonorID != uuid.Nil {
-			userResponse := models.FilteredResponse(donation.Donor)
-			donationInfo.Donor = &userResponse
-		}
+		//if !donation.Anonymous && donation.DonorID != uuid.Nil {
+		//	userResponse := models.FilteredResponse(donation.Donor)
+		//	donationInfo.Donor = &userResponse
+		//}
 
 		donationInfos = append(donationInfos, donationInfo)
 	}
