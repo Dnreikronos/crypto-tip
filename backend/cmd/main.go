@@ -58,6 +58,7 @@ func main() {
 	r.GET("/projects/:id", handlers.GetProjectByIDHandler)
 	r.GET("/projects/:id/donations", handlers.GetProjectDonationsHandler)
 	r.GET("/donations/:id", handlers.GetDonationByIDHandler)
+	r.POST("/donations", handlers.CreateDonationHandler)
 
 	// authenticated routes
 	authorized := r.Group("/", handlers.AuthMiddleware())
@@ -68,11 +69,9 @@ func main() {
 		authorized.DELETE("/projects/:id", handlers.DeleteProjectHandler)
 		authorized.GET("/user/projects", handlers.GetUserProjectsHandler)
 
-		authorized.POST("/donations", handlers.CreateDonationHandler)
 		authorized.GET("/user/donations", handlers.GetUserDonationsHandler)
 	}
 
 	fmt.Println("Listening on port", port)
 	http.ListenAndServe(":"+port, r)
 }
-
