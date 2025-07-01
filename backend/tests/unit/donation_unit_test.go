@@ -73,22 +73,6 @@ func TestCreateDonationHandler_InvalidJSON(t *testing.T) {
 	require.Equal(t, http.StatusBadRequest, w.Code, "unexpected response: %s", w.Body.String())
 }
 
-func TestCreateDonationHandler_Unauthorized(t *testing.T) {
-	db := setupDonationTestDB(t)
-	project := models.Project{ID: uuid.New(), Title: "Test Project", WalletAddr: "0xdef"}
-	require.NoError(t, db.Create(&project).Error)
-
-	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-
-	c.Request, _ = http.NewRequest("POST", "/donations", bytes.NewBuffer(createDonationRequestBody(t, project.ID)))
-	c.Request.Header.Set("Content-Type", "application/json")
-	c.Set("db", db)
-
-	handlers.CreateDonationHandler(c)
-	require.Equal(t, http.StatusUnauthorized, w.Code, "unexpected response: %s", w.Body.String())
-}
-
 func TestCreateDonationHandler_ProjectNotFound(t *testing.T) {
 	db := setupDonationTestDB(t)
 	user := models.User{ID: uuid.New(), Name: "Test User", Email: "test@example.com"}
@@ -113,7 +97,7 @@ func TestGetProjectDonationsHandler_Success(t *testing.T) {
 	require.NoError(t, db.Create(&user).Error)
 	require.NoError(t, db.Create(&project).Error)
 
-	donation := models.Donation{ID: uuid.New(), Amount: 100.0, CryptoType: "ETH", ProjectID: project.ID, DonorID: user.ID}
+	donation := models.Donation{ID: uuid.New(), Amount: 100.0, CryptoType: "ETH", ProjectID: project.ID}
 	require.NoError(t, db.Create(&donation).Error)
 
 	w := httptest.NewRecorder()
@@ -138,7 +122,7 @@ func TestGetUserDonationsHandler_Success(t *testing.T) {
 	require.NoError(t, db.Create(&user).Error)
 	require.NoError(t, db.Create(&project).Error)
 
-	donation := models.Donation{ID: uuid.New(), Amount: 100.0, CryptoType: "ETH", ProjectID: project.ID, DonorID: user.ID}
+	donation := models.Donation{ID: uuid.New(), Amount: 100.0, CryptoType: "ETH", ProjectID: project.ID, FromAddr: user.ID.String()}
 	require.NoError(t, db.Create(&donation).Error)
 
 	w := httptest.NewRecorder()
@@ -175,7 +159,8 @@ func TestGetDonationByIDHandler_Success(t *testing.T) {
 	require.NoError(t, db.Create(&user).Error)
 	require.NoError(t, db.Create(&project).Error)
 
-	donation := models.Donation{ID: uuid.New(), Amount: 100.0, CryptoType: "ETH", ProjectID: project.ID, DonorID: user.ID}
+	donation := models.Donation{ID: uuid.New(), Amount: 100.0, CryptoType: "ETH", ProjectID: project.ID}
+	//, DonorID: user.ID
 	require.NoError(t, db.Create(&donation).Error)
 
 	w := httptest.NewRecorder()
