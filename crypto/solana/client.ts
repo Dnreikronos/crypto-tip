@@ -221,3 +221,25 @@ export class SolanaDonationClient {
     }
   }
 
+  /**
+   * Get donor donations
+   */
+  async getDonorDonations(donorDonationsAccount: PublicKey): Promise<Donation[]> {
+    const accountInfo = await this.connection.getAccountInfo(donorDonationsAccount);
+    if (!accountInfo || accountInfo.data.length === 0) {
+      return [];
+    }
+
+    try {
+      const donorDonations = borsh.deserialize(
+        DONOR_DONATIONS_SCHEMA,
+        DonorDonations,
+        accountInfo.data
+      ) as DonorDonations;
+      return donorDonations.donations;
+    } catch (error) {
+      console.error('Error deserializing donor donations:', error);
+      return [];
+    }
+  }
+
