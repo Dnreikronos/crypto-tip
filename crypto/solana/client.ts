@@ -180,3 +180,22 @@ export class SolanaDonationClient {
     const transaction = new Transaction().add(instruction);
     return await sendAndConfirmTransaction(this.connection, transaction, [owner]);
   }
+
+  /**
+   * Transfer ownership (owner only)
+   */
+  async transferOwnership(
+    currentOwner: Keypair,
+    programStateAccount: PublicKey,
+    newOwner: PublicKey
+  ): Promise<string> {
+    const instruction = this.createTransferOwnershipInstruction(
+      currentOwner.publicKey,
+      programStateAccount,
+      newOwner
+    );
+
+    const transaction = new Transaction().add(instruction);
+    return await sendAndConfirmTransaction(this.connection, transaction, [currentOwner]);
+  }
+
