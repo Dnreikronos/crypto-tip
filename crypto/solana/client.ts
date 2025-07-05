@@ -24,3 +24,13 @@ export class ProjectDonations {
   }
 }
 
+export class DonorDonations {
+  donations: Donation[] = [];
+
+  constructor(fields?: Partial<DonorDonations>) {
+    if (fields) {
+      Object.assign(this, fields);
+    }
+  }
+}
+
