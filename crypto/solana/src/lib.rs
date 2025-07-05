@@ -83,3 +83,43 @@ pub enum DonationInstruction {
     /// 2. `[]` The new owner account
     TransferOwnership { new_owner: Pubkey },
 }
+
+// Program entrypoint's implementation
+pub fn process_instruction(
+    _program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    instruction_data: &[u8],
+) -> ProgramResult {
+    let instruction = DonationInstruction::try_from_slice(instruction_data)?;
+
+    match instruction {
+        DonationInstruction::Initialize { fee_wallet } => {
+            msg!("Instruction: Initialize");
+            process_initialize(_program_id, accounts, fee_wallet)
+        }
+        DonationInstruction::Donate {
+            amount,
+            crypto_type,
+            message,
+            is_anonymous,
+        } => {
+            msg!("Instruction: Donate");
+            process_donate(
+                _program_id,
+                accounts,
+                amount,
+                crypto_type,
+                message,
+                is_anonymous,
+            )
+        }
+        DonationInstruction::UpdateFeeWallet { new_fee_wallet } => {
+            msg!("Instruction: UpdateFeeWallet");
+            process_update_fee_wallet(accounts, new_fee_wallet)
+        }
+        DonationInstruction::TransferOwnership { new_owner } => {
+            msg!("Instruction: TransferOwnership");
+            process_transfer_ownership(accounts, new_owner)
+        }
+    }
+}
