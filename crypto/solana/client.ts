@@ -14,3 +14,13 @@ export class Donation {
   }
 }
 
+export class ProjectDonations {
+  donations: Donation[] = [];
+
+  constructor(fields?: Partial<ProjectDonations>) {
+    if (fields) {
+      Object.assign(this, fields);
+    }
+  }
+}
+
