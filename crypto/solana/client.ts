@@ -106,3 +106,29 @@ const PROGRAM_STATE_SCHEMA = new Map([
   ],
 ]);
 
+export class SolanaDonationClient {
+  private connection: Connection;
+  private programId: PublicKey;
+
+  constructor(connection: Connection, programId: PublicKey) {
+    this.connection = connection;
+    this.programId = programId;
+  }
+
+  /**
+   * Initialize the donation program
+   */
+  async initialize(
+    payer: Keypair,
+    programStateAccount: Keypair,
+    feeWallet: PublicKey
+  ): Promise<string> {
+    const instruction = this.createInitializeInstruction(
+      payer.publicKey,
+      programStateAccount.publicKey,
+      feeWallet
+    );
+
+    const transaction = new Transaction().add(instruction);
+    return await sendAndConfirmTransaction(this.connection, transaction, [payer, programStateAccount]);
+  }
