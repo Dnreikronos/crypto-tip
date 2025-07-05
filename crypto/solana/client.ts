@@ -243,3 +243,20 @@ export class SolanaDonationClient {
     }
   }
 
+  /**
+   * Get program state
+   */
+  async getProgramState(programStateAccount: PublicKey): Promise<ProgramState | null> {
+    const accountInfo = await this.connection.getAccountInfo(programStateAccount);
+    if (!accountInfo || accountInfo.data.length === 0) {
+      return null;
+    }
+
+    try {
+      return borsh.deserialize(PROGRAM_STATE_SCHEMA, ProgramState, accountInfo.data) as ProgramState;
+    } catch (error) {
+      console.error('Error deserializing program state:', error);
+      return null;
+    }
+  }
+
