@@ -34,3 +34,14 @@ export class DonorDonations {
   }
 }
 
+export class ProgramState {
+  owner: PublicKey = new PublicKey(0);
+  feeWallet: PublicKey = new PublicKey(0);
+  feePercentage: number = 0;
+
+  constructor(fields?: Partial<ProgramState>) {
+    if (fields) {
+      Object.assign(this, fields);
+    }
+  }
+}
