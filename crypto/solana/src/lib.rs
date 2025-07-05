@@ -316,3 +316,40 @@ pub fn process_update_fee_wallet(
     msg!("FeeWalletUpdated: newFeeWallet={}", new_fee_wallet);
     Ok(())
 }
+
+pub fn process_transfer_ownership(accounts: &[AccountInfo], new_owner: Pubkey) -> ProgramResult {
+    let account_info_iter = &mut accounts.iter();
+    let current_owner = next_account_info(account_info_iter)?;
+    let program_state_account = next_account_info(account_info_iter)?;
+    let _new_owner_account = next_account_info(account_info_iter)?;
+
+    // Check that the current owner signed the transaction
+    if !current_owner.is_signer {
+        return Err(ProgramError::MissingRequiredSignature);
+    }
+
+    // Check that new owner is not zero address
+    if new_owner == Pubkey::default() {
+        return Err(ProgramError::InvalidAccountData);
+    }
+
+    // Load and update program state
+    let mut program_state = ProgramState::try_from_slice(&program_state_account.data.borrow())?;
+
+    // Check that the caller is the current owner
+    if program_state.owner != *current_owner.key {
+        return Err(ProgramError::InvalidAccountData);
+    }
+
+    let previous_owner = program_state.owner;
+    program_state.owner = new_owner;
+    program_state.serialize(&mut &mut program_state_account.data.borrow_mut()[..])?;
+
+    msg!(
+        "OwnershipTransferred: previousOwner={}, newOwner={}",
+        previous_owner,
+        new_owner
+    );
+    Ok(())
+}
+
