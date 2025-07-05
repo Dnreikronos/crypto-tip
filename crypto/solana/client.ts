@@ -199,3 +199,25 @@ export class SolanaDonationClient {
     return await sendAndConfirmTransaction(this.connection, transaction, [currentOwner]);
   }
 
+  /**
+   * Get project donations
+   */
+  async getProjectDonations(projectDonationsAccount: PublicKey): Promise<Donation[]> {
+    const accountInfo = await this.connection.getAccountInfo(projectDonationsAccount);
+    if (!accountInfo || accountInfo.data.length === 0) {
+      return [];
+    }
+
+    try {
+      const projectDonations = borsh.deserialize(
+        PROJECT_DONATIONS_SCHEMA,
+        ProjectDonations,
+        accountInfo.data
+      ) as ProjectDonations;
+      return projectDonations.donations;
+    } catch (error) {
+      console.error('Error deserializing project donations:', error);
+      return [];
+    }
+  }
+
