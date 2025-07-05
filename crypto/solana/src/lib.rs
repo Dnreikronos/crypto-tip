@@ -181,3 +181,104 @@ pub fn process_initialize(
 
     Ok(())
 }
+
+pub fn process_donate(
+    _program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    amount: u64,
+    crypto_type: String,
+    message: String,
+    is_anonymous: bool,
+) -> ProgramResult {
+    let account_info_iter = &mut accounts.iter();
+    let donor = next_account_info(account_info_iter)?;
+    let recipient = next_account_info(account_info_iter)?;
+    let fee_wallet = next_account_info(account_info_iter)?;
+    let program_state_account = next_account_info(account_info_iter)?;
+    let project_donations_account = next_account_info(account_info_iter)?;
+    let donor_donations_account = next_account_info(account_info_iter)?;
+    let _system_program = next_account_info(account_info_iter)?;
+
+    // Check that the donor signed the transaction
+    if !donor.is_signer {
+        return Err(ProgramError::MissingRequiredSignature);
+    }
+
+    // Check that the donation amount is greater than 0
+    if amount == 0 {
+        return Err(ProgramError::InvalidArgument);
+    }
+
+    // Check that recipient is not zero address
+    if recipient.key == &Pubkey::default() {
+        return Err(ProgramError::InvalidAccountData);
+    }
+
+    // Load program state
+    let program_state = ProgramState::try_from_slice(&program_state_account.data.borrow())?;
+
+    // Check that the fee wallet matches
+    if fee_wallet.key != &program_state.fee_wallet {
+        return Err(ProgramError::InvalidAccountData);
+    }
+
+    // Check that recipient is not the fee wallet
+    if recipient.key == &program_state.fee_wallet {
+        return Err(ProgramError::InvalidAccountData);
+    }
+
+    // Calculate fee and recipient amount (10% fee like in Solidity)
+    let fee = (amount * program_state.fee_percentage as u64) / 10000;
+    let recipient_amount = amount - fee;
+
+    // Transfer fee to fee wallet
+    let transfer_fee_ix = system_instruction::transfer(donor.key, fee_wallet.key, fee);
+    solana_program::program::invoke(&transfer_fee_ix, &[donor.clone(), fee_wallet.clone()])?;
+
+    // Transfer remaining amount to recipient
+    let transfer_recipient_ix =
+        system_instruction::transfer(donor.key, recipient.key, recipient_amount);
+    solana_program::program::invoke(&transfer_recipient_ix, &[donor.clone(), recipient.clone()])?;
+
+    // Create donation record
+    let donation = Donation {
+        amount,
+        crypto_type: crypto_type.clone(),
+        message: message.clone(),
+        is_anonymous,
+        donor: if is_anonymous { None } else { Some(*donor.key) },
+        timestamp: solana_program::clock::Clock::get()?.unix_timestamp,
+    };
+
+    // Store donation in project donations account
+    let mut project_donations = if project_donations_account.data_is_empty() {
+        ProjectDonations {
+            donations: Vec::new(),
+        }
+    } else {
+        ProjectDonations::try_from_slice(&project_donations_account.data.borrow())?
+    };
+
+    project_donations.donations.push(donation.clone());
+    project_donations.serialize(&mut &mut project_donations_account.data.borrow_mut()[..])?;
+
+    // Store donation in donor donations account (if not anonymous)
+    if !is_anonymous {
+        let mut donor_donations = if donor_donations_account.data_is_empty() {
+            DonorDonations {
+                donations: Vec::new(),
+            }
+        } else {
+            DonorDonations::try_from_slice(&donor_donations_account.data.borrow())?
+        };
+
+        donor_donations.donations.push(donation);
+        donor_donations.serialize(&mut &mut donor_donations_account.data.borrow_mut()[..])?;
+    }
+
+    msg!("DonationReceived: donor={}, recipient={}, amount={}, fee={}, cryptoType={}, message={}, anonymous={}", 
+         donor.key, recipient.key, amount, fee, crypto_type, message, is_anonymous);
+
+    Ok(())
+}
+
