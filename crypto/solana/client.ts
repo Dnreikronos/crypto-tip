@@ -92,3 +92,17 @@ const DONOR_DONATIONS_SCHEMA = new Map([
   ],
 ]);
 
+const PROGRAM_STATE_SCHEMA = new Map([
+  [
+    ProgramState,
+    {
+      kind: 'struct',
+      fields: [
+        ['owner', [32]],
+        ['feeWallet', [32]],
+        ['feePercentage', 'u16'],
+      ],
+    },
+  ],
+]);
+
