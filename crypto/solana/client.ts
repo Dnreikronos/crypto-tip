@@ -1,3 +1,15 @@
+import {
+  Connection,
+  Keypair,
+  PublicKey,
+  SystemProgram,
+  Transaction,
+  TransactionInstruction,
+  sendAndConfirmTransaction,
+  LAMPORTS_PER_SOL,
+} from '@solana/web3.js';
+import * as borsh from 'borsh';
+
 // Classes for borsh serialization
 export class Donation {
   amount: number = 0;
@@ -260,3 +272,128 @@ export class SolanaDonationClient {
     }
   }
 
+  /**
+   * Derive PDA for project donations account
+   */
+  async deriveProjectDonationsAccount(project: PublicKey): Promise<[PublicKey, number]> {
+    return await PublicKey.findProgramAddress(
+      [Buffer.from('project_donations'), project.toBuffer()],
+      this.programId
+    );
+  }
+
+  /**
+   * Derive PDA for donor donations account
+   */
+  async deriveDonorDonationsAccount(donor: PublicKey): Promise<[PublicKey, number]> {
+    return await PublicKey.findProgramAddress(
+      [Buffer.from('donor_donations'), donor.toBuffer()],
+      this.programId
+    );
+  }
+
+  // Private methods for creating instructions
+  private createInitializeInstruction(
+    payer: PublicKey,
+    programStateAccount: PublicKey,
+    feeWallet: PublicKey
+  ): TransactionInstruction {
+    const data = Buffer.alloc(1 + 32); // instruction discriminator + fee_wallet
+    data.writeUint8(DonationInstruction.Initialize, 0);
+    feeWallet.toBuffer().copy(data, 1);
+
+    return new TransactionInstruction({
+      keys: [
+        { pubkey: payer, isSigner: true, isWritable: true },
+        { pubkey: programStateAccount, isSigner: false, isWritable: true },
+        { pubkey: feeWallet, isSigner: false, isWritable: false },
+        { pubkey: new PublicKey('SysvarRent111111111111111111111111111111111'), isSigner: false, isWritable: false },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      ],
+      programId: this.programId,
+      data,
+    });
+  }
+
+  private createDonateInstruction(
+    donor: PublicKey,
+    recipient: PublicKey,
+    amount: number,
+    cryptoType: string,
+    message: string,
+    isAnonymous: boolean,
+    programStateAccount: PublicKey,
+    projectDonationsAccount: PublicKey,
+    donorDonationsAccount: PublicKey
+  ): TransactionInstruction {
+    const data = Buffer.alloc(1 + 8 + 4 + cryptoType.length + 4 + message.length + 1);
+    let offset = 0;
+    data.writeUint8(DonationInstruction.Donate, offset);
+    offset += 1;
+    data.writeBigUInt64LE(BigInt(amount), offset);
+    offset += 8;
+    data.writeUint32LE(cryptoType.length, offset);
+    offset += 4;
+    data.write(cryptoType, offset);
+    offset += cryptoType.length;
+    data.writeUint32LE(message.length, offset);
+    offset += 4;
+    data.write(message, offset);
+    offset += message.length;
+    data.writeUint8(isAnonymous ? 1 : 0, offset);
+
+    return new TransactionInstruction({
+      keys: [
+        { pubkey: donor, isSigner: true, isWritable: true },
+        { pubkey: recipient, isSigner: false, isWritable: true },
+        { pubkey: new PublicKey('11111111111111111111111111111111'), isSigner: false, isWritable: true }, // fee wallet
+        { pubkey: programStateAccount, isSigner: false, isWritable: true },
+        { pubkey: projectDonationsAccount, isSigner: false, isWritable: true },
+        { pubkey: donorDonationsAccount, isSigner: false, isWritable: true },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      ],
+      programId: this.programId,
+      data,
+    });
+  }
+
+  private createUpdateFeeWalletInstruction(
+    owner: PublicKey,
+    programStateAccount: PublicKey,
+    newFeeWallet: PublicKey
+  ): TransactionInstruction {
+    const data = Buffer.alloc(1 + 32); // instruction discriminator + new_fee_wallet
+    data.writeUint8(DonationInstruction.UpdateFeeWallet, 0);
+    newFeeWallet.toBuffer().copy(data, 1);
+
+    return new TransactionInstruction({
+      keys: [
+        { pubkey: owner, isSigner: true, isWritable: false },
+        { pubkey: programStateAccount, isSigner: false, isWritable: true },
+        { pubkey: newFeeWallet, isSigner: false, isWritable: false },
+      ],
+      programId: this.programId,
+      data,
+    });
+  }
+
+  private createTransferOwnershipInstruction(
+    currentOwner: PublicKey,
+    programStateAccount: PublicKey,
+    newOwner: PublicKey
+  ): TransactionInstruction {
+    const data = Buffer.alloc(1 + 32); // instruction discriminator + new_owner
+    data.writeUint8(DonationInstruction.TransferOwnership, 0);
+    newOwner.toBuffer().copy(data, 1);
+
+    return new TransactionInstruction({
+      keys: [
+        { pubkey: currentOwner, isSigner: true, isWritable: false },
+        { pubkey: programStateAccount, isSigner: false, isWritable: true },
+        { pubkey: newOwner, isSigner: false, isWritable: false },
+      ],
+      programId: this.programId,
+      data,
+    });
+  }
+} 
