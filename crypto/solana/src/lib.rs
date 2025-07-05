@@ -282,3 +282,37 @@ pub fn process_donate(
     Ok(())
 }
 
+pub fn process_update_fee_wallet(
+    accounts: &[AccountInfo],
+    new_fee_wallet: Pubkey,
+) -> ProgramResult {
+    let account_info_iter = &mut accounts.iter();
+    let owner = next_account_info(account_info_iter)?;
+    let program_state_account = next_account_info(account_info_iter)?;
+    let _new_fee_wallet_account = next_account_info(account_info_iter)?;
+
+    // Check that the owner signed the transaction
+    if !owner.is_signer {
+        return Err(ProgramError::MissingRequiredSignature);
+    }
+
+    // Check that new fee wallet is not zero address
+    if new_fee_wallet == Pubkey::default() {
+        return Err(ProgramError::InvalidAccountData);
+    }
+
+    // Load and update program state
+    let mut program_state = ProgramState::try_from_slice(&program_state_account.data.borrow())?;
+
+    // Check that the caller is the owner
+    if program_state.owner != *owner.key {
+        return Err(ProgramError::InvalidAccountData);
+    }
+
+    let _old_fee_wallet = program_state.fee_wallet;
+    program_state.fee_wallet = new_fee_wallet;
+    program_state.serialize(&mut &mut program_state_account.data.borrow_mut()[..])?;
+
+    msg!("FeeWalletUpdated: newFeeWallet={}", new_fee_wallet);
+    Ok(())
+}
