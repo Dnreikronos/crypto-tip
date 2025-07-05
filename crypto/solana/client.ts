@@ -72,3 +72,13 @@ const DONATION_SCHEMA = new Map([
   ],
 ]);
 
+const PROJECT_DONATIONS_SCHEMA = new Map([
+  [
+    ProjectDonations,
+    {
+      kind: 'struct',
+      fields: [['donations', [Donation]]],
+    },
+  ],
+]);
+
