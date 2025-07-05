@@ -45,3 +45,30 @@ export class ProgramState {
     }
   }
 }
+
+// Instruction types
+export enum DonationInstruction {
+  Initialize = 0,
+  Donate = 1,
+  UpdateFeeWallet = 2,
+  TransferOwnership = 3,
+}
+
+// Borsh schemas for serialization
+const DONATION_SCHEMA = new Map([
+  [
+    Donation,
+    {
+      kind: 'struct',
+      fields: [
+        ['amount', 'u64'],
+        ['cryptoType', 'string'],
+        ['message', 'string'],
+        ['isAnonymous', 'bool'],
+        ['donor', { kind: 'option', type: [32] }],
+        ['timestamp', 'i64'],
+      ],
+    },
+  ],
+]);
+
