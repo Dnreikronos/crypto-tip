@@ -163,3 +163,20 @@ export class SolanaDonationClient {
     return await sendAndConfirmTransaction(this.connection, transaction, [donor]);
   }
 
+  /**
+   * Update the fee wallet (owner only)
+   */
+  async updateFeeWallet(
+    owner: Keypair,
+    programStateAccount: PublicKey,
+    newFeeWallet: PublicKey
+  ): Promise<string> {
+    const instruction = this.createUpdateFeeWalletInstruction(
+      owner.publicKey,
+      programStateAccount,
+      newFeeWallet
+    );
+
+    const transaction = new Transaction().add(instruction);
+    return await sendAndConfirmTransaction(this.connection, transaction, [owner]);
+  }
