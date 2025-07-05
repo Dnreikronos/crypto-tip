@@ -123,3 +123,61 @@ pub fn process_instruction(
         }
     }
 }
+
+pub fn process_initialize(
+    program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    fee_wallet: Pubkey,
+) -> ProgramResult {
+    let account_info_iter = &mut accounts.iter();
+    let initializer = next_account_info(account_info_iter)?;
+    let program_state_account = next_account_info(account_info_iter)?;
+    let fee_wallet_account = next_account_info(account_info_iter)?;
+    let rent = &Rent::from_account_info(next_account_info(account_info_iter)?)?;
+    let _system_program = next_account_info(account_info_iter)?;
+
+    // Check that the initializer signed the transaction
+    if !initializer.is_signer {
+        return Err(ProgramError::MissingRequiredSignature);
+    }
+
+    // Check that the fee wallet account exists and is not zero address
+    if fee_wallet_account.key != &fee_wallet || fee_wallet == Pubkey::default() {
+        return Err(ProgramError::InvalidAccountData);
+    }
+
+    // Check that the program state account is not already initialized
+    if program_state_account.data_is_empty() {
+        let program_state = ProgramState {
+            owner: *initializer.key,
+            fee_wallet,
+            fee_percentage: 1000, // 10% in basis points (matching Solidity FEE_PERCENTAGE)
+        };
+
+        let space = program_state.try_to_vec()?.len();
+        let lamports = rent.minimum_balance(space);
+
+        let create_account_ix = system_instruction::create_account(
+            initializer.key,
+            program_state_account.key,
+            lamports,
+            space as u64,
+            program_id,
+        );
+
+        solana_program::program::invoke(
+            &create_account_ix,
+            &[initializer.clone(), program_state_account.clone()],
+        )?;
+
+        program_state.serialize(&mut &mut program_state_account.data.borrow_mut()[..])?;
+
+        msg!(
+            "Program initialized with owner: {} and fee wallet: {}",
+            initializer.key,
+            fee_wallet
+        );
+    }
+
+    Ok(())
+}
