@@ -132,3 +132,34 @@ export class SolanaDonationClient {
     const transaction = new Transaction().add(instruction);
     return await sendAndConfirmTransaction(this.connection, transaction, [payer, programStateAccount]);
   }
+
+  /**
+   * Make a donation
+   */
+  async donate(
+    donor: Keypair,
+    recipient: PublicKey,
+    amount: number,
+    cryptoType: string,
+    message: string,
+    isAnonymous: boolean,
+    programStateAccount: PublicKey,
+    projectDonationsAccount: PublicKey,
+    donorDonationsAccount: PublicKey
+  ): Promise<string> {
+    const instruction = this.createDonateInstruction(
+      donor.publicKey,
+      recipient,
+      amount,
+      cryptoType,
+      message,
+      isAnonymous,
+      programStateAccount,
+      projectDonationsAccount,
+      donorDonationsAccount
+    );
+
+    const transaction = new Transaction().add(instruction);
+    return await sendAndConfirmTransaction(this.connection, transaction, [donor]);
+  }
+
