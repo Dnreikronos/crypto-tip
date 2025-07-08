@@ -1,207 +1,280 @@
-use borsh::{BorshDeserialize, BorshSerialize};
-use solana_program::{
-    account_info::{next_account_info, AccountInfo},
-    entrypoint,
-    entrypoint::ProgramResult,
-    msg,
-    program_error::ProgramError,
-    pubkey::Pubkey,
-    system_instruction,
-    sysvar::{rent::Rent, Sysvar},
-};
+use anchor_lang::prelude::*;
 
-// Declare and export the program's entrypoint
-entrypoint!(process_instruction);
+declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
-// Program state structures
-#[derive(BorshSerialize, BorshDeserialize, Debug, Clone)]
-pub struct Donation {
-    pub amount: u64,
-    pub crypto_type: String,
-    pub message: String,
-    pub is_anonymous: bool,
-    pub donor: Option<Pubkey>,
-    pub timestamp: i64,
+#[program]
+pub mod donation_program {
+    use super::*;
+
+    pub fn initialize(ctx: Context<Initialize>, fee_wallet: Pubkey) -> Result<()> {
+        // Check that the fee wallet is not zero address
+        require!(fee_wallet != Pubkey::default(), DonationError::InvalidFeeWallet);
+
+        let program_state = &mut ctx.accounts.program_state;
+        program_state.owner = ctx.accounts.initializer.key();
+        program_state.fee_wallet = fee_wallet;
+        program_state.fee_percentage = 1000; // 10% in basis points
+
+        msg!(
+            "Program initialized with owner: {} and fee wallet: {}",
+            ctx.accounts.initializer.key(),
+            fee_wallet
+        );
+
+        Ok(())
+    }
+
+    pub fn donate(
+        ctx: Context<Donate>,
+        amount: u64,
+        crypto_type: String,
+        message: String,
+        is_anonymous: bool,
+    ) -> Result<()> {
+        // Check that the donation amount is greater than 0
+        require!(amount > 0, DonationError::InvalidAmount);
+
+        // Check that recipient is not zero address
+        require!(
+            ctx.accounts.recipient.key() != Pubkey::default(),
+            DonationError::InvalidRecipient
+        );
+
+        // Check that recipient is not the fee wallet
+        require!(
+            ctx.accounts.recipient.key() != ctx.accounts.program_state.fee_wallet,
+            DonationError::InvalidRecipient
+        );
+
+        // Calculate fee and recipient amount (10% fee)
+        let fee = (amount * ctx.accounts.program_state.fee_percentage as u64) / 10000;
+        let recipient_amount = amount - fee;
+
+        // Transfer fee to fee wallet
+        let transfer_fee_ix = anchor_lang::solana_program::system_instruction::transfer(
+            &ctx.accounts.donor.key(),
+            &ctx.accounts.fee_wallet.key(),
+            fee,
+        );
+        anchor_lang::solana_program::program::invoke(
+            &transfer_fee_ix,
+            &[
+                ctx.accounts.donor.to_account_info(),
+                ctx.accounts.fee_wallet.to_account_info(),
+            ],
+        )?;
+
+        // Transfer remaining amount to recipient
+        let transfer_recipient_ix = anchor_lang::solana_program::system_instruction::transfer(
+            &ctx.accounts.donor.key(),
+            &ctx.accounts.recipient.key(),
+            recipient_amount,
+        );
+        anchor_lang::solana_program::program::invoke(
+            &transfer_recipient_ix,
+            &[
+                ctx.accounts.donor.to_account_info(),
+                ctx.accounts.recipient.to_account_info(),
+            ],
+        )?;
+
+        // Create donation record
+        let donation = Donation {
+            amount,
+            crypto_type: crypto_type.clone(),
+            message: message.clone(),
+            is_anonymous,
+            donor: if is_anonymous { None } else { Some(ctx.accounts.donor.key()) },
+            timestamp: Clock::get()?.unix_timestamp,
+        };
+
+        // Store donation in project donations account
+        let project_donations = &mut ctx.accounts.project_donations;
+        project_donations.donations.push(donation.clone());
+
+        // Store donation in donor donations account (if not anonymous)
+        if !is_anonymous {
+            let donor_donations = &mut ctx.accounts.donor_donations;
+            donor_donations.donations.push(donation);
+        }
+
+        msg!("DonationReceived: donor={}, recipient={}, amount={}, fee={}, cryptoType={}, message={}, anonymous={}", 
+             ctx.accounts.donor.key(), ctx.accounts.recipient.key(), amount, fee, crypto_type, message, is_anonymous);
+
+        Ok(())
+    }
+
+    pub fn update_fee_wallet(ctx: Context<UpdateFeeWallet>, new_fee_wallet: Pubkey) -> Result<()> {
+        // Check that new fee wallet is not zero address
+        require!(new_fee_wallet != Pubkey::default(), DonationError::InvalidFeeWallet);
+
+        let program_state = &mut ctx.accounts.program_state;
+        let _old_fee_wallet = program_state.fee_wallet;
+        program_state.fee_wallet = new_fee_wallet;
+
+        msg!("FeeWalletUpdated: newFeeWallet={}", new_fee_wallet);
+        Ok(())
+    }
+
+    pub fn transfer_ownership(ctx: Context<TransferOwnership>, new_owner: Pubkey) -> Result<()> {
+        // Check that new owner is not zero address
+        require!(new_owner != Pubkey::default(), DonationError::InvalidOwner);
+
+        let program_state = &mut ctx.accounts.program_state;
+        let previous_owner = program_state.owner;
+        program_state.owner = new_owner;
+
+        msg!(
+            "OwnershipTransferred: previousOwner={}, newOwner={}",
+            previous_owner,
+            new_owner
+        );
+        Ok(())
+    }
 }
 
-#[derive(BorshSerialize, BorshDeserialize, Debug)]
-pub struct ProjectDonations {
-    pub donations: Vec<Donation>,
+#[derive(Accounts)]
+pub struct Initialize<'info> {
+    #[account(mut)]
+    pub initializer: Signer<'info>,
+
+    #[account(
+        init,
+        payer = initializer,
+        space = 8 + ProgramState::INIT_SPACE,
+        seeds = [b"program_state"],
+        bump
+    )]
+    pub program_state: Account<'info, ProgramState>,
+
+    /// CHECK: This is the fee wallet account
+    pub fee_wallet: AccountInfo<'info>,
+
+    pub system_program: Program<'info, System>,
 }
 
-#[derive(BorshSerialize, BorshDeserialize, Debug)]
-pub struct DonorDonations {
-    pub donations: Vec<Donation>,
+#[derive(Accounts)]
+pub struct Donate<'info> {
+    #[account(mut)]
+    pub donor: Signer<'info>,
+
+    #[account(mut)]
+    pub recipient: AccountInfo<'info>,
+
+    #[account(mut)]
+    pub fee_wallet: AccountInfo<'info>,
+
+    #[account(
+        seeds = [b"program_state"],
+        bump,
+        constraint = fee_wallet.key() == program_state.fee_wallet
+    )]
+    pub program_state: Account<'info, ProgramState>,
+
+    #[account(
+        init_if_needed,
+        payer = donor,
+        space = 8 + ProjectDonations::INIT_SPACE,
+        seeds = [b"project_donations", recipient.key().as_ref()],
+        bump
+    )]
+    pub project_donations: Account<'info, ProjectDonations>,
+
+    #[account(
+        init_if_needed,
+        payer = donor,
+        space = 8 + DonorDonations::INIT_SPACE,
+        seeds = [b"donor_donations", donor.key().as_ref()],
+        bump
+    )]
+    pub donor_donations: Account<'info, DonorDonations>,
+
+    pub system_program: Program<'info, System>,
 }
 
-#[derive(BorshSerialize, BorshDeserialize, Debug)]
+#[derive(Accounts)]
+pub struct UpdateFeeWallet<'info> {
+    #[account(
+        constraint = owner.key() == program_state.owner
+    )]
+    pub owner: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"program_state"],
+        bump
+    )]
+    pub program_state: Account<'info, ProgramState>,
+
+    /// CHECK: This is the new fee wallet account
+    pub new_fee_wallet: AccountInfo<'info>,
+}
+
+#[derive(Accounts)]
+pub struct TransferOwnership<'info> {
+    #[account(
+        constraint = current_owner.key() == program_state.owner
+    )]
+    pub current_owner: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"program_state"],
+        bump
+    )]
+    pub program_state: Account<'info, ProgramState>,
+
+    /// CHECK: This is the new owner account
+    pub new_owner: AccountInfo<'info>,
+}
+
+#[account]
+#[derive(InitSpace)]
 pub struct ProgramState {
     pub owner: Pubkey,
     pub fee_wallet: Pubkey,
     pub fee_percentage: u16, // Basis points (1000 = 10%)
 }
 
-// Instructions enum
-#[derive(BorshSerialize, BorshDeserialize, Debug)]
-pub enum DonationInstruction {
-    /// Initialize the program
-    /// Accounts expected:
-    /// 0. `[signer]` The account of the person initializing the program
-    /// 1. `[writable]` The program state account
-    /// 2. `[]` The fee wallet account
-    /// 3. `[]` The rent sysvar
-    /// 4. `[]` The system program
-    Initialize { fee_wallet: Pubkey },
-
-    /// Make a donation
-    /// Accounts expected:
-    /// 0. `[signer]` The donor account
-    /// 1. `[writable]` The recipient account
-    /// 2. `[writable]` The fee wallet account
-    /// 3. `[writable]` The program state account
-    /// 4. `[writable]` The project donations account (PDA)
-    /// 5. `[writable]` The donor donations account (PDA, optional if anonymous)
-    /// 6. `[]` The system program
-    Donate {
-        amount: u64,
-        crypto_type: String,
-        message: String,
-        is_anonymous: bool,
-    },
-
-    /// Update fee wallet
-    /// Accounts expected:
-    /// 0. `[signer]` The owner account
-    /// 1. `[writable]` The program state account
-    /// 2. `[]` The new fee wallet account
-    UpdateFeeWallet { new_fee_wallet: Pubkey },
-
-    /// Transfer ownership
-    /// Accounts expected:
-    /// 0. `[signer]` The current owner account
-    /// 1. `[writable]` The program state account
-    /// 2. `[]` The new owner account
-    TransferOwnership { new_owner: Pubkey },
+#[account]
+#[derive(InitSpace)]
+pub struct ProjectDonations {
+    #[max_len(1000)]
+    pub donations: Vec<Donation>,
 }
 
-// Program entrypoint's implementation
-pub fn process_instruction(
-    _program_id: &Pubkey,
-    accounts: &[AccountInfo],
-    instruction_data: &[u8],
-) -> ProgramResult {
-    let instruction = DonationInstruction::try_from_slice(instruction_data)?;
-
-    match instruction {
-        DonationInstruction::Initialize { fee_wallet } => {
-            msg!("Instruction: Initialize");
-            process_initialize(_program_id, accounts, fee_wallet)
-        }
-        DonationInstruction::Donate {
-            amount,
-            crypto_type,
-            message,
-            is_anonymous,
-        } => {
-            msg!("Instruction: Donate");
-            process_donate(
-                _program_id,
-                accounts,
-                amount,
-                crypto_type,
-                message,
-                is_anonymous,
-            )
-        }
-        DonationInstruction::UpdateFeeWallet { new_fee_wallet } => {
-            msg!("Instruction: UpdateFeeWallet");
-            process_update_fee_wallet(accounts, new_fee_wallet)
-        }
-        DonationInstruction::TransferOwnership { new_owner } => {
-            msg!("Instruction: TransferOwnership");
-            process_transfer_ownership(accounts, new_owner)
-        }
-    }
+#[account]
+#[derive(InitSpace)]
+pub struct DonorDonations {
+    #[max_len(1000)]
+    pub donations: Vec<Donation>,
 }
 
-pub fn process_initialize(
-    program_id: &Pubkey,
-    accounts: &[AccountInfo],
-    fee_wallet: Pubkey,
-) -> ProgramResult {
-    let account_info_iter = &mut accounts.iter();
-    let initializer = next_account_info(account_info_iter)?;
-    let program_state_account = next_account_info(account_info_iter)?;
-    let fee_wallet_account = next_account_info(account_info_iter)?;
-    let rent = &Rent::from_account_info(next_account_info(account_info_iter)?)?;
-    let _system_program = next_account_info(account_info_iter)?;
-
-    // Check that the initializer signed the transaction
-    if !initializer.is_signer {
-        return Err(ProgramError::MissingRequiredSignature);
-    }
-
-    // Check that the fee wallet account exists and is not zero address
-    if fee_wallet_account.key != &fee_wallet || fee_wallet == Pubkey::default() {
-        return Err(ProgramError::InvalidAccountData);
-    }
-
-    // Check that the program state account is not already initialized
-    if program_state_account.data_is_empty() {
-        let program_state = ProgramState {
-            owner: *initializer.key,
-            fee_wallet,
-            fee_percentage: 1000, // 10% in basis points (matching Solidity FEE_PERCENTAGE)
-        };
-
-        let space = program_state.try_to_vec()?.len();
-        let lamports = rent.minimum_balance(space);
-
-        let create_account_ix = system_instruction::create_account(
-            initializer.key,
-            program_state_account.key,
-            lamports,
-            space as u64,
-            program_id,
-        );
-
-        solana_program::program::invoke(
-            &create_account_ix,
-            &[initializer.clone(), program_state_account.clone()],
-        )?;
-
-        program_state.serialize(&mut &mut program_state_account.data.borrow_mut()[..])?;
-
-        msg!(
-            "Program initialized with owner: {} and fee wallet: {}",
-            initializer.key,
-            fee_wallet
-        );
-    }
-
-    Ok(())
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, InitSpace)]
+pub struct Donation {
+    pub amount: u64,
+    #[max_len(50)]
+    pub crypto_type: String,
+    #[max_len(500)]
+    pub message: String,
+    pub is_anonymous: bool,
+    pub donor: Option<Pubkey>,
+    pub timestamp: i64,
 }
 
-pub fn process_donate(
-    _program_id: &Pubkey,
-    accounts: &[AccountInfo],
-    amount: u64,
-    crypto_type: String,
-    message: String,
-    is_anonymous: bool,
-) -> ProgramResult {
-    let account_info_iter = &mut accounts.iter();
-    let donor = next_account_info(account_info_iter)?;
-    let recipient = next_account_info(account_info_iter)?;
-    let fee_wallet = next_account_info(account_info_iter)?;
-    let program_state_account = next_account_info(account_info_iter)?;
-    let project_donations_account = next_account_info(account_info_iter)?;
-    let donor_donations_account = next_account_info(account_info_iter)?;
-    let _system_program = next_account_info(account_info_iter)?;
+#[error_code]
+pub enum DonationError {
+    #[msg("Invalid fee wallet address")]
+    InvalidFeeWallet,
+    #[msg("Invalid donation amount")]
+    InvalidAmount,
+    #[msg("Invalid recipient address")]
+    InvalidRecipient,
+    #[msg("Invalid owner address")]
+    InvalidOwner,
+}
 
-    // Check that the donor signed the transaction
-    if !donor.is_signer {
-        return Err(ProgramError::MissingRequiredSignature);
+#[cfg(test)]
     }
 
     // Check that the donation amount is greater than 0
