@@ -4,10 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-solana-program = "1.17.0"
-borsh = "0.10.3"
-borsh-derive = "0.10.3"
-thiserror = "1.0.40"
+anchor-lang = { version = "0.29.0", features = ["init-if-needed"] }
 
 [lib]
 crate-type = ["cdylib", "lib"] 
