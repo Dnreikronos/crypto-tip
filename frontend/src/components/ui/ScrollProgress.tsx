@@ -11,6 +11,7 @@ interface Section {
 
 const sections: Section[] = [
   { id: "hero", name: "Hero", color: "#00e5ff" },
+  { id: "projects-preview", name: "Projects", color: "#ff4081" },
   { id: "features", name: "Features", color: "#3f51b5" },
   { id: "how-it-works", name: "Process", color: "#9c27b0" },
   { id: "faq", name: "FAQ", color: "#ff6b35" },
