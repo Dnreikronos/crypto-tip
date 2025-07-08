@@ -1,6 +1,7 @@
 import HeroSection from "@/components/sections/HeroSection";
 import FeaturesSection from "@/components/sections/FeaturesSection";
 import HowItWorksSection from "@/components/sections/HowItWorksSection";
+import ProjectsPreviewSection from "@/components/sections/ProjectsPreviewSection";
 // import ShowcaseSection from "@/components/sections/ShowcaseSection";
 // import TestimonialsSection from "@/components/sections/TestimonialsSection";
 import FaqSection from "@/components/sections/FaqSection";
@@ -18,6 +19,7 @@ export default function HomePage() {
 
       <div className="relative z-10 px-4 sm:px-6 lg:px-8">
         <HeroSection />
+        <ProjectsPreviewSection />
         <FeaturesSection />
         <HowItWorksSection />
         {/* <ShowcaseSection />
