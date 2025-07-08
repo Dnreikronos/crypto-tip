@@ -32,7 +32,8 @@ export default function ProjectsPreviewSection() {
       (project) =>
         project.title.toLowerCase().includes(q) ||
         project.description.toLowerCase().includes(q) ||
-        (project.creator?.name && project.creator.name.toLowerCase().includes(q)),
+        (project.creator?.name &&
+          project.creator.name.toLowerCase().includes(q)),
     );
   }, [projects, searchQuery]);
 
@@ -59,8 +60,8 @@ export default function ProjectsPreviewSection() {
             Explore Projects
           </h2>
           <p className="text-gray-300 max-w-2xl">
-            Take a peek at what our community is building. Search for a project by name or browse some
-            of the most recent submissions.
+            Take a peek at what our community is building. Search for a project
+            by name or browse some of the most recent submissions.
           </p>
         </div>
 
@@ -86,9 +87,13 @@ export default function ProjectsPreviewSection() {
         {isLoading ? (
           <ProjectsGridSkeleton count={5} />
         ) : error ? (
-          <div className="text-center text-red-400">Failed to load projects: {error.message}</div>
+          <div className="text-center text-red-400">
+            Failed to load projects: {error.message}
+          </div>
         ) : previewProjects.length === 0 ? (
-          <div className="text-center text-gray-400">No projects found matching your search.</div>
+          <div className="text-center text-gray-400">
+            No projects found matching your search.
+          </div>
         ) : (
           <ProjectsGrid projects={previewProjects} isMyProjects={false} />
         )}
@@ -103,11 +108,14 @@ export default function ProjectsPreviewSection() {
               className="group bg-purple-600/20 hover:bg-purple-600/30 border text-white border-purple-500/30 backdrop-blur-sm"
             >
               {/* eslint-disable-next-line jsx-a11y/anchor-has-content */}
-              <a className="inline-flex items-center">View All Projects <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" /></a>
+              <a className="inline-flex items-center">
+                View All Projects{" "}
+                <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+              </a>
             </Button>
           </Link>
         </div>
       </motion.div>
     </section>
   );
-} 
+}
