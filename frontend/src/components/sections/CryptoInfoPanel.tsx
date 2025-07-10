@@ -22,7 +22,7 @@ export function CryptoInfoPanel() {
       name: "Solana",
       symbol: "SOL",
       icon: <SiSolana className="h-6 w-6 text-purple-400" />,
-      locked: true,
+      locked: false, 
       color: "purple",
     },
     {

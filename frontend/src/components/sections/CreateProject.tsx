@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowRight, Sparkles, Coins, Wallet } from "lucide-react";
-import { SiEthereum } from "react-icons/si";
+import { SiEthereum, SiSolana } from "react-icons/si";
 import { TipsInfoPanel } from "./TipsInfoPanel";
 import { CryptoInfoPanel } from "./CryptoInfoPanel";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,13 @@ import { useWalletProviders } from "@/hooks/useWalletProviders";
 
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { useUploadThing } from "@/lib/uploadthing";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const projectSchema = z.object({
   title: z
@@ -43,6 +50,7 @@ const projectSchema = z.object({
     .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
       message: "Goal must be a positive number",
     }),
+  currency: z.enum(["ETH", "SOL"]),
   wallet_addr: z
     .string()
     .min(42, { message: "Please enter a valid Ethereum wallet address" })
@@ -78,11 +86,13 @@ export default function CreateProjectPage() {
       project_link: "",
       repo_link: "",
       image_url: "",
+      currency: "ETH",
       accept_terms: false,
     },
   });
 
   const formValues = form.watch();
+  const selectedCurrency = formValues.currency;
 
   const { mutate: createProjectMutation, isPending } = useCreateProject();
 
@@ -361,13 +371,41 @@ export default function CreateProjectPage() {
                         )}
                       />
 
+                      {/* Currency Selector */}
+                      <FormField
+                        control={form.control}
+                        name="currency"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-gray-400">
+                              Currency
+                            </FormLabel>
+                            <FormControl>
+                              <div className="w-full">
+                                <Select value={field.value} onValueChange={field.onChange}>
+                                  <SelectTrigger className="bg-gray-800/70 border-gray-700 text-white focus:border-cyan-500 transition-all duration-300">
+                                    <SelectValue placeholder="Select Currency" />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-gray-900 border-gray-700 text-white">
+                                    <SelectItem value="ETH">ETH</SelectItem>
+                                    <SelectItem value="SOL">SOL</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Funding Goal */}
                       <FormField
                         control={form.control}
                         name="goal"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-gray-400">
-                              Funding Goal (ETH)
+                              {`Funding Goal (${selectedCurrency})`}
                             </FormLabel>
                             <FormControl>
                               <div className="relative">
@@ -386,12 +424,16 @@ export default function CreateProjectPage() {
                                   initial={{ opacity: 0.7 }}
                                   whileHover={{ opacity: 1, scale: 1.1 }}
                                 >
-                                  <SiEthereum className="h-4 w-4 text-cyan-400" />
+                                  {selectedCurrency === "SOL" ? (
+                                    <SiSolana className="h-4 w-4 text-purple-400" />
+                                  ) : (
+                                    <SiEthereum className="h-4 w-4 text-cyan-400" />
+                                  )}
                                 </motion.div>
                               </div>
                             </FormControl>
                             <FormDescription className="text-gray-400">
-                              Set your funding goal in Ethereum (ETH).
+                              {`Set your funding goal in ${selectedCurrency === "SOL" ? "Solana (SOL)" : "Ethereum (ETH)"}.`}
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
