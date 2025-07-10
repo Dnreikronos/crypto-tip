@@ -24,6 +24,27 @@ import { createDonation } from "@/services/donationService";
 import { toast } from "sonner";
 import type { ProjectResponse } from "@/services/projectService";
 import { useCryptoPrice } from "@/hooks/useCryptoPrice";
+import {
+  Connection as SolConnection,
+  PublicKey,
+  SystemProgram,
+  Transaction as SolTransaction,
+  LAMPORTS_PER_SOL,
+} from "@solana/web3.js";
+
+declare global {
+  interface Window {
+    solana?: {
+      isPhantom?: boolean;
+      connect: () => Promise<void>;
+      publicKey?: {
+        toString: () => string;
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      signTransaction: (tx: any) => Promise<any>;
+    };
+  }
+}
 
 interface DonationPageClientProps {
   project: ProjectResponse | null;
@@ -96,13 +117,19 @@ export default function DonationPageClient({
   const [message, setMessage] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [showThankYou, setShowThankYou] = useState(false);
+
+  // Currency — "ETH" (default) or "SOL"
+  const [selectedCurrency, setSelectedCurrency] = useState<"ETH" | "SOL">("ETH");
+  const currencySymbol = selectedCurrency;
+  const networkName = selectedCurrency === "ETH" ? "Ethereum" : "Solana";
+
   // Use the custom hook for ETH price
   const {
     price: ethPrice,
     isLoading: isLoadingPrice,
     error: priceError,
   } = useCryptoPrice({
-    symbol: "ETH",
+    symbol: selectedCurrency,
     refreshInterval: 120000, // 2 minutes
     autoRefresh: true,
   });
@@ -120,7 +147,7 @@ export default function DonationPageClient({
   // Handle price errors with toast notifications
   useEffect(() => {
     if (priceError) {
-      console.error("ETH price error:", priceError);
+      console.error(`${currencySymbol} price error:`, priceError);
 
       // Show more specific error messages
       if (priceError.includes("rate limit")) {
@@ -138,12 +165,12 @@ export default function DonationPageClient({
             "Multiple price services are currently down. Please try again later.",
         });
       } else {
-        toast.error("Failed to fetch ETH price", {
+        toast.error(`Failed to fetch ${currencySymbol} price`, {
           description: priceError.split("\n")[0], // Show only the first line of error
         });
       }
     }
-  }, [priceError]);
+  }, [priceError, currencySymbol]);
 
   const handleDonate = async () => {
     if (!project) {
@@ -152,7 +179,7 @@ export default function DonationPageClient({
     }
 
     if (!ethPrice || ethPrice <= 0) {
-      toast.error("ETH price not available", {
+      toast.error(`${currencySymbol} price not available`, {
         description: "Please wait for the price to load or refresh the page.",
       });
       return;
@@ -165,9 +192,75 @@ export default function DonationPageClient({
     }
 
     if (selectedValue < 0.0001) {
-      toast.error("Minimum donation amount is 0.0001 ETH");
+      toast.error(`Minimum donation amount is 0.0001 ${currencySymbol}`);
       return;
     }
+
+    // SOL Donation Flow
+    if (selectedCurrency === "SOL") {
+      const solanaProvider = window.solana;
+      if (!solanaProvider || !solanaProvider.isPhantom) {
+        toast.error("Phantom wallet not found", {
+          description: "Please install Phantom to donate with SOL.",
+        });
+        return;
+      }
+
+      try {
+        setIsSubmitting(true);
+        await solanaProvider.connect();
+
+        setIsProcessing(true);
+
+        const connection = new SolConnection("https://api.mainnet-beta.solana.com");
+        const fromPubkey = new PublicKey(solanaProvider.publicKey!.toString());
+        const recipientPubkey = new PublicKey(project.wallet_addr);
+        const lamports = Math.round(selectedValue * LAMPORTS_PER_SOL);
+
+        const transaction = new SolTransaction().add(
+          SystemProgram.transfer({
+            fromPubkey,
+            toPubkey: recipientPubkey,
+            lamports,
+          }),
+        );
+
+        transaction.feePayer = fromPubkey;
+        const latestBlockhash = await connection.getLatestBlockhash();
+        transaction.recentBlockhash = latestBlockhash.blockhash;
+
+        const signedTx = await solanaProvider.signTransaction(transaction);
+        const signature = await connection.sendRawTransaction(signedTx.serialize());
+        await connection.confirmTransaction(signature, "confirmed");
+
+        await createDonation({
+          amount: selectedValue,
+          crypto_type: "SOL",
+          tx_hash: signature,
+          from_addr: fromPubkey.toString(),
+          message,
+          anonymous: isAnonymous,
+          project_id: project.id,
+        });
+
+        setShowThankYou(true);
+        setTimeout(() => setShowThankYou(false), 3000);
+
+        toast.success("Donation sent successfully!");
+      } catch (error: unknown) {
+        console.error("SOL donation error:", error);
+        toast.error("Failed to send donation", {
+          description: "An unexpected error occurred. Please try again.",
+        });
+      } finally {
+        setIsSubmitting(false);
+        setIsProcessing(false);
+      }
+
+      return; // End SOL flow
+    }
+
+    // ETH Donation Flow (default)
 
     if (typeof window.ethereum === "undefined") {
       toast.error("MetaMask not found", {
@@ -187,8 +280,7 @@ export default function DonationPageClient({
         });
       } catch {
         toast.error("Failed to switch to Ethereum Mainnet", {
-          description:
-            "Please enable Ethereum Mainnet in MetaMask and try again.",
+          description: "Please enable Ethereum Mainnet in MetaMask and try again.",
         });
         return;
       }
@@ -247,8 +339,7 @@ export default function DonationPageClient({
           });
         } else {
           toast.error("Failed to send donation", {
-            description:
-              err.message || "An unexpected error occurred. Please try again.",
+            description: err.message || "An unexpected error occurred. Please try again.",
           });
         }
       } else {
@@ -455,11 +546,11 @@ export default function DonationPageClient({
                       <div className="flex justify-between text-sm text-gray-400 mb-2">
                         <span>
                           Goal: ${getSelectedValueUSD().toFixed(0)} (
-                          {getSelectedValueETH().toFixed(3)} ETH)
+                          {getSelectedValueETH().toFixed(3)} {currencySymbol})
                         </span>
                         <span>
                           Raised: ${getSelectedValueUSD().toFixed(0)} (
-                          {getSelectedValueETH().toFixed(3)} ETH)
+                          {getSelectedValueETH().toFixed(3)} {currencySymbol})
                         </span>
                       </div>
 
@@ -479,7 +570,7 @@ export default function DonationPageClient({
 
                   {!isLoadingPrice && ethPrice && ethPrice > 0 && (
                     <div className="text-center text-xs text-gray-500 mb-4">
-                      1 ETH = ${ethPrice.toFixed(2)} USD
+                      1 {currencySymbol} = ${ethPrice.toFixed(2)} USD
                     </div>
                   )}
 
@@ -536,6 +627,25 @@ export default function DonationPageClient({
                   <h2 className="text-2xl font-bold text-white mb-4">
                     Choose Your Support
                   </h2>
+
+                  {/* Currency Switcher */}
+                  <div className="flex justify-center gap-4 mt-4">
+                    {(["ETH", "SOL"] as const).map((cur) => (
+                      <motion.button
+                        key={cur}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setSelectedCurrency(cur)}
+                        className={`px-4 py-2 rounded-full border text-sm font-medium transition-colors ${
+                          selectedCurrency === cur
+                            ? "border-cyan-500 bg-cyan-500/20 text-cyan-300"
+                            : "border-gray-600 bg-gray-800 text-gray-300 hover:border-gray-500"
+                        }`}
+                      >
+                        {cur}
+                      </motion.button>
+                    ))}
+                  </div>
                   <p className="text-gray-400">
                     Help fuel innovation and keep this project growing
                   </p>
@@ -718,7 +828,7 @@ export default function DonationPageClient({
                           >
                             <div className="text-left">
                               <p className="font-semibold text-white">
-                                {preset.amountETH} ETH
+                                {preset.amountETH} {currencySymbol}
                               </p>
                               <p className="text-xs text-gray-400">
                                 {!isLoadingPrice && ethPrice && ethPrice > 0
@@ -746,7 +856,7 @@ export default function DonationPageClient({
                       className="space-y-2"
                     >
                       <label className="block text-sm font-medium text-gray-300">
-                        Custom amount (ETH)
+                        Custom amount ({currencySymbol})
                       </label>
 
                       <div className="relative group">
@@ -788,7 +898,7 @@ export default function DonationPageClient({
                                   )}
                                 </div>
                                 <div className="text-xs text-gray-500">
-                                  Ethereum
+                                  {networkName}
                                 </div>
                               </div>
                             </motion.div>
@@ -801,7 +911,7 @@ export default function DonationPageClient({
                               animate={{ opacity: 1, y: 0 }}
                               className="absolute -bottom-6 left-0 text-xs text-red-400"
                             >
-                              Minimum amount is 0.0001 ETH
+                              Minimum amount is 0.0001 {currencySymbol}
                             </motion.div>
                           )}
 
@@ -820,13 +930,13 @@ export default function DonationPageClient({
                       </div>
 
                       <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
-                        <span>Minimum: 0.0001 ETH</span>
+                        <span>Minimum: 0.0001 {currencySymbol}</span>
                         {!isLoadingPrice && ethPrice && ethPrice > 0 ? (
-                          <span>1 ETH = ${ethPrice.toFixed(2)}</span>
+                          <span>1 {currencySymbol} = ${ethPrice.toFixed(2)}</span>
                         ) : isLoadingPrice ? (
-                          <span>Loading ETH price...</span>
+                          <span>Loading {currencySymbol} price...</span>
                         ) : (
-                          <span>ETH price unavailable</span>
+                          <span>{currencySymbol} price unavailable</span>
                         )}
                       </div>
                     </motion.div>
@@ -896,17 +1006,17 @@ export default function DonationPageClient({
                     ) : !ethPrice || ethPrice <= 0 ? (
                       <>
                         <Heart className="w-5 h-5" />
-                        ETH price unavailable - Please refresh
+                        {currencySymbol} price unavailable - Please refresh
                         <ArrowRight className="w-5 h-5" />
                       </>
                     ) : (
                       <>
                         <Heart className="w-5 h-5 group-hover:animate-pulse" />
                         {getSelectedValueETH() >= 0.0001
-                          ? `Support with ${getSelectedValueETH().toFixed(4)} ETH (≈ $${getSelectedValueUSD().toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`
+                          ? `Support with ${getSelectedValueETH().toFixed(4)} ${currencySymbol} (≈ $${getSelectedValueUSD().toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`
                           : getSelectedValueETH() > 0 &&
                               getSelectedValueETH() < 0.0001
-                            ? "Minimum donation is 0.0001 ETH"
+                            ? `Minimum donation is 0.0001 ${currencySymbol}`
                             : "Choose an amount to support"}
                         <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                       </>
@@ -955,7 +1065,7 @@ export default function DonationPageClient({
                 transition={{ delay: 0.5 }}
                 className="text-lg font-semibold text-cyan-400"
               >
-                {getSelectedValueETH().toFixed(4)} ETH
+                {getSelectedValueETH().toFixed(4)} {currencySymbol}
                 {ethPrice && ethPrice > 0
                   ? ` (≈ $${getSelectedValueUSD().toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`
                   : ""}
