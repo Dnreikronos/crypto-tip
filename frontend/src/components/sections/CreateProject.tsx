@@ -25,7 +25,7 @@ import { ProjectPreview } from "./ProjectPreview";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCreateProject } from "@/hooks/useProject";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { z, ZodIssueCode } from "zod";
 import { useWalletProviders } from "@/hooks/useWalletProviders";
 
 import { ImageUpload } from "@/components/ui/ImageUpload";
@@ -38,31 +38,36 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const projectSchema = z.object({
-  title: z
-    .string()
-    .min(3, { message: "Title must be at least 3 characters long" }),
-  description: z
-    .string()
-    .min(10, { message: "Description must be at least 10 characters long" }),
-  goal: z
-    .string()
-    .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
-      message: "Goal must be a positive number",
-    }),
-  currency: z.enum(["ETH", "SOL"]),
-  wallet_addr: z
-    .string()
-    .min(42, { message: "Please enter a valid Ethereum wallet address" })
-    .startsWith("0x", { message: "Ethereum addresses should start with 0x" }),
-  project_link: z.string().url({ message: "Please enter a valid URL" }),
-  repo_link: z.string().url({ message: "Please enter a valid URL" }),
-  image_url: z.string().optional(),
-  accept_terms: z.boolean().refine((val) => val === true, {
-    message: "You must accept the terms and conditions",
-  }),
-});
+const ethRE = /^0x[a-fA-F0-9]{40}$/;
+const solRE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 
+export const projectSchema = z
+  .object({
+    title: z.string().min(3),
+    description: z.string().min(10),
+    goal: z
+      .string()
+      .refine((v) => !isNaN(+v) && +v > 0, { message: "Goal must be > 0" }),
+    currency: z.enum(["ETH", "SOL"]),
+    wallet_addr: z.string(),
+    project_link: z.string().url(),
+    repo_link: z.string().url(),
+    image_url: z.string().optional(),
+    accept_terms: z.boolean().refine((v) => v === true, {
+      message: "You must accept the terms and conditions",
+    }),
+  })
+  .superRefine((data, ctx) => {
+    const { currency, wallet_addr } = data;
+    const valid = currency === "ETH" ? ethRE.test(wallet_addr) : solRE.test(wallet_addr);
+    if (!valid) {
+      ctx.addIssue({
+        code: ZodIssueCode.custom,
+        path: ["wallet_addr"],
+        message: `Invalid ${currency} address`,
+      });
+    }
+  });
 type FormValues = z.infer<typeof projectSchema>;
 
 export default function CreateProjectPage() {
