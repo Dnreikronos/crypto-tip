@@ -20,6 +20,7 @@ import {
 import ProfileCard from "@/components/ui/ProfileCard";
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
 import { ContractService } from "@/services/contractService";
+import { SolanaContractService } from "@/services/solanaContractService"
 import { createDonation } from "@/services/donationService";
 import { toast } from "sonner";
 import type { ProjectResponse } from "@/services/projectService";
