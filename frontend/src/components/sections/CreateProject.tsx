@@ -152,36 +152,38 @@ export default function CreateProjectPage() {
     setPreviewMode(!previewMode);
   }
 
-  const handleConnectWallet = async () => {
-    if (!metaMaskProvider) {
-      toast.error("MetaMask not found", {
-        description: "Please install MetaMask to connect your wallet.",
-      });
-      window.open("https://metamask.io/download/", "_blank");
+const handleConnectWallet = async () => {
+  setIsConnectingWallet(true);
+  const currency = form.getValues("currency");
+
+  try {
+    if (currency === "SOL") {
+      const sol = (window as any).solana;
+      if (!sol?.isPhantom && !sol?.isMetaMask) {
+        throw new Error("No Solana wallet found");
+      }
+      await sol.connect();
+      form.setValue("wallet_addr", sol.publicKey.toString());
+      toast.success("Solana wallet connected");
       return;
     }
 
-    try {
-      setIsConnectingWallet(true);
-      const accounts = (await metaMaskProvider.provider.request({
-        method: "eth_requestAccounts",
-      })) as string[] | undefined;
-
-      if (accounts?.[0]) {
-        form.setValue("wallet_addr", accounts[0]);
-        toast.success("Wallet Connected", {
-          description: "Your wallet address has been automatically filled.",
-        });
-      }
-    } catch (error) {
-      console.error("Failed to connect:", error);
-      toast.error("Connection Failed", {
-        description: "Unable to connect to MetaMask. Please try again.",
-      });
-    } finally {
-      setIsConnectingWallet(false);
+    // ETH path
+    const eth = (window as any).ethereum;
+    if (!eth?.isMetaMask) {
+      throw new Error("MetaMask not found");
     }
-  };
+    const accounts = (await eth.request({ method: "eth_requestAccounts" })) as string[];
+    form.setValue("wallet_addr", accounts[0]);
+    toast.success("Ethereum wallet connected");
+  } catch (err: any) {
+    toast.error(err.message || "Connection failed");
+  } finally {
+    setIsConnectingWallet(false);
+  }
+  // no wallet
+  toast.error("No supported wallet found");
+};
 
   return (
     <div className="min-h-screen text-gray-100 relative overflow-hidden w-full">
