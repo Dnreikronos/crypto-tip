@@ -1,24 +1,25 @@
 use anchor_lang::prelude::*;
+use std::str::FromStr;
 
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+
+// Hardcoded fee wallet address
+const FEE_WALLET: &str = "HcbsE3qKtud5VsHWxha3jE14otZAV8Gdj5Qtke66oP8U"; // Replace with your actual fee wallet address
 
 #[program]
 pub mod donation_program {
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>, fee_wallet: Pubkey) -> Result<()> {
-        // Check that the fee wallet is not zero address
-        require!(fee_wallet != Pubkey::default(), DonationError::InvalidFeeWallet);
-
+    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
         let program_state = &mut ctx.accounts.program_state;
         program_state.owner = ctx.accounts.initializer.key();
-        program_state.fee_wallet = fee_wallet;
+        program_state.fee_wallet = Pubkey::from_str(FEE_WALLET).unwrap();
         program_state.fee_percentage = 1000; // 10% in basis points
 
         msg!(
             "Program initialized with owner: {} and fee wallet: {}",
             ctx.accounts.initializer.key(),
-            fee_wallet
+            program_state.fee_wallet
         );
 
         Ok(())
@@ -104,18 +105,6 @@ pub mod donation_program {
         Ok(())
     }
 
-    pub fn update_fee_wallet(ctx: Context<UpdateFeeWallet>, new_fee_wallet: Pubkey) -> Result<()> {
-        // Check that new fee wallet is not zero address
-        require!(new_fee_wallet != Pubkey::default(), DonationError::InvalidFeeWallet);
-
-        let program_state = &mut ctx.accounts.program_state;
-        let _old_fee_wallet = program_state.fee_wallet;
-        program_state.fee_wallet = new_fee_wallet;
-
-        msg!("FeeWalletUpdated: newFeeWallet={}", new_fee_wallet);
-        Ok(())
-    }
-
     pub fn transfer_ownership(ctx: Context<TransferOwnership>, new_owner: Pubkey) -> Result<()> {
         // Check that new owner is not zero address
         require!(new_owner != Pubkey::default(), DonationError::InvalidOwner);
@@ -146,9 +135,6 @@ pub struct Initialize<'info> {
         bump
     )]
     pub program_state: Account<'info, ProgramState>,
-
-    /// CHECK: This is the fee wallet account
-    pub fee_wallet: AccountInfo<'info>,
 
     pub system_program: Program<'info, System>,
 }
@@ -190,24 +176,6 @@ pub struct Donate<'info> {
     pub donor_donations: Account<'info, DonorDonations>,
 
     pub system_program: Program<'info, System>,
-}
-
-#[derive(Accounts)]
-pub struct UpdateFeeWallet<'info> {
-    #[account(
-        constraint = owner.key() == program_state.owner
-    )]
-    pub owner: Signer<'info>,
-
-    #[account(
-        mut,
-        seeds = [b"program_state"],
-        bump
-    )]
-    pub program_state: Account<'info, ProgramState>,
-
-    /// CHECK: This is the new fee wallet account
-    pub new_fee_wallet: AccountInfo<'info>,
 }
 
 #[derive(Accounts)]
@@ -264,8 +232,6 @@ pub struct Donation {
 
 #[error_code]
 pub enum DonationError {
-    #[msg("Invalid fee wallet address")]
-    InvalidFeeWallet,
     #[msg("Invalid donation amount")]
     InvalidAmount,
     #[msg("Invalid recipient address")]
@@ -283,10 +249,10 @@ mod tests {
     use anchor_lang::solana_program::sysvar::SysvarId;
 
     #[test]
-    fn test_initialize_with_zero_fee_wallet() {
+    fn test_initialize_with_hardcoded_fee_wallet() {
         let program_id = id();
         let owner = Pubkey::new_unique();
-        let fee_wallet = Pubkey::default(); // Zero address
+        let fee_wallet = Pubkey::from_str(FEE_WALLET).unwrap();
         let program_state_pda = Pubkey::find_program_address(
             &[b"program_state"],
             &program_id,
@@ -351,10 +317,8 @@ mod tests {
             ),
         ];
 
-        // This test would fail because we can't easily mock the Anchor context
-        // In a real Anchor test, you would use the anchor_lang::prelude::* testing utilities
-        // For now, we'll just verify the logic in the initialize function
-        assert_eq!(fee_wallet, Pubkey::default());
+        // Verify the hardcoded fee wallet is set correctly
+        assert_eq!(fee_wallet, Pubkey::from_str(FEE_WALLET).unwrap());
     }
 
     #[test]
@@ -365,31 +329,6 @@ mod tests {
         
         // In a real Anchor test, this would be tested with proper context setup
         // The require! macro would throw an error for zero amount
-    }
-
-    #[test]
-    fn test_update_fee_wallet() {
-        let program_id = id();
-        let owner = Pubkey::new_unique();
-        let new_fee_wallet = Pubkey::new_unique();
-        let _program_state_pda = Pubkey::find_program_address(
-            &[b"program_state"],
-            &program_id,
-        ).0;
-
-        // Create a mock program state
-        let mut program_state = ProgramState {
-            owner,
-            fee_wallet: Pubkey::new_unique(),
-            fee_percentage: 1000,
-        };
-
-        // Test the update logic
-        let old_fee_wallet = program_state.fee_wallet;
-        program_state.fee_wallet = new_fee_wallet;
-
-        assert_eq!(program_state.fee_wallet, new_fee_wallet);
-        assert_ne!(program_state.fee_wallet, old_fee_wallet);
     }
 
     #[test]
@@ -405,7 +344,7 @@ mod tests {
         // Create a mock program state
         let mut program_state = ProgramState {
             owner: current_owner,
-            fee_wallet: Pubkey::new_unique(),
+            fee_wallet: Pubkey::from_str(FEE_WALLET).unwrap(),
             fee_percentage: 1000,
         };
 
@@ -483,7 +422,7 @@ mod tests {
     #[test]
     fn test_program_state_creation() {
         let owner = Pubkey::new_unique();
-        let fee_wallet = Pubkey::new_unique();
+        let fee_wallet = Pubkey::from_str(FEE_WALLET).unwrap();
         let fee_percentage = 1000u16;
 
         let program_state = ProgramState {
@@ -574,16 +513,13 @@ mod tests {
     #[test]
     fn test_error_codes() {
         // Test that our custom error codes are properly defined
-        let invalid_fee_wallet = DonationError::InvalidFeeWallet;
         let invalid_amount = DonationError::InvalidAmount;
         let invalid_recipient = DonationError::InvalidRecipient;
         let invalid_owner = DonationError::InvalidOwner;
 
         // These should compile without error
-        assert!(matches!(invalid_fee_wallet, DonationError::InvalidFeeWallet));
         assert!(matches!(invalid_amount, DonationError::InvalidAmount));
         assert!(matches!(invalid_recipient, DonationError::InvalidRecipient));
         assert!(matches!(invalid_owner, DonationError::InvalidOwner));
     }
-}
-
+} 
