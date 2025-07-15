@@ -59,7 +59,8 @@ export const projectSchema = z
   })
   .superRefine((data, ctx) => {
     const { currency, wallet_addr } = data;
-    const valid = currency === "ETH" ? ethRE.test(wallet_addr) : solRE.test(wallet_addr);
+    const valid =
+      currency === "ETH" ? ethRE.test(wallet_addr) : solRE.test(wallet_addr);
     if (!valid) {
       ctx.addIssue({
         code: ZodIssueCode.custom,
@@ -152,38 +153,40 @@ export default function CreateProjectPage() {
     setPreviewMode(!previewMode);
   }
 
-const handleConnectWallet = async () => {
-  setIsConnectingWallet(true);
-  const currency = form.getValues("currency");
+  const handleConnectWallet = async () => {
+    setIsConnectingWallet(true);
+    const currency = form.getValues("currency");
 
-  try {
-    if (currency === "SOL") {
-      const sol = (window as any).solana;
-      if (!sol?.isPhantom && !sol?.isMetaMask) {
-        throw new Error("No Solana wallet found");
+    try {
+      if (currency === "SOL") {
+        const sol = (window as any).solana;
+        if (!sol?.isPhantom && !sol?.isMetaMask) {
+          throw new Error("No Solana wallet found");
+        }
+        await sol.connect();
+        form.setValue("wallet_addr", sol.publicKey.toString());
+        toast.success("Solana wallet connected");
+        return;
       }
-      await sol.connect();
-      form.setValue("wallet_addr", sol.publicKey.toString());
-      toast.success("Solana wallet connected");
-      return;
-    }
 
-    // ETH path
-    const eth = (window as any).ethereum;
-    if (!eth?.isMetaMask) {
-      throw new Error("MetaMask not found");
+      // ETH path
+      const eth = (window as any).ethereum;
+      if (!eth?.isMetaMask) {
+        throw new Error("MetaMask not found");
+      }
+      const accounts = (await eth.request({
+        method: "eth_requestAccounts",
+      })) as string[];
+      form.setValue("wallet_addr", accounts[0]);
+      toast.success("Ethereum wallet connected");
+    } catch (err: any) {
+      toast.error(err.message || "Connection failed");
+    } finally {
+      setIsConnectingWallet(false);
     }
-    const accounts = (await eth.request({ method: "eth_requestAccounts" })) as string[];
-    form.setValue("wallet_addr", accounts[0]);
-    toast.success("Ethereum wallet connected");
-  } catch (err: any) {
-    toast.error(err.message || "Connection failed");
-  } finally {
-    setIsConnectingWallet(false);
-  }
-  // no wallet
-  toast.error("No supported wallet found");
-};
+    // no wallet
+    toast.error("No supported wallet found");
+  };
 
   return (
     <div className="min-h-screen text-gray-100 relative overflow-hidden w-full">
@@ -389,7 +392,10 @@ const handleConnectWallet = async () => {
                             </FormLabel>
                             <FormControl>
                               <div className="w-full">
-                                <Select value={field.value} onValueChange={field.onChange}>
+                                <Select
+                                  value={field.value}
+                                  onValueChange={field.onChange}
+                                >
                                   <SelectTrigger className="bg-gray-800/70 border-gray-700 text-white focus:border-cyan-500 transition-all duration-300">
                                     <SelectValue placeholder="Select Currency" />
                                   </SelectTrigger>

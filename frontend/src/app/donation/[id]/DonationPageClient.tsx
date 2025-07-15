@@ -20,7 +20,7 @@ import {
 import ProfileCard from "@/components/ui/ProfileCard";
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
 import { ContractService } from "@/services/contractService";
-import { SolanaContractService } from "@/services/solanaContractService"
+import { SolanaContractService } from "@/services/solanaContractService";
 import { createDonation } from "@/services/donationService";
 import { toast } from "sonner";
 import type { ProjectResponse } from "@/services/projectService";
@@ -46,6 +46,8 @@ declare global {
     };
   }
 }
+
+const RPC_URL = process.env.NEXT_PUBLIC_SOLANA_RPC_URL!;
 
 interface DonationPageClientProps {
   project: ProjectResponse | null;
@@ -192,8 +194,16 @@ export default function DonationPageClient({
       return;
     }
 
-    if (selectedValue < 0.0001) {
-      toast.error(`Minimum donation amount is 0.0001 ${currencySymbol}`);
+    // Validate minimum amounts based on currency
+    if (selectedCurrency === "SOL" && selectedValue < 0.001) {
+      toast.error("Minimum donation amount is 0.001 SOL", {
+        description: "Please increase your donation amount.",
+      });
+      return;
+    } else if (selectedCurrency === "ETH" && selectedValue < 0.0001) {
+      toast.error("Minimum donation amount is 0.0001 ETH", {
+        description: "Please increase your donation amount.",
+      });
       return;
     }
 
@@ -213,10 +223,96 @@ export default function DonationPageClient({
 
         setIsProcessing(true);
 
-        const connection = new SolConnection("https://api.mainnet-beta.solana.com");
+        // Use a reliable RPC endpoint with fallback
+        // Note: For production, consider using a dedicated RPC provider like:
+        // - QuickNode (https://quicknode.com)
+        // - Alchemy (https://alchemy.com)
+        // - Helius (https://helius.xyz)
+        // This will avoid rate limits and 403 errors from public endpoints
+        
+        // Detect if we're using testnet or mainnet based on the RPC URL
+        const isTestnet = process.env.NEXT_PUBLIC_SOLANA_RPC_URL?.includes('testnet') || false;
+        
+        const primaryEndpoint = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 
+          (isTestnet ? "https://api.testnet.solana.com" : "https://solana-mainnet.rpc.extrnode.com");
+        const fallbackEndpoint = isTestnet ? 
+          "https://api.testnet.solana.com" : "https://rpc.ankr.com/solana";
+        
+        console.log(`Using ${isTestnet ? 'testnet' : 'mainnet'} Solana network`);
+        
+        // Warn users if they're on testnet
+        if (isTestnet) {
+          toast.info("Using Solana Testnet", {
+            description: "You're connected to Solana testnet. Use testnet SOL for donations.",
+          });
+        }
+        
         const fromPubkey = new PublicKey(solanaProvider.publicKey!.toString());
-        const recipientPubkey = new PublicKey(project.wallet_addr);
+        
+        let connection;
+        let balance: number;
+        let estimatedFee: number;
+
+        // Try primary endpoint first
+        try {
+          connection = new SolConnection(primaryEndpoint);
+          balance = await connection.getBalance(fromPubkey);
+          console.log(`Connected to Solana RPC: ${primaryEndpoint}`);
+        } catch (error) {
+          console.warn(`Primary endpoint failed: ${primaryEndpoint}`, error);
+          
+          // Try fallback endpoint
+          try {
+            connection = new SolConnection(fallbackEndpoint);
+            balance = await connection.getBalance(fromPubkey);
+            console.log(`Connected to Solana RPC: ${fallbackEndpoint}`);
+          } catch (fallbackError) {
+            console.error(`Fallback endpoint also failed: ${fallbackEndpoint}`, fallbackError);
+            toast.error("Failed to connect to Solana network", {
+              description: "Unable to connect to Solana RPC endpoints. Please try again later.",
+            });
+            return;
+          }
+        }
+        
+        // Validate recipient address
+        let recipientPubkey;
+        try {
+          recipientPubkey = new PublicKey(project.wallet_addr);
+        } catch (error) {
+          toast.error("Invalid recipient address", {
+            description: "The project's wallet address is not a valid Solana address.",
+          });
+          return;
+        }
+
         const lamports = Math.round(selectedValue * LAMPORTS_PER_SOL);
+
+        // Estimate transaction fee
+        try {
+          const feeEstimate = await connection!.getFeeForMessage(
+            new SolTransaction().add(
+              SystemProgram.transfer({
+                fromPubkey,
+                toPubkey: recipientPubkey,
+                lamports: 1000, // Small amount for fee estimation
+              })
+            ).compileMessage()
+          );
+          estimatedFee = feeEstimate?.value || 5000; // Default to 5000 lamports if estimation fails
+        } catch (error) {
+          console.error("Failed to estimate fee:", error);
+          estimatedFee = 5000; // Use default fee
+        }
+        
+        const totalRequired = lamports + estimatedFee;
+        
+        if (balance! < totalRequired) {
+          toast.error("Insufficient SOL balance", {
+            description: `You need at least ${(totalRequired / LAMPORTS_PER_SOL).toFixed(4)} SOL (including fees)`,
+          });
+          return;
+        }
 
         const transaction = new SolTransaction().add(
           SystemProgram.transfer({
@@ -232,7 +328,17 @@ export default function DonationPageClient({
 
         const signedTx = await solanaProvider.signTransaction(transaction);
         const signature = await connection.sendRawTransaction(signedTx.serialize());
-        await connection.confirmTransaction(signature, "confirmed");
+        
+        // Wait for confirmation with timeout
+        const confirmation = await connection.confirmTransaction({
+          signature,
+          blockhash: latestBlockhash.blockhash,
+          lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+        }, 'confirmed');
+
+        if (confirmation.value.err) {
+          throw new Error(`Transaction failed: ${confirmation.value.err}`);
+        }
 
         await createDonation({
           amount: selectedValue,
@@ -250,9 +356,41 @@ export default function DonationPageClient({
         toast.success("Donation sent successfully!");
       } catch (error: unknown) {
         console.error("SOL donation error:", error);
-        toast.error("Failed to send donation", {
-          description: "An unexpected error occurred. Please try again.",
-        });
+        
+        // Provide more specific error messages
+        if (typeof error === "object" && error !== null) {
+          const err = error as any;
+          
+          if (err.message?.includes("User rejected")) {
+            toast.error("Transaction rejected", {
+              description: "You rejected the transaction in Phantom.",
+            });
+          } else if (err.message?.includes("insufficient funds")) {
+            toast.error("Insufficient funds", {
+              description: "You don't have enough SOL to complete this transaction.",
+            });
+          } else if (err.message?.includes("Invalid public key")) {
+            toast.error("Invalid wallet address", {
+              description: "Please check the recipient wallet address.",
+            });
+          } else if (err.message?.includes("blockhash")) {
+            toast.error("Transaction expired", {
+              description: "Please try again with a fresh transaction.",
+            });
+          } else if (err.message?.includes("Transaction failed")) {
+            toast.error("Transaction failed", {
+              description: err.message,
+            });
+          } else {
+            toast.error("Failed to send donation", {
+              description: err.message || "An unexpected error occurred. Please try again.",
+            });
+          }
+        } else {
+          toast.error("Failed to send donation", {
+            description: "An unexpected error occurred. Please try again.",
+          });
+        }
       } finally {
         setIsSubmitting(false);
         setIsProcessing(false);
@@ -906,13 +1044,14 @@ export default function DonationPageClient({
                           )}
 
                         {getSelectedValueETH() > 0 &&
-                          getSelectedValueETH() < 0.0001 && (
+                          ((selectedCurrency === "SOL" && getSelectedValueETH() < 0.001) ||
+                           (selectedCurrency === "ETH" && getSelectedValueETH() < 0.0001)) && (
                             <motion.div
                               initial={{ opacity: 0, y: -10 }}
                               animate={{ opacity: 1, y: 0 }}
                               className="absolute -bottom-6 left-0 text-xs text-red-400"
                             >
-                              Minimum amount is 0.0001 {currencySymbol}
+                              Minimum amount is {selectedCurrency === "SOL" ? "0.001 SOL" : "0.0001 ETH"}
                             </motion.div>
                           )}
 
@@ -931,7 +1070,7 @@ export default function DonationPageClient({
                       </div>
 
                       <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
-                        <span>Minimum: 0.0001 {currencySymbol}</span>
+                        <span>Minimum: {selectedCurrency === "SOL" ? "0.001 SOL" : "0.0001 ETH"}</span>
                         {!isLoadingPrice && ethPrice && ethPrice > 0 ? (
                           <span>1 {currencySymbol} = ${ethPrice.toFixed(2)}</span>
                         ) : isLoadingPrice ? (
@@ -988,7 +1127,8 @@ export default function DonationPageClient({
                     whileTap={{ scale: 0.98 }}
                     onClick={handleDonate}
                     disabled={
-                      getSelectedValueETH() < 0.0001 ||
+                      ((selectedCurrency === "SOL" && getSelectedValueETH() < 0.001) ||
+                       (selectedCurrency === "ETH" && getSelectedValueETH() < 0.0001)) ||
                       isLoadingPrice ||
                       !ethPrice ||
                       ethPrice <= 0 ||
@@ -1013,11 +1153,13 @@ export default function DonationPageClient({
                     ) : (
                       <>
                         <Heart className="w-5 h-5 group-hover:animate-pulse" />
-                        {getSelectedValueETH() >= 0.0001
+                        {((selectedCurrency === "SOL" && getSelectedValueETH() >= 0.001) ||
+                          (selectedCurrency === "ETH" && getSelectedValueETH() >= 0.0001))
                           ? `Support with ${getSelectedValueETH().toFixed(4)} ${currencySymbol} (≈ $${getSelectedValueUSD().toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`
                           : getSelectedValueETH() > 0 &&
-                              getSelectedValueETH() < 0.0001
-                            ? `Minimum donation is 0.0001 ${currencySymbol}`
+                            ((selectedCurrency === "SOL" && getSelectedValueETH() < 0.001) ||
+                             (selectedCurrency === "ETH" && getSelectedValueETH() < 0.0001))
+                            ? `Minimum donation is ${selectedCurrency === "SOL" ? "0.001 SOL" : "0.0001 ETH"}`
                             : "Choose an amount to support"}
                         <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                       </>
