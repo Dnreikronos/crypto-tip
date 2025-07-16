@@ -367,7 +367,8 @@ export default function DonationPageClient({
             });
           } else if (err.message?.includes("insufficient funds")) {
             toast.error("Insufficient funds", {
-              description: "You don't have enough SOL to complete this transaction.",
+              description:
+                "You don't have enough SOL to complete this transaction.",
             });
           } else if (err.message?.includes("Invalid public key")) {
             toast.error("Invalid wallet address", {
@@ -383,7 +384,9 @@ export default function DonationPageClient({
             });
           } else {
             toast.error("Failed to send donation", {
-              description: err.message || "An unexpected error occurred. Please try again.",
+              description:
+                err.message ||
+                "An unexpected error occurred. Please try again.",
             });
           }
         } else {
@@ -419,7 +422,8 @@ export default function DonationPageClient({
         });
       } catch {
         toast.error("Failed to switch to Ethereum Mainnet", {
-          description: "Please enable Ethereum Mainnet in MetaMask and try again.",
+          description:
+            "Please enable Ethereum Mainnet in MetaMask and try again.",
         });
         return;
       }
@@ -478,7 +482,8 @@ export default function DonationPageClient({
           });
         } else {
           toast.error("Failed to send donation", {
-            description: err.message || "An unexpected error occurred. Please try again.",
+            description:
+              err.message || "An unexpected error occurred. Please try again.",
           });
         }
       } else {
@@ -1044,14 +1049,19 @@ export default function DonationPageClient({
                           )}
 
                         {getSelectedValueETH() > 0 &&
-                          ((selectedCurrency === "SOL" && getSelectedValueETH() < 0.001) ||
-                           (selectedCurrency === "ETH" && getSelectedValueETH() < 0.0001)) && (
+                          ((selectedCurrency === "SOL" &&
+                            getSelectedValueETH() < 0.001) ||
+                            (selectedCurrency === "ETH" &&
+                              getSelectedValueETH() < 0.0001)) && (
                             <motion.div
                               initial={{ opacity: 0, y: -10 }}
                               animate={{ opacity: 1, y: 0 }}
                               className="absolute -bottom-6 left-0 text-xs text-red-400"
                             >
-                              Minimum amount is {selectedCurrency === "SOL" ? "0.001 SOL" : "0.0001 ETH"}
+                              Minimum amount is{" "}
+                              {selectedCurrency === "SOL"
+                                ? "0.001 SOL"
+                                : "0.0001 ETH"}
                             </motion.div>
                           )}
 
@@ -1070,9 +1080,16 @@ export default function DonationPageClient({
                       </div>
 
                       <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
-                        <span>Minimum: {selectedCurrency === "SOL" ? "0.001 SOL" : "0.0001 ETH"}</span>
+                        <span>
+                          Minimum:{" "}
+                          {selectedCurrency === "SOL"
+                            ? "0.001 SOL"
+                            : "0.0001 ETH"}
+                        </span>
                         {!isLoadingPrice && ethPrice && ethPrice > 0 ? (
-                          <span>1 {currencySymbol} = ${ethPrice.toFixed(2)}</span>
+                          <span>
+                            1 {currencySymbol} = ${ethPrice.toFixed(2)}
+                          </span>
                         ) : isLoadingPrice ? (
                           <span>Loading {currencySymbol} price...</span>
                         ) : (
@@ -1127,8 +1144,10 @@ export default function DonationPageClient({
                     whileTap={{ scale: 0.98 }}
                     onClick={handleDonate}
                     disabled={
-                      ((selectedCurrency === "SOL" && getSelectedValueETH() < 0.001) ||
-                       (selectedCurrency === "ETH" && getSelectedValueETH() < 0.0001)) ||
+                      (selectedCurrency === "SOL" &&
+                        getSelectedValueETH() < 0.001) ||
+                      (selectedCurrency === "ETH" &&
+                        getSelectedValueETH() < 0.0001) ||
                       isLoadingPrice ||
                       !ethPrice ||
                       ethPrice <= 0 ||
@@ -1153,12 +1172,16 @@ export default function DonationPageClient({
                     ) : (
                       <>
                         <Heart className="w-5 h-5 group-hover:animate-pulse" />
-                        {((selectedCurrency === "SOL" && getSelectedValueETH() >= 0.001) ||
-                          (selectedCurrency === "ETH" && getSelectedValueETH() >= 0.0001))
+                        {(selectedCurrency === "SOL" &&
+                          getSelectedValueETH() >= 0.001) ||
+                        (selectedCurrency === "ETH" &&
+                          getSelectedValueETH() >= 0.0001)
                           ? `Support with ${getSelectedValueETH().toFixed(4)} ${currencySymbol} (≈ $${getSelectedValueUSD().toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`
                           : getSelectedValueETH() > 0 &&
-                            ((selectedCurrency === "SOL" && getSelectedValueETH() < 0.001) ||
-                             (selectedCurrency === "ETH" && getSelectedValueETH() < 0.0001))
+                              ((selectedCurrency === "SOL" &&
+                                getSelectedValueETH() < 0.001) ||
+                                (selectedCurrency === "ETH" &&
+                                  getSelectedValueETH() < 0.0001))
                             ? `Minimum donation is ${selectedCurrency === "SOL" ? "0.001 SOL" : "0.0001 ETH"}`
                             : "Choose an amount to support"}
                         <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
