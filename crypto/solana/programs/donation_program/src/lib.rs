@@ -140,6 +140,7 @@ pub struct Initialize<'info> {
 }
 
 #[derive(Accounts)]
+#[instruction(amount: u64, crypto_type: String, message: String, is_anonymous: bool)]
 pub struct Donate<'info> {
     #[account(mut)]
     pub donor: Signer<'info>,
