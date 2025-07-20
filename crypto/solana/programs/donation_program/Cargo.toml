@@ -6,6 +6,9 @@ edition = "2021"
 [dependencies]
 anchor-lang = { version = "0.31.1", features = ["init-if-needed"] }
 
+[features]
+idl-build = ["anchor-lang/idl-build"]
+
 [lib]
 crate-type = ["cdylib", "lib"]
 
