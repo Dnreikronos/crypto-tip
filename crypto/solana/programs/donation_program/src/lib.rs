@@ -52,18 +52,13 @@ pub mod donation_program {
         let recipient_amount = amount - fee;
 
         // Transfer fee to fee wallet
-        let transfer_fee_ix = anchor_lang::solana_program::system_instruction::transfer(
-            &ctx.accounts.donor.key(),
-            &ctx.accounts.fee_wallet.key(),
-            fee,
-        );
-        anchor_lang::solana_program::program::invoke(
-            &transfer_fee_ix,
-            &[
-                ctx.accounts.donor.to_account_info(),
-                ctx.accounts.fee_wallet.to_account_info(),
-            ],
-        )?;
+        let cpi_accounts = anchor_lang::system_program::Transfer {
+            from: ctx.accounts.donor.to_account_info(),
+            to: ctx.accounts.fee_wallet.to_account_info(),
+        };
+        let cpi_context =
+            CpiContext::new(ctx.accounts.system_program.to_account_info(), cpi_accounts);
+        anchor_lang::system_program::transfer(cpi_context, fee)?;
 
         // Transfer remaining amount to recipient
         let transfer_recipient_ix = anchor_lang::solana_program::system_instruction::transfer(
@@ -85,7 +80,11 @@ pub mod donation_program {
             crypto_type: crypto_type.clone(),
             message: message.clone(),
             is_anonymous,
-            donor: if is_anonymous { None } else { Some(ctx.accounts.donor.key()) },
+            donor: if is_anonymous {
+                None
+            } else {
+                Some(ctx.accounts.donor.key())
+            },
             timestamp: Clock::get()?.unix_timestamp,
         };
 
@@ -145,9 +144,11 @@ pub struct Donate<'info> {
     #[account(mut)]
     pub donor: Signer<'info>,
 
+    /// CHECK: This is safe because we verify the recipient address in the instruction handler and ensure it is not the zero address or the fee wallet.
     #[account(mut)]
     pub recipient: AccountInfo<'info>,
 
+    /// CHECK: This is safe because we check that the fee_wallet matches the program state's fee_wallet.
     #[account(mut)]
     pub fee_wallet: AccountInfo<'info>,
 
@@ -254,10 +255,7 @@ mod tests {
         let program_id = id();
         let owner = Pubkey::new_unique();
         let fee_wallet = Pubkey::from_str(FEE_WALLET).unwrap();
-        let program_state_pda = Pubkey::find_program_address(
-            &[b"program_state"],
-            &program_id,
-        ).0;
+        let program_state_pda = Pubkey::find_program_address(&[b"program_state"], &program_id).0;
         let rent_sysvar = Rent::id();
         let system_program = system_program::ID;
 
@@ -327,7 +325,7 @@ mod tests {
         // Test that donating zero amount should fail
         let amount = 0u64;
         assert_eq!(amount, 0);
-        
+
         // In a real Anchor test, this would be tested with proper context setup
         // The require! macro would throw an error for zero amount
     }
@@ -337,10 +335,7 @@ mod tests {
         let program_id = id();
         let current_owner = Pubkey::new_unique();
         let new_owner = Pubkey::new_unique();
-        let _program_state_pda = Pubkey::find_program_address(
-            &[b"program_state"],
-            &program_id,
-        ).0;
+        let _program_state_pda = Pubkey::find_program_address(&[b"program_state"], &program_id).0;
 
         // Create a mock program state
         let mut program_state = ProgramState {
@@ -456,7 +451,10 @@ mod tests {
 
         assert_eq!(project_donations.donations.len(), 1);
         assert_eq!(project_donations.donations[0].amount, donation.amount);
-        assert_eq!(project_donations.donations[0].crypto_type, donation.crypto_type);
+        assert_eq!(
+            project_donations.donations[0].crypto_type,
+            donation.crypto_type
+        );
     }
 
     #[test]
@@ -478,7 +476,10 @@ mod tests {
 
         assert_eq!(donor_donations.donations.len(), 1);
         assert_eq!(donor_donations.donations[0].amount, donation.amount);
-        assert_eq!(donor_donations.donations[0].crypto_type, donation.crypto_type);
+        assert_eq!(
+            donor_donations.donations[0].crypto_type,
+            donation.crypto_type
+        );
     }
 
     #[test]
@@ -488,22 +489,15 @@ mod tests {
         let donor = Pubkey::new_unique();
 
         // Test project donations PDA
-        let (project_donations_pda, _) = Pubkey::find_program_address(
-            &[b"project_donations", project.as_ref()],
-            &program_id,
-        );
+        let (project_donations_pda, _) =
+            Pubkey::find_program_address(&[b"project_donations", project.as_ref()], &program_id);
 
         // Test donor donations PDA
-        let (donor_donations_pda, _) = Pubkey::find_program_address(
-            &[b"donor_donations", donor.as_ref()],
-            &program_id,
-        );
+        let (donor_donations_pda, _) =
+            Pubkey::find_program_address(&[b"donor_donations", donor.as_ref()], &program_id);
 
         // Test program state PDA
-        let (program_state_pda, _) = Pubkey::find_program_address(
-            &[b"program_state"],
-            &program_id,
-        );
+        let (program_state_pda, _) = Pubkey::find_program_address(&[b"program_state"], &program_id);
 
         // Verify PDAs are unique
         assert_ne!(project_donations_pda, donor_donations_pda);
@@ -523,4 +517,4 @@ mod tests {
         assert!(matches!(invalid_recipient, DonationError::InvalidRecipient));
         assert!(matches!(invalid_owner, DonationError::InvalidOwner));
     }
-} 
+}
