@@ -3,6 +3,7 @@
 import { Suspense, useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { donateSOL } from "@/services/solanaContractService";
 import {
   Heart,
   Coffee,
@@ -25,13 +26,8 @@ import { createDonation } from "@/services/donationService";
 import { toast } from "sonner";
 import type { ProjectResponse } from "@/services/projectService";
 import { useCryptoPrice } from "@/hooks/useCryptoPrice";
-import {
-  Connection as SolConnection,
-  PublicKey,
-  SystemProgram,
-  Transaction as SolTransaction,
-  LAMPORTS_PER_SOL,
-} from "@solana/web3.js";
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+import BN from "bn.js";
 
 declare global {
   interface Window {
@@ -41,7 +37,6 @@ declare global {
       publicKey?: {
         toString: () => string;
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       signTransaction: (tx: any) => Promise<any>;
     };
   }
@@ -101,7 +96,7 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-// Valores pré-definidos para doação em ETH
+//VAlue for ETH transaction
 const DONATION_PRESETS = [
   { amountETH: 0.002, label: "☕ Tea", description: "Buy me a tea" },
   { amountETH: 0.006, label: "🍕 Pizza", description: "Buy me a pizza slice" },
@@ -122,7 +117,9 @@ export default function DonationPageClient({
   const [showThankYou, setShowThankYou] = useState(false);
 
   // Currency — "ETH" (default) or "SOL"
-  const [selectedCurrency, setSelectedCurrency] = useState<"ETH" | "SOL">("ETH");
+  const [selectedCurrency, setSelectedCurrency] = useState<"ETH" | "SOL">(
+    "ETH",
+  );
   const currencySymbol = selectedCurrency;
   const networkName = selectedCurrency === "ETH" ? "Ethereum" : "Solana";
 
@@ -169,7 +166,7 @@ export default function DonationPageClient({
         });
       } else {
         toast.error(`Failed to fetch ${currencySymbol} price`, {
-          description: priceError.split("\n")[0], // Show only the first line of error
+          description: priceError.split("\n")[0],
         });
       }
     }
@@ -207,144 +204,49 @@ export default function DonationPageClient({
       return;
     }
 
-    // SOL Donation Flow
+    //Solana flow
+
     if (selectedCurrency === "SOL") {
-      const solanaProvider = window.solana;
-      if (!solanaProvider || !solanaProvider.isPhantom) {
-        toast.error("Phantom wallet not found", {
-          description: "Please install Phantom to donate with SOL.",
+      // The AnchorProvider in `donateSOL` will handle wallet detection and connection.
+      // We can add a simple check here to provide a user-friendly message if no wallet is installed.
+      const solanaWallet = (window as any).solana;
+      if (!solanaWallet) {
+        toast.error("Solana wallet not found", {
+          description:
+            "Please install a Solana wallet like Phantom to proceed.",
         });
         return;
       }
 
       try {
         setIsSubmitting(true);
-        await solanaProvider.connect();
-
         setIsProcessing(true);
 
-        // Use a reliable RPC endpoint with fallback
-        // Note: For production, consider using a dedicated RPC provider like:
-        // - QuickNode (https://quicknode.com)
-        // - Alchemy (https://alchemy.com)
-        // - Helius (https://helius.xyz)
-        // This will avoid rate limits and 403 errors from public endpoints
-        
-        // Detect if we're using testnet or mainnet based on the RPC URL
-        const isTestnet = process.env.NEXT_PUBLIC_SOLANA_RPC_URL?.includes('testnet') || false;
-        
-        const primaryEndpoint = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 
-          (isTestnet ? "https://api.testnet.solana.com" : "https://solana-mainnet.rpc.extrnode.com");
-        const fallbackEndpoint = isTestnet ? 
-          "https://api.testnet.solana.com" : "https://rpc.ankr.com/solana";
-        
-        console.log(`Using ${isTestnet ? 'testnet' : 'mainnet'} Solana network`);
-        
-        // Warn users if they're on testnet
-        if (isTestnet) {
-          toast.info("Using Solana Testnet", {
-            description: "You're connected to Solana testnet. Use testnet SOL for donations.",
-          });
-        }
-        
-        const fromPubkey = new PublicKey(solanaProvider.publicKey!.toString());
-        
-        let connection;
-        let balance: number;
-        let estimatedFee: number;
+        // Call the refactored service function which uses Anchor.
+        // It will handle the connection, transaction creation, and sending.
+        const { signature } = await donateSOL({
+          recipient: project.wallet_addr,
+          message,
+          anonymous: isAnonymous,
+          amount: selectedValue.toString(), // Ensure 'selectedValue' is the amount in SOL
+        });
 
-        // Try primary endpoint first
-        try {
-          connection = new SolConnection(primaryEndpoint);
-          balance = await connection.getBalance(fromPubkey);
-          console.log(`Connected to Solana RPC: ${primaryEndpoint}`);
-        } catch (error) {
-          console.warn(`Primary endpoint failed: ${primaryEndpoint}`, error);
-          
-          // Try fallback endpoint
-          try {
-            connection = new SolConnection(fallbackEndpoint);
-            balance = await connection.getBalance(fromPubkey);
-            console.log(`Connected to Solana RPC: ${fallbackEndpoint}`);
-          } catch (fallbackError) {
-            console.error(`Fallback endpoint also failed: ${fallbackEndpoint}`, fallbackError);
-            toast.error("Failed to connect to Solana network", {
-              description: "Unable to connect to Solana RPC endpoints. Please try again later.",
-            });
-            return;
-          }
-        }
-        
-        // Validate recipient address
-        let recipientPubkey;
-        try {
-          recipientPubkey = new PublicKey(project.wallet_addr);
-        } catch (error) {
-          toast.error("Invalid recipient address", {
-            description: "The project's wallet address is not a valid Solana address.",
-          });
-          return;
-        }
+        // After the transaction succeeds, the wallet's public key will be available.
+        const fromAddress = solanaWallet.publicKey?.toString();
 
-        const lamports = Math.round(selectedValue * LAMPORTS_PER_SOL);
-
-        // Estimate transaction fee
-        try {
-          const feeEstimate = await connection!.getFeeForMessage(
-            new SolTransaction().add(
-              SystemProgram.transfer({
-                fromPubkey,
-                toPubkey: recipientPubkey,
-                lamports: 1000, // Small amount for fee estimation
-              })
-            ).compileMessage()
+        if (!fromAddress) {
+          // This is a fallback case, as donateSOL should have failed if the key wasn't available.
+          throw new Error(
+            "Could not retrieve donor's wallet address after transaction.",
           );
-          estimatedFee = feeEstimate?.value || 5000; // Default to 5000 lamports if estimation fails
-        } catch (error) {
-          console.error("Failed to estimate fee:", error);
-          estimatedFee = 5000; // Use default fee
-        }
-        
-        const totalRequired = lamports + estimatedFee;
-        
-        if (balance! < totalRequired) {
-          toast.error("Insufficient SOL balance", {
-            description: `You need at least ${(totalRequired / LAMPORTS_PER_SOL).toFixed(4)} SOL (including fees)`,
-          });
-          return;
         }
 
-        const transaction = new SolTransaction().add(
-          SystemProgram.transfer({
-            fromPubkey,
-            toPubkey: recipientPubkey,
-            lamports,
-          }),
-        );
-
-        transaction.feePayer = fromPubkey;
-        const latestBlockhash = await connection.getLatestBlockhash();
-        transaction.recentBlockhash = latestBlockhash.blockhash;
-
-        const signedTx = await solanaProvider.signTransaction(transaction);
-        const signature = await connection.sendRawTransaction(signedTx.serialize());
-        
-        // Wait for confirmation with timeout
-        const confirmation = await connection.confirmTransaction({
-          signature,
-          blockhash: latestBlockhash.blockhash,
-          lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
-        }, 'confirmed');
-
-        if (confirmation.value.err) {
-          throw new Error(`Transaction failed: ${confirmation.value.err}`);
-        }
-
+        // Record the donation in your backend database
         await createDonation({
           amount: selectedValue,
           crypto_type: "SOL",
           tx_hash: signature,
-          from_addr: fromPubkey.toString(),
+          from_addr: fromAddress,
           message,
           anonymous: isAnonymous,
           project_id: project.id,
@@ -352,56 +254,22 @@ export default function DonationPageClient({
 
         setShowThankYou(true);
         setTimeout(() => setShowThankYou(false), 3000);
-
         toast.success("Donation sent successfully!");
-      } catch (error: unknown) {
-        console.error("SOL donation error:", error);
-        
-        // Provide more specific error messages
-        if (typeof error === "object" && error !== null) {
-          const err = error as any;
-          
-          if (err.message?.includes("User rejected")) {
-            toast.error("Transaction rejected", {
-              description: "You rejected the transaction in Phantom.",
-            });
-          } else if (err.message?.includes("insufficient funds")) {
-            toast.error("Insufficient funds", {
-              description:
-                "You don't have enough SOL to complete this transaction.",
-            });
-          } else if (err.message?.includes("Invalid public key")) {
-            toast.error("Invalid wallet address", {
-              description: "Please check the recipient wallet address.",
-            });
-          } else if (err.message?.includes("blockhash")) {
-            toast.error("Transaction expired", {
-              description: "Please try again with a fresh transaction.",
-            });
-          } else if (err.message?.includes("Transaction failed")) {
-            toast.error("Transaction failed", {
-              description: err.message,
-            });
-          } else {
-            toast.error("Failed to send donation", {
-              description:
-                err.message ||
-                "An unexpected error occurred. Please try again.",
-            });
-          }
-        } else {
-          toast.error("Failed to send donation", {
-            description: "An unexpected error occurred. Please try again.",
-          });
-        }
+      } catch (err: any) {
+        console.error("SOL donation error:", err);
+        // Anchor provides more specific error messages (e.g., "User rejected the request.")
+        // which will be caught and displayed here.
+        toast.error("Donation Failed", {
+          description:
+            err.message ||
+            "An unexpected error occurred. Please check the console.",
+        });
       } finally {
         setIsSubmitting(false);
         setIsProcessing(false);
       }
-
-      return; // End SOL flow
+      return; // Keep this to exit the function after handling the SOL case
     }
-
     // ETH Donation Flow (default)
 
     if (typeof window.ethereum === "undefined") {
@@ -418,7 +286,7 @@ export default function DonationPageClient({
       try {
         await window.ethereum.request({
           method: "wallet_switchEthereumChain",
-          params: [{ chainId: "0x1" }], // ETH mainnet chainId
+          params: [{ chainId: "0x1" }], //0x1 it's the mainet of ETH
         });
       } catch {
         toast.error("Failed to switch to Ethereum Mainnet", {
