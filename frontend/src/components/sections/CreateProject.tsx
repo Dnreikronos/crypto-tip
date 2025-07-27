@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import * as React from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -28,6 +29,18 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useWalletProviders } from "@/hooks/useWalletProviders";
 
+// Solana address validation function
+const isValidSolanaAddress = (address: string): boolean => {
+  // Check length (32-44 characters for Base58)
+  if (address.length < 32 || address.length > 44) {
+    return false;
+  }
+  
+  // Check if contains only valid Base58 characters
+  const base58Regex = /^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]+$/;
+  return base58Regex.test(address);
+};
+
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { useUploadThing } from "@/lib/uploadthing";
 import {
@@ -51,17 +64,32 @@ const projectSchema = z.object({
       message: "Goal must be a positive number",
     }),
   currency: z.enum(["ETH", "SOL"]),
-  wallet_addr: z
-    .string()
-    .min(42, { message: "Please enter a valid Ethereum wallet address" })
-    .startsWith("0x", { message: "Ethereum addresses should start with 0x" }),
+  wallet_addr: z.string().min(1, { message: "Wallet address is required" }),
   project_link: z.string().url({ message: "Please enter a valid URL" }),
   repo_link: z.string().url({ message: "Please enter a valid URL" }),
   image_url: z.string().optional(),
   accept_terms: z.boolean().refine((val) => val === true, {
     message: "You must accept the terms and conditions",
   }),
-});
+}).refine((data) => {
+  // Dynamic validation based on currency
+  if (data.currency === "SOL") {
+    if (data.wallet_addr.length < 32 || data.wallet_addr.length > 44) {
+      return false;
+    }
+    return isValidSolanaAddress(data.wallet_addr);
+  } else {
+    if (data.wallet_addr.length < 42) {
+      return false;
+    }
+    return data.wallet_addr.startsWith("0x");
+  }
+}, (data) => ({
+  message: data.currency === "SOL" 
+    ? "Please enter a valid Solana wallet address (Base58 format, 32-44 characters)"
+    : "Please enter a valid Ethereum wallet address (must start with 0x)",
+  path: ["wallet_addr"]
+}));
 
 type FormValues = z.infer<typeof projectSchema>;
 
@@ -93,6 +121,12 @@ export default function CreateProjectPage() {
 
   const formValues = form.watch();
   const selectedCurrency = formValues.currency;
+
+  // Clear wallet address when currency changes
+  React.useEffect(() => {
+    form.clearErrors("wallet_addr");
+    form.setValue("wallet_addr", "");
+  }, [selectedCurrency, form]);
 
   const { mutate: createProjectMutation, isPending } = useCreateProject();
 
@@ -446,7 +480,9 @@ export default function CreateProjectPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-gray-400">
-                              Ethereum Wallet Address
+                              {selectedCurrency === "SOL" 
+                                ? "Solana Wallet Address" 
+                                : "Ethereum Wallet Address"}
                             </FormLabel>
                             <FormControl>
                               <div className="flex gap-2">
@@ -455,22 +491,25 @@ export default function CreateProjectPage() {
                                   className="flex-1"
                                 >
                                   <Input
-                                    placeholder="0x... or connect your wallet"
+                                    placeholder={selectedCurrency === "SOL" 
+                                      ? "e.g., 3SghvWBRMkg8LuE1hHXtPXV9TqT2De6eUvsvRo94oPBU"
+                                      : "0x... or connect your wallet"}
                                     {...field}
                                     className="bg-gray-800/70 border-gray-700 text-white focus:border-cyan-500 transition-all duration-300"
                                   />
                                 </motion.div>
-                                <motion.div
-                                  whileHover={{ scale: 1.05 }}
-                                  whileTap={{ scale: 0.95 }}
-                                >
-                                  <Button
-                                    type="button"
-                                    onClick={handleConnectWallet}
-                                    disabled={isConnectingWallet || isPending}
-                                    variant="outline"
-                                    className="bg-gray-800/70 border-gray-700 hover:border-cyan-500 hover:bg-gray-700/70 text-cyan-400 hover:text-cyan-300 transition-all duration-300 px-4 whitespace-nowrap"
+                                {selectedCurrency === "ETH" && (
+                                  <motion.div
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
                                   >
+                                    <Button
+                                      type="button"
+                                      onClick={handleConnectWallet}
+                                      disabled={isConnectingWallet || isPending}
+                                      variant="outline"
+                                      className="bg-gray-800/70 border-gray-700 hover:border-cyan-500 hover:bg-gray-700/70 text-cyan-400 hover:text-cyan-300 transition-all duration-300 px-4 whitespace-nowrap"
+                                    >
                                     {isConnectingWallet ? (
                                       <span className="flex items-center gap-2">
                                         <svg
@@ -503,11 +542,13 @@ export default function CreateProjectPage() {
                                     )}
                                   </Button>
                                 </motion.div>
+                                )}
                               </div>
                             </FormControl>
                             <FormDescription className="text-gray-400">
-                              Enter your Ethereum wallet address manually or
-                              connect your wallet to auto-fill.
+                              {selectedCurrency === "SOL" 
+                                ? "Enter your Solana wallet address (Base58 format, 32-44 characters)"
+                                : "Enter your Ethereum wallet address manually or connect your wallet to auto-fill."}
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
