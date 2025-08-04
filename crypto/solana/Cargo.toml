@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "programs/donation_program"
+]
+
+[profile.release]
+overflow-checks = true
