@@ -1,16 +1,18 @@
 [package]
 name = "donation_program"
 version = "0.1.0"
+description = "Created with Anchor"
 edition = "2021"
-
-[dependencies]
-anchor-lang = { version = "0.31.1", features = ["init-if-needed"] }
-
-[features]
-idl-build = ["anchor-lang/idl-build"]
 
 [lib]
 crate-type = ["cdylib", "lib"]
+name = "donation_program"
 
-[profile.release]
-overflow-checks = true 
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+
+[dependencies]
+anchor-lang = { version = "0.31.1", features = ["init-if-needed"] }
