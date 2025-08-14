@@ -6,45 +6,39 @@ import {
 } from "@solana/web3.js";
 import { Program, AnchorProvider, web3, BN, Idl } from "@coral-xyz/anchor";
 
-// Interface para o programa de doação
-interface DonationProgram extends Idl {
-  address: string;
-  metadata: {
-    name: string;
-    version: string;
-    spec: string;
+// Interface para o programa de doação - compatível com múltiplas versões do Anchor
+interface DonationProgram {
+  version?: string;
+  name?: string;
+  address?: string;
+  metadata?: {
+    name?: string;
+    version?: string;
+    spec?: string;
+    [key: string]: any;
   };
-  accounts?: Array<{
-    name: string;
-    type: {
-      kind: "struct";
-      fields: Array<{
-        name: string;
-        type: string;
-      }>;
-    };
-  }>;
+  accounts?: Array<any>;
   instructions: Array<{
     name: string;
-    discriminator: number[];
+    discriminator?: number[];
     accounts: Array<{
       name: string;
+      isMut?: boolean;
+      isSigner?: boolean;
       writable?: boolean;
       signer?: boolean;
-      pda?: {
-        seeds: Array<{
-          kind: string;
-          value?: number[];
-          path?: string;
-        }>;
-      };
+      pda?: any;
       address?: string;
+      [key: string]: any;
     }>;
     args: Array<{
       name: string;
-      type: string;
+      type: any;
     }>;
   }>;
+  types?: Array<any>;
+  errors?: Array<any>;
+  [key: string]: any;
 }
 
 export interface SolanaDonationParams {
@@ -78,15 +72,28 @@ const getProgramIdl = async (): Promise<DonationProgram> => {
     }
 
     const json = JSON.parse(rawText);
-    console.log("Successfully parsed IDL object. Program name:", json.metadata?.name);
+    console.log("Successfully parsed IDL object");
+    console.log("IDL structure:", {
+      hasAddress: !!json.address,
+      hasMetadata: !!json.metadata,
+      metadataName: json.metadata?.name,
+      hasInstructions: !!json.instructions,
+      instructionsCount: json.instructions?.length
+    });
     
-    // Validar estrutura básica do IDL baseada na estrutura real
-    if (!json.metadata?.name || !json.instructions || !Array.isArray(json.instructions)) {
-      throw new Error("Invalid IDL structure: missing required fields (metadata.name or instructions)");
+    // Validar estrutura básica do IDL - mais leniente
+    if (!json.instructions || !Array.isArray(json.instructions)) {
+      throw new Error("Invalid IDL structure: missing instructions array");
+    }
+    
+    // O metadata é opcional em algumas versões do Anchor
+    if (json.metadata && !json.metadata.name) {
+      console.warn("Warning: metadata exists but missing name");
     }
 
+    // O address também pode ser opcional dependendo da versão
     if (!json.address) {
-      throw new Error("Invalid IDL structure: missing program address");
+      console.warn("Warning: IDL missing program address field");
     }
 
     // Verificar se possui a instrução 'donate'
@@ -142,7 +149,7 @@ export const donateSOL = async (
   }
 
   const idl = await getProgramIdl();
-  console.log("IDL loaded successfully:", idl.metadata.name);
+  console.log("IDL loaded successfully:", idl.metadata?.name || idl.address || "unknown");
 
   // Verificar variáveis de ambiente
   if (!process.env.NEXT_PUBLIC_SOLANA_RPC_URL) {
@@ -180,10 +187,10 @@ export const donateSOL = async (
 
   console.log("Connected to wallet:", donorPubkey.toString());
 
-  // Criar instância do programa com tipo correto
+  // Criar instância do programa - usar como Idl genérico para compatibilidade
   console.log("Creating Program instance...");
-  const program = new Program<DonationProgram>( 
-    idl,
+  const program = new Program( 
+    idl as Idl,
     programId,
     provider,
   );
