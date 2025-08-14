@@ -104,6 +104,9 @@ const getProgramIdl = async (): Promise<DonationProgram> => {
 
     console.log("IDL validation passed successfully");
 
+    // Usar o IDL original sem transformações - deixar o Anchor SDK lidar com ele
+    console.log("Using original IDL structure");
+
     return json as DonationProgram;
   } catch (error) {
     console.error("Error fetching/parsing IDL:", error);
@@ -187,14 +190,45 @@ export const donateSOL = async (
 
   console.log("Connected to wallet:", donorPubkey.toString());
 
-  // Criar instância do programa - usar como Idl genérico para compatibilidade
+  // Criar instância do programa seguindo a documentação do Anchor
   console.log("Creating Program instance...");
-  const program = new Program( 
-    idl as Idl,
-    programId,
-    provider,
-  );
-  console.log("Program instance created successfully with ID:", program.programId.toString());
+  console.log("IDL being passed to Program:", {
+    hasVersion: 'version' in idl,
+    hasName: 'name' in idl,
+    version: idl.version,
+    name: idl.name,
+    instructionsCount: idl.instructions?.length
+  });
+  
+  let program;
+  try {
+    // Segundo a documentação, o Program precisa do IDL e um objeto com connection
+    // Opção 1: Passar o provider completo (recomendado)
+    program = new Program(
+      idl as any, // Usar any temporariamente para compatibilidade
+      programId,
+      provider
+    );
+    console.log("Program instance created successfully with ID:", program.programId.toString());
+  } catch (programError) {
+    console.error("Failed to create Program instance:", programError);
+    
+    // Tentar alternativa: passar apenas connection como segundo parâmetro
+    try {
+      console.log("Trying alternative: Program with just connection...");
+      program = new Program(
+        idl as any,
+        {
+          connection
+        }
+      );
+      console.log("Program instance created with connection only");
+    } catch (altError) {
+      console.error("Alternative also failed:", altError);
+      console.error("IDL structure:", JSON.stringify(idl, null, 2).substring(0, 500));
+      throw new Error(`Failed to initialize Anchor Program: ${programError instanceof Error ? programError.message : String(programError)}`);
+    }
+  }
 
 
   const recipientPubkey = new PublicKey(recipient);
