@@ -8,28 +8,41 @@ import { Program, AnchorProvider, web3, BN, Idl } from "@coral-xyz/anchor";
 
 // Interface para o programa de doação
 interface DonationProgram extends Idl {
-  name: "donation_program";
-  accounts: Array<{
+  address: string;
+  metadata: {
     name: string;
-    type: {web3
+    version: string;
+    spec: string;
+  };
+  accounts?: Array<{
+    name: string;
+    type: {
       kind: "struct";
       fields: Array<{
         name: string;
-        type: any;
+        type: string;
       }>;
     };
   }>;
   instructions: Array<{
     name: string;
+    discriminator: number[];
     accounts: Array<{
       name: string;
-      isMut?: boolean;
-      isSigner?: boolean;
-      pda?: any;
+      writable?: boolean;
+      signer?: boolean;
+      pda?: {
+        seeds: Array<{
+          kind: string;
+          value?: number[];
+          path?: string;
+        }>;
+      };
+      address?: string;
     }>;
     args: Array<{
       name: string;
-      type: any;
+      type: string;
     }>;
   }>;
 }
@@ -65,18 +78,24 @@ const getProgramIdl = async (): Promise<DonationProgram> => {
     }
 
     const json = JSON.parse(rawText);
-    console.log("Successfully parsed IDL object. Program name:", json.name);
+    console.log("Successfully parsed IDL object. Program name:", json.metadata?.name);
     
-    // Validar estrutura básica do IDL
-    if (!json.name || !json.instructions || !Array.isArray(json.instructions)) {
-      throw new Error("Invalid IDL structure: missing required fields");
+    // Validar estrutura básica do IDL baseada na estrutura real
+    if (!json.metadata?.name || !json.instructions || !Array.isArray(json.instructions)) {
+      throw new Error("Invalid IDL structure: missing required fields (metadata.name or instructions)");
+    }
+
+    if (!json.address) {
+      throw new Error("Invalid IDL structure: missing program address");
     }
 
     // Verificar se possui a instrução 'donate'
-    const donateInstruction = json.instructions.find((inst: any) => inst.name === 'donate');
+    const donateInstruction = json.instructions.find((inst: { name: string }) => inst.name === 'donate');
     if (!donateInstruction) {
       throw new Error("IDL is missing 'donate' instruction");
     }
+
+    console.log("IDL validation passed successfully");
 
     return json as DonationProgram;
   } catch (error) {
@@ -123,7 +142,7 @@ export const donateSOL = async (
   }
 
   const idl = await getProgramIdl();
-  console.log("IDL loaded successfully:", idl.name);
+  console.log("IDL loaded successfully:", idl.metadata.name);
 
   // Verificar variáveis de ambiente
   if (!process.env.NEXT_PUBLIC_SOLANA_RPC_URL) {
@@ -138,7 +157,7 @@ export const donateSOL = async (
   const connection = new Connection(network, "confirmed");
 
   // Verificar carteira Solana
-  const solanaWallet = (window as any).solana;
+  const solanaWallet = (window as { solana?: { isPhantom?: boolean; connect: () => Promise<void>; publicKey?: { toString: () => string } } }).solana;
   if (!solanaWallet || !solanaWallet.isPhantom) {
     throw new Error("Phantom wallet not found or not installed");
   }
