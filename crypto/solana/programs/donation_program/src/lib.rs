@@ -46,7 +46,7 @@ pub mod donation_program {
 
         let cpi_accounts = anchor_lang::system_program::Transfer {
             from: ctx.accounts.donor.to_account_info(),
-            to: ctx.accounts.feeWallet.to_account_info(),
+            to: ctx.accounts.fee_wallet.to_account_info(),
         };
         let cpi_ctx =
             CpiContext::new(ctx.accounts.system_program.to_account_info(), cpi_accounts);
@@ -143,12 +143,12 @@ pub struct Donate<'info> {
 
     /// CHECK: must match program_state.fee_wallet
     #[account(mut)]
-    pub feeWallet: AccountInfo<'info>,
+    pub fee_wallet: AccountInfo<'info>,
 
     #[account(
         seeds = [b"program_state"],
         bump,
-        constraint = feeWallet.key() == program_state.fee_wallet
+        constraint = fee_wallet.key() == program_state.fee_wallet
     )]
     pub program_state: Account<'info, ProgramState>,
 
@@ -228,4 +228,3 @@ pub enum DonationError {
     #[msg("Invalid owner address")]
     InvalidOwner,
 }
-
