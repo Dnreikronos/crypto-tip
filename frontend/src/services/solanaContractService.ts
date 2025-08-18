@@ -4,41 +4,70 @@ import {
   SystemProgram,
   LAMPORTS_PER_SOL,
 } from "@solana/web3.js";
-import { Program, AnchorProvider, web3, BN, Idl } from "@coral-xyz/anchor";
+import { Program, AnchorProvider, BN, Idl } from "@coral-xyz/anchor";
 
-// Interface para o programa de doação - compatível com múltiplas versões do Anchor
-interface DonationProgram {
-  version?: string;
-  name?: string;
-  address?: string;
-  metadata?: {
-    name?: string;
-    version?: string;
-    spec?: string;
-    [key: string]: any;
-  };
-  accounts?: Array<any>;
-  instructions: Array<{
+// Proper IDL interface that matches with the contract
+interface DonationProgramIdl extends Idl {
+  address: string;
+  metadata: {
     name: string;
-    discriminator?: number[];
-    accounts: Array<{
-      name: string;
-      isMut?: boolean;
-      isSigner?: boolean;
-      writable?: boolean;
-      signer?: boolean;
-      pda?: any;
-      address?: string;
-      [key: string]: any;
-    }>;
-    args: Array<{
-      name: string;
-      type: any;
-    }>;
-  }>;
-  types?: Array<any>;
-  errors?: Array<any>;
-  [key: string]: any;
+    version: string;
+    spec: string;
+  };
+  instructions: [
+    {
+      name: "donate";
+      discriminator: number[];
+      accounts: [
+        { name: "donor"; writable: true; signer: true },
+        { name: "recipient"; writable: true },
+        { name: "fee_wallet"; writable: true },
+        { name: "program_state"; pda: { seeds: [{ kind: "const"; value: number[] }] } },
+        { name: "project_donations"; writable: true; pda: any },
+        { name: "donor_donations"; writable: true; pda: any },
+        { name: "system_program"; address: string }
+      ];
+      args: [
+        { name: "amount"; type: "u64" },
+        { name: "crypto_type"; type: "string" },
+        { name: "message"; type: "string" },
+        { name: "is_anonymous"; type: "bool" }
+      ];
+    },
+    {
+      name: "initialize";
+      discriminator: number[];
+      accounts: any[];
+      args: [];
+    },
+    {
+      name: "transfer_ownership";
+      discriminator: number[];
+      accounts: any[];
+      args: [{ name: "new_owner"; type: "pubkey" }];
+    }
+  ];
+  accounts: [
+    { name: "ProgramState"; discriminator: number[] },
+    { name: "ProjectDonations"; discriminator: number[] },
+    { name: "DonorDonations"; discriminator: number[] }
+  ];
+  types: [
+    {
+      name: "ProgramState";
+      type: {
+        kind: "struct";
+        fields: [
+          { name: "owner"; type: "pubkey" },
+          { name: "fee_wallet"; type: "pubkey" },
+          { name: "fee_percentage"; type: "u16" }
+        ];
+      };
+    }
+  ];
+  errors: any[];
+}
+
 }
 
 export interface SolanaDonationParams {
