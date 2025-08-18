@@ -68,13 +68,21 @@ interface DonationProgramIdl extends Idl {
   errors: any[];
 }
 
+// Simple wallet interface for Phantom
+interface PhantomWallet {
+  isPhantom: boolean;
+  publicKey: PublicKey | null;
+  connect(): Promise<{ publicKey: PublicKey }>;
+  disconnect(): Promise<void>;
+  signTransaction(transaction: any): Promise<any>;
+  signAllTransactions(transactions: any[]): Promise<any[]>;
 }
 
 export interface SolanaDonationParams {
   recipient: string;
   message: string;
   anonymous: boolean;
-  amount: string; 
+  amount: string;
 }
 
 export interface SolanaDonationResponse {
@@ -83,83 +91,50 @@ export interface SolanaDonationResponse {
 
 const programId = new PublicKey(process.env.NEXT_PUBLIC_SOLANA_PROGRAM_ID!);
 
-const getProgramIdl = async (): Promise<DonationProgram> => {
+const getProgramIdl = async (): Promise<DonationProgramIdl> => {
   console.log("Attempting to fetch IDL from /donation_program.json");
-  
+
   try {
     const resp = await fetch('/donation_program.json');
-    
+
     if (!resp.ok) {
       throw new Error(`Failed to fetch IDL. Status: ${resp.status} - ${resp.statusText}`);
     }
 
-    const rawText = await resp.text();
-    console.log("Raw text from fetched IDL (first 200 chars):", rawText.substring(0, 200));
-
-    if (!rawText || rawText.trim() === '') {
-      throw new Error("IDL file is empty");
-    }
-
-    const json = JSON.parse(rawText);
+    const json = await resp.json();
     console.log("Successfully parsed IDL object");
-    console.log("IDL structure:", {
-      hasAddress: !!json.address,
-      hasMetadata: !!json.metadata,
-      metadataName: json.metadata?.name,
-      hasInstructions: !!json.instructions,
-      instructionsCount: json.instructions?.length
-    });
+
     
-    // Validar estrutura básica do IDL - mais leniente
     if (!json.instructions || !Array.isArray(json.instructions)) {
       throw new Error("Invalid IDL structure: missing instructions array");
     }
-    
-    // O metadata é opcional em algumas versões do Anchor
-    if (json.metadata && !json.metadata.name) {
-      console.warn("Warning: metadata exists but missing name");
-    }
 
-    // O address também pode ser opcional dependendo da versão
-    if (!json.address) {
-      console.warn("Warning: IDL missing program address field");
-    }
-
-    // Verificar se possui a instrução 'donate'
     const donateInstruction = json.instructions.find((inst: { name: string }) => inst.name === 'donate');
     if (!donateInstruction) {
       throw new Error("IDL is missing 'donate' instruction");
     }
 
     console.log("IDL validation passed successfully");
-
-    // Usar o IDL original sem transformações - deixar o Anchor SDK lidar com ele
-    console.log("Using original IDL structure");
-
-    return json as DonationProgram;
+    return json as DonationProgramIdl;
   } catch (error) {
     console.error("Error fetching/parsing IDL:", error);
-    if (error instanceof SyntaxError) {
-      throw new Error("IDL file contains invalid JSON");
-    }
     throw error;
   }
 };
-
 
 export const donateSOL = async (
   params: SolanaDonationParams,
 ): Promise<SolanaDonationResponse> => {
   const { recipient, message, anonymous, amount } = params;
 
-  console.log("Starting SOL donation process with params:", { 
-    recipient, 
-    message: message ? "***" : "empty", 
-    anonymous, 
-    amount 
+  console.log("Starting SOL donation process with params:", {
+    recipient,
+    message: message ? "***" : "empty",
+    anonymous,
+    amount
   });
 
-  // Validar parâmetros
+  
   if (!recipient || !amount) {
     throw new Error("Recipient and amount are required");
   }
@@ -173,7 +148,6 @@ export const donateSOL = async (
     throw new Error("Minimum donation amount is 0.001 SOL");
   }
 
-  // Validar se o recipient é um endereço válido
   try {
     new PublicKey(recipient);
   } catch {
@@ -181,145 +155,106 @@ export const donateSOL = async (
   }
 
   const idl = await getProgramIdl();
-  console.log("IDL loaded successfully:", idl.metadata?.name || idl.address || "unknown");
+  console.log("IDL loaded successfully:", idl.metadata?.name || "unknown");
 
-  // Verificar variáveis de ambiente
+  
   if (!process.env.NEXT_PUBLIC_SOLANA_RPC_URL) {
     throw new Error("NEXT_PUBLIC_SOLANA_RPC_URL not configured");
-  }
-
-  if (!process.env.NEXT_PUBLIC_SOLANA_PROGRAM_ID) {
-    throw new Error("NEXT_PUBLIC_SOLANA_PROGRAM_ID not configured");
   }
 
   const network = process.env.NEXT_PUBLIC_SOLANA_RPC_URL;
   const connection = new Connection(network, "confirmed");
 
-  // Verificar carteira Solana
-  const solanaWallet = (window as { solana?: { isPhantom?: boolean; connect: () => Promise<void>; publicKey?: { toString: () => string } } }).solana;
-  if (!solanaWallet || !solanaWallet.isPhantom) {
+  // Get Phantom wallet
+  const phantomWallet = (window as any).solana as PhantomWallet;
+  if (!phantomWallet || !phantomWallet.isPhantom) {
     throw new Error("Phantom wallet not found or not installed");
   }
 
-  const provider = new AnchorProvider(
-    connection,
-    solanaWallet,
-    { preflightCommitment: "confirmed" },
-  );
-
-  if (!provider.wallet.publicKey) {
+  // Connect wallet if not connected
+  if (!phantomWallet.publicKey) {
     console.log("Wallet not connected, attempting to connect...");
-    await provider.wallet.connect();
+    await phantomWallet.connect();
   }
-  
-  const donorPubkey = provider.wallet.publicKey;
-  if (!donorPubkey) {
+
+  if (!phantomWallet.publicKey) {
     throw new Error("Failed to connect to wallet");
   }
 
-  console.log("Connected to wallet:", donorPubkey.toString());
+  console.log("Connected to wallet:", phantomWallet.publicKey.toString());
 
-  // Criar instância do programa seguindo a documentação do Anchor
-  console.log("Creating Program instance...");
-  console.log("IDL being passed to Program:", {
-    hasVersion: 'version' in idl,
-    hasName: 'name' in idl,
-    version: idl.version,
-    name: idl.name,
-    instructionsCount: idl.instructions?.length
-  });
-  
-  let program;
-  try {
-    // Segundo a documentação, o Program precisa do IDL e um objeto com connection
-    // Opção 1: Passar o provider completo (recomendado)
-    program = new Program(
-      idl as any, // Usar any temporariamente para compatibilidade
-      programId,
-      provider
-    );
-    console.log("Program instance created successfully with ID:", program.programId.toString());
-  } catch (programError) {
-    console.error("Failed to create Program instance:", programError);
-    
-    // Tentar alternativa: passar apenas connection como segundo parâmetro
-    try {
-      console.log("Trying alternative: Program with just connection...");
-      program = new Program(
-        idl as any,
-        {
-          connection
-        }
-      );
-      console.log("Program instance created with connection only");
-    } catch (altError) {
-      console.error("Alternative also failed:", altError);
-      console.error("IDL structure:", JSON.stringify(idl, null, 2).substring(0, 500));
-      throw new Error(`Failed to initialize Anchor Program: ${programError instanceof Error ? programError.message : String(programError)}`);
-    }
-  }
+ 
+  const provider = new AnchorProvider(
+    connection,
+    phantomWallet as any, // Cast to bypass type checking
+    { preflightCommitment: "confirmed" },
+  );
 
+ 
+  const program = new Program(idl as any, provider);
+  console.log("Program instance created successfully");
 
+  const donorPubkey = phantomWallet.publicKey;
   const recipientPubkey = new PublicKey(recipient);
   const amountInLamports = new BN(numAmount * LAMPORTS_PER_SOL);
 
-  console.log("Donation amount:", { 
-    sol: numAmount, 
-    lamports: amountInLamports.toString() 
-  });
+  // Balance check
+  const balance = await connection.getBalance(donorPubkey);
+  console.log("Donor balance:", balance / LAMPORTS_PER_SOL, "SOL");
 
-  // Verificar se o donor tem saldo suficiente
-  try {
-    const balance = await connection.getBalance(donorPubkey);
-    console.log("Donor balance:", balance / LAMPORTS_PER_SOL, "SOL");
-    
-    if (balance < amountInLamports.toNumber()) {
-      throw new Error("Insufficient balance for donation");
-    }
-  } catch (error: unknown) {
-    console.error("Error checking balance:", error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    throw new Error("Failed to check wallet balance: " + errorMessage);
+  if (balance < amountInLamports.toNumber()) {
+    throw new Error("Insufficient balance for donation");
   }
 
-  // Derivar contas PDA
-  console.log("Deriving PDA accounts...");
+  
   const [programStateAccount] = PublicKey.findProgramAddressSync(
     [Buffer.from("program_state")],
-    program.programId,
+    programId, 
   );
-  
+
   const [projectDonationsAccount] = PublicKey.findProgramAddressSync(
     [Buffer.from("project_donations"), recipientPubkey.toBuffer()],
-    program.programId,
+    programId,
   );
 
   const [donorDonationsAccount] = PublicKey.findProgramAddressSync(
     [Buffer.from("donor_donations"), donorPubkey.toBuffer()],
-    program.programId,
+    programId,
   );
 
-  console.log("PDA accounts derived:", {
-    programState: programStateAccount.toString(),
-    projectDonations: projectDonationsAccount.toString(),
-    donorDonations: donorDonationsAccount.toString(),
-  });
-
-  // Buscar estado do programa
+  
   let programState;
   try {
     console.log("Fetching program state...");
-    programState = await program.account.programState.fetch(programStateAccount);
+  
+    programState = await (program.account as any).programState.fetch(programStateAccount);
     console.log("Program state fetched successfully");
+    console.log("Program state structure:", programState);
+    console.log("Program state keys:", Object.keys(programState));
   } catch (error: unknown) {
     console.error("Error fetching program state:", error);
     throw new Error("Failed to fetch program state. Make sure the program is initialized.");
   }
 
-  const feeWalletPubkey = programState.feeWallet;
+  
+  if (!programState) {
+    throw new Error("Program state is null or undefined");
+  }
+
+  
+  let feeWalletPubkey;
+  if (programState.fee_wallet) {
+    feeWalletPubkey = programState.fee_wallet;
+  } else if (programState.feeWallet) {
+    feeWalletPubkey = programState.feeWallet;
+  } else {
+    console.error("Available program state fields:", Object.keys(programState));
+    throw new Error("Fee wallet not found in program state. Available fields: " + Object.keys(programState).join(", "));
+  }
+
   console.log("Fee wallet:", feeWalletPubkey.toString());
 
-  // Executar transação de doação
+  // Execute donation transaction
   try {
     console.log("Executing donation transaction...");
     const signature = await program.methods
@@ -337,15 +272,14 @@ export const donateSOL = async (
         projectDonations: projectDonationsAccount,
         donorDonations: donorDonationsAccount,
         systemProgram: SystemProgram.programId,
-      })
+      } as any) // Use 'as any' to bypass strict typing for account names
       .rpc();
 
     console.log("Transaction successful with signature:", signature);
     return { signature };
   } catch (error: unknown) {
     console.error("Transaction failed:", error);
-    
-    // Tratar erros específicos do Anchor
+
     if (error && typeof error === 'object' && 'code' in error) {
       const anchorError = error as { code: number; message?: string };
       switch (anchorError.code) {
@@ -359,7 +293,7 @@ export const donateSOL = async (
           throw new Error(`Transaction failed: ${anchorError.message || 'Unknown error'}`);
       }
     }
-    
+
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(`Transaction failed: ${errorMessage}`);
   }
