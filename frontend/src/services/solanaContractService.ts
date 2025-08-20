@@ -297,4 +297,33 @@ export const donateSOL = async (
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(`Transaction failed: ${errorMessage}`);
   }
+};};
+
+export const getProjectStats = async (recipient: string) => {
+  const recipientPubkey = new PublicKey(recipient);
+  const connection = new Connection(process.env.NEXT_PUBLIC_SOLANA_RPC_URL!, "confirmed");
+  const idl = await getProgramIdl();
+  
+  const provider = new AnchorProvider(connection, {} as any, {});
+  const program = new Program(idl, provider);
+
+  const [projectStatsAccount] = PublicKey.findProgramAddressSync(
+    [Buffer.from("project_stats"), recipientPubkey.toBuffer()],
+    programId,
+  );
+
+  try {
+    const stats = await (program.account as any).projectStats.fetch(projectStatsAccount);
+    return {
+      totalAmount: stats.totalAmount.toNumber() / LAMPORTS_PER_SOL,
+      donationCount: stats.donationCount,
+      lastDonation: new Date(stats.lastDonation * 1000),
+    };
+  } catch (error) {
+    return {
+      totalAmount: 0,
+      donationCount: 0,
+      lastDonation: null,
+    };
+  }
 };
