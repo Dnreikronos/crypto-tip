@@ -59,7 +59,7 @@
           }
         },
         {
-          "name": "project_donations",
+          "name": "project_stats",
           "writable": true,
           "pda": {
             "seeds": [
@@ -74,14 +74,10 @@
                   99,
                   116,
                   95,
-                  100,
-                  111,
-                  110,
+                  115,
+                  116,
                   97,
                   116,
-                  105,
-                  111,
-                  110,
                   115
                 ]
               },
@@ -93,7 +89,7 @@
           }
         },
         {
-          "name": "donor_donations",
+          "name": "donor_stats",
           "writable": true,
           "pda": {
             "seeds": [
@@ -106,14 +102,10 @@
                   111,
                   114,
                   95,
-                  100,
-                  111,
-                  110,
+                  115,
+                  116,
                   97,
                   116,
-                  105,
-                  111,
-                  110,
                   115
                 ]
               },
@@ -213,9 +205,56 @@
       ],
       "accounts": [
         {
+          "name": "program_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  103,
+                  114,
+                  97,
+                  109,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "current_owner",
           "signer": true
-        },
+        }
+      ],
+      "args": [
+        {
+          "name": "new_owner",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "update_fee_wallet",
+      "discriminator": [
+        236,
+        164,
+        201,
+        6,
+        176,
+        37,
+        80,
+        17
+      ],
+      "accounts": [
         {
           "name": "program_state",
           "writable": true,
@@ -243,12 +282,13 @@
           }
         },
         {
-          "name": "new_owner"
+          "name": "owner",
+          "signer": true
         }
       ],
       "args": [
         {
-          "name": "new_owner",
+          "name": "new_fee_wallet",
           "type": "pubkey"
         }
       ]
@@ -256,16 +296,16 @@
   ],
   "accounts": [
     {
-      "name": "DonorDonations",
+      "name": "DonorStats",
       "discriminator": [
-        189,
-        234,
-        9,
-        109,
-        115,
-        97,
-        202,
-        85
+        133,
+        161,
+        41,
+        157,
+        237,
+        213,
+        27,
+        11
       ]
     },
     {
@@ -282,16 +322,57 @@
       ]
     },
     {
-      "name": "ProjectDonations",
+      "name": "ProjectStats",
       "discriminator": [
-        12,
-        187,
+        230,
+        131,
+        75,
+        44,
+        146,
+        52,
+        127,
+        219
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "DonationEvent",
+      "discriminator": [
+        43,
+        125,
+        2,
+        48,
+        193,
+        140,
+        25,
+        191
+      ]
+    },
+    {
+      "name": "FeeWalletUpdatedEvent",
+      "discriminator": [
+        51,
+        252,
+        242,
+        32,
+        168,
+        158,
+        104,
+        210
+      ]
+    },
+    {
+      "name": "OwnershipTransferredEvent",
+      "discriminator": [
+        64,
+        151,
+        32,
+        57,
         187,
         155,
-        45,
-        111,
-        248,
-        61
+        242,
+        84
       ]
     }
   ],
@@ -310,16 +391,35 @@
       "code": 6002,
       "name": "InvalidOwner",
       "msg": "Invalid owner address"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidFeeWallet",
+      "msg": "Invalid fee wallet"
     }
   ],
   "types": [
     {
-      "name": "Donation",
+      "name": "DonationEvent",
       "type": {
         "kind": "struct",
         "fields": [
           {
+            "name": "donor",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "recipient",
+            "type": "pubkey"
+          },
+          {
             "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "fee",
             "type": "u64"
           },
           {
@@ -335,10 +435,48 @@
             "type": "bool"
           },
           {
-            "name": "donor",
-            "type": {
-              "option": "pubkey"
-            }
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DonorStats",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "total_donated",
+            "type": "u64"
+          },
+          {
+            "name": "donation_count",
+            "type": "u32"
+          },
+          {
+            "name": "last_donation",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FeeWalletUpdatedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "old_fee_wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "new_fee_wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "updated_by",
+            "type": "pubkey"
           },
           {
             "name": "timestamp",
@@ -348,19 +486,21 @@
       }
     },
     {
-      "name": "DonorDonations",
+      "name": "OwnershipTransferredEvent",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "donations",
-            "type": {
-              "vec": {
-                "defined": {
-                  "name": "Donation"
-                }
-              }
-            }
+            "name": "old_owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "new_owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
           }
         ]
       }
@@ -386,19 +526,21 @@
       }
     },
     {
-      "name": "ProjectDonations",
+      "name": "ProjectStats",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "donations",
-            "type": {
-              "vec": {
-                "defined": {
-                  "name": "Donation"
-                }
-              }
-            }
+            "name": "total_amount",
+            "type": "u64"
+          },
+          {
+            "name": "donation_count",
+            "type": "u32"
+          },
+          {
+            "name": "last_donation",
+            "type": "i64"
           }
         ]
       }
