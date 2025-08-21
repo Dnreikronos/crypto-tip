@@ -1,9 +1,6 @@
 use anchor_lang::prelude::*;
-use std::str::FromStr;
 
 declare_id!("BmNf7XjZZsy19oGcV4YaFvzRDmERo9PWhbUeabTvfzYE");
-
-const FEE_WALLET: &str = "HcbsE3qKtud5VsHWxha3jE14otZAV8Gdj5Qtke66oP8U";
 
 #[program]
 pub mod donation_program {
@@ -12,15 +9,10 @@ pub mod donation_program {
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
         let program_state = &mut ctx.accounts.program_state;
         program_state.owner = ctx.accounts.initializer.key();
-        program_state.fee_wallet = Pubkey::from_str(FEE_WALLET).unwrap();
-        program_state.fee_percentage = 1000;
+        program_state.fee_wallet = ctx.accounts.initializer.key(); // Default to initializer
+        program_state.fee_percentage = 1000; // 10% (1000 basis points)
 
-        msg!(
-            "Program initialized with owner: {} and fee wallet: {}",
-            ctx.accounts.initializer.key(),
-            program_state.fee_wallet
-        );
-
+        msg!("Program initialized with owner: {}", program_state.owner);
         Ok(())
     }
 
@@ -33,87 +25,164 @@ pub mod donation_program {
     ) -> Result<()> {
         require!(amount > 0, DonationError::InvalidAmount);
         require!(
-            ctx.accounts.recipient.key() != Pubkey::default(),
-            DonationError::InvalidRecipient
-        );
-        require!(
-            ctx.accounts.recipient.key() != ctx.accounts.program_state.fee_wallet,
+            ctx.accounts.recipient.key() != ctx.accounts.fee_wallet.key(),
             DonationError::InvalidRecipient
         );
 
-        let fee = (amount * ctx.accounts.program_state.fee_percentage as u64) / 10_000;
+        let program_state = &ctx.accounts.program_state;
+
+        // Calculate fee (10% = 1000 basis points)
+        let fee = (amount as u128 * program_state.fee_percentage as u128 / 10000) as u64;
         let recipient_amount = amount - fee;
 
-        let cpi_accounts = anchor_lang::system_program::Transfer {
+        // Transfer fee to fee wallet
+        let fee_transfer = anchor_lang::system_program::Transfer {
             from: ctx.accounts.donor.to_account_info(),
             to: ctx.accounts.fee_wallet.to_account_info(),
         };
-        let cpi_ctx =
-            CpiContext::new(ctx.accounts.system_program.to_account_info(), cpi_accounts);
-        anchor_lang::system_program::transfer(cpi_ctx, fee)?;
-
-        let ix = anchor_lang::solana_program::system_instruction::transfer(
-            &ctx.accounts.donor.key(),
-            &ctx.accounts.recipient.key(),
-            recipient_amount,
-        );
-        anchor_lang::solana_program::program::invoke(
-            &ix,
-            &[
-                ctx.accounts.donor.to_account_info(),
-                ctx.accounts.recipient.to_account_info(),
-            ],
+        anchor_lang::system_program::transfer(
+            CpiContext::new(ctx.accounts.system_program.to_account_info(), fee_transfer),
+            fee,
         )?;
 
-        let donation = Donation {
-            amount,
-            crypto_type: crypto_type.clone(),
-            message: message.clone(),
-            is_anonymous,
+        // Transfer remaining amount to recipient
+        let recipient_transfer = anchor_lang::system_program::Transfer {
+            from: ctx.accounts.donor.to_account_info(),
+            to: ctx.accounts.recipient.to_account_info(),
+        };
+        anchor_lang::system_program::transfer(
+            CpiContext::new(
+                ctx.accounts.system_program.to_account_info(),
+                recipient_transfer,
+            ),
+            recipient_amount,
+        )?;
+
+        // Update project stats
+        let project_stats = &mut ctx.accounts.project_stats;
+        project_stats.total_amount += amount;
+        project_stats.donation_count += 1;
+        project_stats.last_donation = Clock::get()?.unix_timestamp;
+
+        // Update donor stats (only if not anonymous)
+        if !is_anonymous {
+            let donor_stats = &mut ctx.accounts.donor_stats;
+            donor_stats.total_donated += amount;
+            donor_stats.donation_count += 1;
+            donor_stats.last_donation = Clock::get()?.unix_timestamp;
+        }
+
+        // Emit donation event with all details
+        emit!(DonationEvent {
             donor: if is_anonymous {
                 None
             } else {
                 Some(ctx.accounts.donor.key())
             },
-            timestamp: Clock::get()?.unix_timestamp,
-        };
-
-        ctx.accounts.project_donations.donations.push(donation.clone());
-        if !is_anonymous {
-            ctx.accounts.donor_donations.donations.push(donation);
-        }
-
-        msg!(
-            "DonationReceived: donor={}, recipient={}, amount={}, fee={}, cryptoType={}, message={}, anonymous={}",
-            ctx.accounts.donor.key(),
-            ctx.accounts.recipient.key(),
+            recipient: ctx.accounts.recipient.key(),
             amount,
             fee,
             crypto_type,
             message,
-            is_anonymous
-        );
+            is_anonymous,
+            timestamp: Clock::get()?.unix_timestamp,
+        });
 
+        msg!(
+            "Donation successful: {} SOL to {}",
+            amount as f64 / 1_000_000_000.0,
+            ctx.accounts.recipient.key()
+        );
         Ok(())
     }
 
-    pub fn transfer_ownership(
-        ctx: Context<TransferOwnership>,
-        new_owner: Pubkey,
-    ) -> Result<()> {
-        require!(new_owner != Pubkey::default(), DonationError::InvalidOwner);
+    pub fn update_fee_wallet(ctx: Context<UpdateFeeWallet>, new_fee_wallet: Pubkey) -> Result<()> {
         let program_state = &mut ctx.accounts.program_state;
-        let previous = program_state.owner;
-        program_state.owner = new_owner;
+        let old_fee_wallet = program_state.fee_wallet;
+        program_state.fee_wallet = new_fee_wallet;
+
+        emit!(FeeWalletUpdatedEvent {
+            old_fee_wallet,
+            new_fee_wallet,
+            updated_by: ctx.accounts.owner.key(),
+            timestamp: Clock::get()?.unix_timestamp,
+        });
+
         msg!(
-            "OwnershipTransferred: previousOwner={}, newOwner={}",
-            previous,
-            new_owner
+            "Fee wallet updated from {} to {}",
+            old_fee_wallet,
+            new_fee_wallet
         );
+        Ok(())
+    }
+
+    pub fn transfer_ownership(ctx: Context<TransferOwnership>, new_owner: Pubkey) -> Result<()> {
+        let program_state = &mut ctx.accounts.program_state;
+        let old_owner = program_state.owner;
+        program_state.owner = new_owner;
+
+        emit!(OwnershipTransferredEvent {
+            old_owner,
+            new_owner,
+            timestamp: Clock::get()?.unix_timestamp,
+        });
+
+        msg!("Ownership transferred from {} to {}", old_owner, new_owner);
         Ok(())
     }
 }
 
+// Account Structures (Much Lighter!)
+#[account]
+pub struct ProgramState {
+    pub owner: Pubkey,
+    pub fee_wallet: Pubkey,
+    pub fee_percentage: u16, // Basis points (1000 = 10%)
+}
+
+#[account]
+pub struct ProjectStats {
+    pub total_amount: u64,
+    pub donation_count: u32,
+    pub last_donation: i64,
+}
+
+#[account]
+pub struct DonorStats {
+    pub total_donated: u64,
+    pub donation_count: u32,
+    pub last_donation: i64,
+}
+
+// Events (No Storage Limits!)
+#[event]
+pub struct DonationEvent {
+    pub donor: Option<Pubkey>, // None if anonymous
+    pub recipient: Pubkey,
+    pub amount: u64,
+    pub fee: u64,
+    pub crypto_type: String,
+    pub message: String, // Can be any length!
+    pub is_anonymous: bool,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct FeeWalletUpdatedEvent {
+    pub old_fee_wallet: Pubkey,
+    pub new_fee_wallet: Pubkey,
+    pub updated_by: Pubkey,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct OwnershipTransferredEvent {
+    pub old_owner: Pubkey,
+    pub new_owner: Pubkey,
+    pub timestamp: i64,
+}
+
+// Context Structures
 #[derive(Accounts)]
 pub struct Initialize<'info> {
     #[account(mut)]
@@ -122,7 +191,7 @@ pub struct Initialize<'info> {
     #[account(
         init,
         payer = initializer,
-        space = 8 + ProgramState::INIT_SPACE,
+        space = 8 + 32 + 32 + 2, // discriminator + owner + fee_wallet + fee_percentage
         seeds = [b"program_state"],
         bump
     )]
@@ -132,93 +201,73 @@ pub struct Initialize<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(amount: u64, crypto_type: String, message: String, is_anonymous: bool)]
 pub struct Donate<'info> {
     #[account(mut)]
     pub donor: Signer<'info>,
 
-    /// CHECK: validated in handler
+    /// CHECK: Recipient can be any account
     #[account(mut)]
-    pub recipient: AccountInfo<'info>,
+    pub recipient: UncheckedAccount<'info>,
 
-    /// CHECK: must match program_state.fee_wallet
+    /// CHECK: Fee wallet from program state
     #[account(mut)]
-    pub fee_wallet: AccountInfo<'info>,
+    pub fee_wallet: UncheckedAccount<'info>,
 
     #[account(
         seeds = [b"program_state"],
         bump,
-        constraint = fee_wallet.key() == program_state.fee_wallet
+        constraint = program_state.fee_wallet == fee_wallet.key() @ DonationError::InvalidFeeWallet
     )]
     pub program_state: Account<'info, ProgramState>,
 
     #[account(
         init_if_needed,
         payer = donor,
-        space = 8 + ProjectDonations::INIT_SPACE,
-        seeds = [b"project_donations", recipient.key().as_ref()],
+        space = 8 + 8 + 4 + 8, // discriminator + total_amount + donation_count + last_donation
+        seeds = [b"project_stats", recipient.key().as_ref()],
         bump
     )]
-    pub project_donations: Account<'info, ProjectDonations>,
+    pub project_stats: Account<'info, ProjectStats>,
 
     #[account(
         init_if_needed,
         payer = donor,
-        space = 8 + DonorDonations::INIT_SPACE,
-        seeds = [b"donor_donations", donor.key().as_ref()],
+        space = 8 + 8 + 4 + 8, // discriminator + total_donated + donation_count + last_donation
+        seeds = [b"donor_stats", donor.key().as_ref()],
         bump
     )]
-    pub donor_donations: Account<'info, DonorDonations>,
+    pub donor_stats: Account<'info, DonorStats>,
 
     pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
-pub struct TransferOwnership<'info> {
-    #[account(constraint = current_owner.key() == program_state.owner)]
-    pub current_owner: Signer<'info>,
-
-    #[account(mut, seeds = [b"program_state"], bump)]
+pub struct UpdateFeeWallet<'info> {
+    #[account(
+        mut,
+        seeds = [b"program_state"],
+        bump,
+        constraint = program_state.owner == owner.key() @ DonationError::InvalidOwner
+    )]
     pub program_state: Account<'info, ProgramState>,
 
-    /// CHECK: new owner
-    pub new_owner: AccountInfo<'info>,
+    pub owner: Signer<'info>,
 }
 
-#[account]
-#[derive(InitSpace)]
-pub struct ProgramState {
-    pub owner: Pubkey,
-    pub fee_wallet: Pubkey,
-    pub fee_percentage: u16,
+#[derive(Accounts)]
+pub struct TransferOwnership<'info> {
+    #[account(
+        mut,
+        seeds = [b"program_state"],
+        bump,
+        constraint = program_state.owner == current_owner.key() @ DonationError::InvalidOwner
+    )]
+    pub program_state: Account<'info, ProgramState>,
+
+    pub current_owner: Signer<'info>,
 }
 
-#[account]
-#[derive(InitSpace)]
-pub struct ProjectDonations {
-    #[max_len(1000)]
-    pub donations: Vec<Donation>,
-}
-
-#[account]
-#[derive(InitSpace)]
-pub struct DonorDonations {
-    #[max_len(1000)]
-    pub donations: Vec<Donation>,
-}
-
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, InitSpace)]
-pub struct Donation {
-    pub amount: u64,
-    #[max_len(50)]
-    pub crypto_type: String,
-    #[max_len(500)]
-    pub message: String,
-    pub is_anonymous: bool,
-    pub donor: Option<Pubkey>,
-    pub timestamp: i64,
-}
-
+// Error Codes
 #[error_code]
 pub enum DonationError {
     #[msg("Invalid donation amount")]
@@ -227,4 +276,7 @@ pub enum DonationError {
     InvalidRecipient,
     #[msg("Invalid owner address")]
     InvalidOwner,
+    #[msg("Invalid fee wallet")]
+    InvalidFeeWallet,
 }
+
