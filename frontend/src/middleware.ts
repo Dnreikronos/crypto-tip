@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { PROTECTED_ROUTES, PUBLIC_ROUTES } from "@/config";
+import { PROTECTED_ROUTES, PUBLIC_ROUTES } from "@/app/config";
 
 const protectedRoutes = PROTECTED_ROUTES;
 const publicRoutes = PUBLIC_ROUTES;

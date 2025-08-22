@@ -1,14 +1,14 @@
-import HeroSection from "@/components/sections/HeroSection";
-import FeaturesSection from "@/components/sections/FeaturesSection";
-import HowItWorksSection from "@/components/sections/HowItWorksSection";
-import ProjectsPreviewSection from "@/components/sections/ProjectsPreviewSection";
-// import ShowcaseSection from "@/components/sections/ShowcaseSection";
-// import TestimonialsSection from "@/components/sections/TestimonialsSection";
-import FaqSection from "@/components/sections/FaqSection";
-import CtaSection from "@/components/sections/CtaSection";
-import AnimatedBackground from "@/components/ui/AnimatedBackground";
-import MagneticCursor from "@/components/ui/MagneticCursor";
-import ScrollProgress from "@/components/ui/ScrollProgress";
+import HeroSection from "./_components/HeroSection";
+import FeaturesSection from "./_components/FeaturesSection";
+import HowItWorksSection from "./_components/HowItWorksSection";
+import ProjectsPreviewSection from "./_components/ProjectsPreviewSection";
+// import ShowcaseSection from "./_components/ShowcaseSection";
+// import TestimonialsSection from "./_components/TestimonialsSection";
+import FaqSection from "./_components/FaqSection";
+import CtaSection from "./_components/CtaSection";
+import AnimatedBackground from "@/app/components/ui/AnimatedBackground";
+import MagneticCursor from "@/app/components/ui/MagneticCursor";
+import ScrollProgress from "@/app/components/ui/ScrollProgress";
 
 export default function HomePage() {
   return (

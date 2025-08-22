@@ -4,7 +4,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Loader2, Lock, Mail, Eye, EyeOff } from "lucide-react";
-import Logo from "@/components/ui/Logo";
+import Logo from "@/app/components/ui/Logo";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
@@ -15,15 +15,15 @@ import {
   CardDescription,
   CardTitle,
   CardFooter,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+} from "@/app/components/ui/card";
+import { Button } from "@/app/components/ui/button";
+import { Input } from "@/app/components/ui/input";
+import { Label } from "@/app/components/ui/label";
+import { Alert, AlertDescription } from "@/app/components/ui/alert";
 import { Toaster, toast } from "sonner";
 
-import AnimatedBackground from "@/components/ui/AnimatedBackground";
-import { useAuth } from "@/contexts/AuthContext";
+import AnimatedBackground from "@/app/components/ui/AnimatedBackground";
+import { useAuth } from "@/app/contexts/AuthContext";
 
 interface LoginData {
   email: string;
