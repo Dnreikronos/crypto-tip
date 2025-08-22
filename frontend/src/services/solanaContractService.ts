@@ -32,10 +32,12 @@ const getProgramIdl = async (): Promise<Idl> => {
   console.log("Attempting to fetch IDL from /donation_program.json");
 
   try {
-    const resp = await fetch('/donation_program.json');
+    const resp = await fetch("/donation_program.json");
 
     if (!resp.ok) {
-      throw new Error(`Failed to fetch IDL. Status: ${resp.status} - ${resp.statusText}`);
+      throw new Error(
+        `Failed to fetch IDL. Status: ${resp.status} - ${resp.statusText}`,
+      );
     }
 
     const json = await resp.json();
@@ -45,7 +47,9 @@ const getProgramIdl = async (): Promise<Idl> => {
       throw new Error("Invalid IDL structure: missing instructions array");
     }
 
-    const donateInstruction = json.instructions.find((inst: { name: string }) => inst.name === 'donate');
+    const donateInstruction = json.instructions.find(
+      (inst: { name: string }) => inst.name === "donate",
+    );
     if (!donateInstruction) {
       throw new Error("IDL is missing 'donate' instruction");
     }
@@ -67,7 +71,7 @@ export const donateSOL = async (
     recipient,
     message: message ? "***" : "empty",
     anonymous,
-    amount
+    amount,
   });
 
   if (!recipient || !amount) {
@@ -98,7 +102,7 @@ export const donateSOL = async (
 
   const network = process.env.NEXT_PUBLIC_SOLANA_RPC_URL;
   console.log("🌐 Using RPC:", network);
-  
+
   const connection = new Connection(network, {
     commitment: "confirmed",
     confirmTransactionInitialTimeout: 90000,
@@ -110,7 +114,9 @@ export const donateSOL = async (
     console.log("✅ Network OK, current slot:", slot);
   } catch (error) {
     console.error("❌ Network connection failed:", error);
-    throw new Error("Failed to connect to Solana network. Please check your RPC endpoint.");
+    throw new Error(
+      "Failed to connect to Solana network. Please check your RPC endpoint.",
+    );
   }
 
   const phantomWallet = (window as any).solana as PhantomWallet;
@@ -136,14 +142,10 @@ export const donateSOL = async (
     signAllTransactions: phantomWallet.signAllTransactions.bind(phantomWallet),
   };
 
-  const provider = new AnchorProvider(
-    connection,
-    walletAdapter as any,
-    { 
-      preflightCommitment: "confirmed",
-      commitment: "confirmed",
-    },
-  );
+  const provider = new AnchorProvider(connection, walletAdapter as any, {
+    preflightCommitment: "confirmed",
+    commitment: "confirmed",
+  });
 
   const program = new Program(idl, provider);
   console.log("Program instance created successfully");
@@ -177,38 +179,39 @@ export const donateSOL = async (
   let programState;
   try {
     console.log("Fetching program state...");
-    programState = await (program.account as any).programState.fetch(programStateAccount);
+    programState = await (program.account as any).programState.fetch(
+      programStateAccount,
+    );
     console.log("Program state fetched successfully");
   } catch (error: unknown) {
     console.error("Error fetching program state:", error);
-    throw new Error("Failed to fetch program state. Make sure the program is initialized.");
+    throw new Error(
+      "Failed to fetch program state. Make sure the program is initialized.",
+    );
   }
 
   const feeWalletPubkey = programState.feeWallet;
   console.log("Fee wallet:", feeWalletPubkey.toString());
 
   if (recipientPubkey.equals(feeWalletPubkey)) {
-    throw new Error("Cannot donate to the fee wallet address. Please use a different recipient.");
+    throw new Error(
+      "Cannot donate to the fee wallet address. Please use a different recipient.",
+    );
   }
 
   try {
     console.log("Executing donation transaction...");
-    
+
     // Build the transaction using .transaction() to bypass Anchor's timeout
     const transaction = await program.methods
-      .donate(
-        amountInLamports,
-        "SOL",
-        message || "",
-        anonymous,
-      )
+      .donate(amountInLamports, "SOL", message || "", anonymous)
       .accounts({
         donor: donorPubkey,
         recipient: recipientPubkey,
         feeWallet: feeWalletPubkey,
         programState: programStateAccount,
         projectStats: projectStatsAccount,
-        donorStats: donorStatsAccount, 
+        donorStats: donorStatsAccount,
         systemProgram: SystemProgram.programId,
       } as any)
       .transaction(); // ← This bypasses the timeout
@@ -216,7 +219,8 @@ export const donateSOL = async (
     console.log("🚀 Building donation transaction...");
 
     // Get fresh blockhash and set proper transaction properties
-    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed');
+    const { blockhash, lastValidBlockHeight } =
+      await connection.getLatestBlockhash("confirmed");
     transaction.recentBlockhash = blockhash;
     transaction.lastValidBlockHeight = lastValidBlockHeight;
     transaction.feePayer = donorPubkey;
@@ -226,39 +230,48 @@ export const donateSOL = async (
 
     // Sign transaction with Phantom
     console.log("✍️ Requesting wallet signature...");
-    
+
     let signedTransaction;
     try {
       // Add small delay to ensure UI is ready
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       signedTransaction = await phantomWallet.signTransaction(transaction);
       console.log("✅ Transaction signed by wallet");
     } catch (signError) {
       console.error("❌ Wallet signing failed:", signError);
-      
+
       if (signError instanceof Error) {
-        if (signError.message.includes('User rejected')) {
+        if (signError.message.includes("User rejected")) {
           throw new Error("Transaction was rejected by the user");
         }
-        if (signError.message.includes('popup')) {
-          throw new Error("Phantom popup was blocked. Please allow popups and try again.");
+        if (signError.message.includes("popup")) {
+          throw new Error(
+            "Phantom popup was blocked. Please allow popups and try again.",
+          );
         }
       }
-      
-      throw new Error(`Wallet signing failed: ${signError instanceof Error ? signError.message : 'Unknown error'}`);
+
+      throw new Error(
+        `Wallet signing failed: ${signError instanceof Error ? signError.message : "Unknown error"}`,
+      );
     }
 
     // Send the signed transaction
     console.log("📤 Sending transaction to network...");
-    const txSignature = await connection.sendRawTransaction(signedTransaction.serialize(), {
-      skipPreflight: false,
-      preflightCommitment: 'confirmed',
-      maxRetries: 5,
-    });
+    const txSignature = await connection.sendRawTransaction(
+      signedTransaction.serialize(),
+      {
+        skipPreflight: false,
+        preflightCommitment: "confirmed",
+        maxRetries: 5,
+      },
+    );
 
     console.log("✅ Transaction sent with signature:", txSignature);
-    console.log("🔗 Explorer link: https://explorer.solana.com/tx/" + txSignature);
+    console.log(
+      "🔗 Explorer link: https://explorer.solana.com/tx/" + txSignature,
+    );
 
     // FIXED: Real transaction verification instead of just status checking
     console.log("⏳ Waiting for transaction confirmation...");
@@ -271,8 +284,8 @@ export const donateSOL = async (
       try {
         // Instead of just checking status, let's verify the transaction actually exists
         const txInfo = await connection.getTransaction(txSignature, {
-          commitment: 'confirmed',
-          maxSupportedTransactionVersion: 0
+          commitment: "confirmed",
+          maxSupportedTransactionVersion: 0,
         });
 
         if (txInfo && !txInfo.meta?.err) {
@@ -283,29 +296,34 @@ export const donateSOL = async (
 
         if (txInfo && txInfo.meta?.err) {
           console.error("❌ Transaction failed on-chain:", txInfo.meta.err);
-          throw new Error(`Transaction failed: ${JSON.stringify(txInfo.meta.err)}`);
+          throw new Error(
+            `Transaction failed: ${JSON.stringify(txInfo.meta.err)}`,
+          );
         }
-        
-        console.log(`⏳ Verification attempt ${attempts} - transaction not yet confirmed`);
-        await new Promise(resolve => setTimeout(resolve, 3000));
-        
+
+        console.log(
+          `⏳ Verification attempt ${attempts} - transaction not yet confirmed`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, 3000));
       } catch (verifyError) {
         console.log(`⏳ Verification attempt ${attempts} - still waiting...`);
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        await new Promise((resolve) => setTimeout(resolve, 3000));
       }
     }
 
     // Timeout reached
     console.warn("⚠️ Verification timeout reached after 90 seconds");
-    console.log("🔗 Check manually: https://explorer.solana.com/tx/" + txSignature);
-    
+    console.log(
+      "🔗 Check manually: https://explorer.solana.com/tx/" + txSignature,
+    );
+
     // Final check before giving up
     try {
       const finalCheck = await connection.getTransaction(txSignature, {
-        commitment: 'confirmed',
-        maxSupportedTransactionVersion: 0
+        commitment: "confirmed",
+        maxSupportedTransactionVersion: 0,
       });
-      
+
       if (finalCheck && !finalCheck.meta?.err) {
         console.log("✅ Transaction confirmed on final check!");
         return { signature: txSignature };
@@ -313,24 +331,29 @@ export const donateSOL = async (
     } catch (finalError) {
       console.log("❌ Final verification failed");
     }
-    
-    throw new Error(`Transaction verification timeout. Check manually: https://explorer.solana.com/tx/${txSignature}`);
 
+    throw new Error(
+      `Transaction verification timeout. Check manually: https://explorer.solana.com/tx/${txSignature}`,
+    );
   } catch (error: unknown) {
     console.error("❌ Transaction process failed:", error);
 
     // Handle specific errors
-    if (error && typeof error === 'object' && 'code' in error) {
+    if (error && typeof error === "object" && "code" in error) {
       const anchorError = error as { code: number; message?: string };
       switch (anchorError.code) {
         case 6000:
           throw new Error("Invalid donation amount");
         case 6001:
-          throw new Error("Invalid recipient address - cannot be the fee wallet");
+          throw new Error(
+            "Invalid recipient address - cannot be the fee wallet",
+          );
         case 4001:
           throw new Error("User rejected the transaction");
         default:
-          throw new Error(`Transaction failed: ${anchorError.message || 'Unknown error'}`);
+          throw new Error(
+            `Transaction failed: ${anchorError.message || "Unknown error"}`,
+          );
       }
     }
 
@@ -341,9 +364,12 @@ export const donateSOL = async (
 
 export const getProjectStats = async (recipient: string) => {
   const recipientPubkey = new PublicKey(recipient);
-  const connection = new Connection(process.env.NEXT_PUBLIC_SOLANA_RPC_URL!, "confirmed");
+  const connection = new Connection(
+    process.env.NEXT_PUBLIC_SOLANA_RPC_URL!,
+    "confirmed",
+  );
   const idl = await getProgramIdl();
-  
+
   const provider = new AnchorProvider(connection, {} as any, {});
   const program = new Program(idl, provider);
 
@@ -353,7 +379,9 @@ export const getProjectStats = async (recipient: string) => {
   );
 
   try {
-    const stats = await (program.account as any).projectStats.fetch(projectStatsAccount);
+    const stats = await (program.account as any).projectStats.fetch(
+      projectStatsAccount,
+    );
     return {
       totalAmount: stats.totalAmount.toNumber() / LAMPORTS_PER_SOL,
       donationCount: stats.donationCount,
