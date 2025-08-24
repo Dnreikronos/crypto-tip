@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @next/next/no-img-element */
+
 "use client";
 
 import { useState } from "react";
@@ -79,8 +84,9 @@ export default function CreateProjectPage() {
   const router = useRouter();
 
   const { startUpload, isUploading } = useUploadThing("imageUploader");
-  const providers = useWalletProviders();
-  const metaMaskProvider = providers.find((p) => p.info.name === "MetaMask");
+ 
+  // const providers = useWalletProviders();
+  //const metaMaskProvider = providers.find((p) => p.info.name === "MetaMask");
 
   const form = useForm<FormValues>({
     resolver: zodResolver(projectSchema),

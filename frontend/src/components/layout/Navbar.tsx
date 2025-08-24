@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 import {
   Menu,
   X,
@@ -66,33 +66,33 @@ export default function Navbar() {
   const confirmLogout = () => setShowLogoutConfirm(true);
   const cancelLogout = () => setShowLogoutConfirm(false);
 
-  const menuVariants = {
+  const menuVariants: Variants = {
     hidden: { opacity: 0, height: 0 },
     visible: {
       opacity: 1,
       height: "auto",
-      transition: { duration: 0.3, ease: "easeInOut" },
+      transition: { duration: 0.3, ease: "easeInOut" as const },
     },
     exit: {
       opacity: 0,
       height: 0,
-      transition: { duration: 0.3, ease: "easeInOut" },
+      transition: { duration: 0.3, ease: "easeInOut" as const },
     },
   };
 
-  const dropdownVariants = {
+  const dropdownVariants: Variants = {
     hidden: { opacity: 0, scale: 0.95, y: -10 },
     visible: {
       opacity: 1,
       scale: 1,
       y: 0,
-      transition: { duration: 0.2, ease: "easeOut" },
+      transition: { duration: 0.2, ease: "easeOut" as const },
     },
     exit: {
       opacity: 0,
       scale: 0.95,
       y: -10,
-      transition: { duration: 0.2, ease: "easeIn" },
+      transition: { duration: 0.2, ease: "easeIn" as const },
     },
   };
 

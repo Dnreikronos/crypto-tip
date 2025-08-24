@@ -1,8 +1,12 @@
-const anchor = require("@coral-xyz/anchor");
-const web3 = require("@solana/web3.js");
-const fs = require("fs");
-const dotenv = require("dotenv");
-const path = require("path");
+import anchor from "@coral-xyz/anchor";
+import * as web3 from "@solana/web3.js";
+import fs from "fs";
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const projectRoot = path.resolve(__dirname, "../../");
 dotenv.config({ path: path.join(projectRoot, ".env") });

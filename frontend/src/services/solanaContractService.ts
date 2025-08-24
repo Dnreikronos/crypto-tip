@@ -3,6 +3,7 @@ import {
   PublicKey,
   SystemProgram,
   LAMPORTS_PER_SOL,
+  Transaction,
 } from "@solana/web3.js";
 import { Program, AnchorProvider, BN, Idl } from "@coral-xyz/anchor";
 
@@ -11,8 +12,8 @@ interface PhantomWallet {
   publicKey: PublicKey | null;
   connect(): Promise<{ publicKey: PublicKey }>;
   disconnect(): Promise<void>;
-  signTransaction(transaction: any): Promise<any>;
-  signAllTransactions(transactions: any[]): Promise<any[]>;
+  signTransaction<T extends Transaction | import("@solana/web3.js").VersionedTransaction>(transaction: T): Promise<T>;
+  signAllTransactions<T extends Transaction | import("@solana/web3.js").VersionedTransaction>(transactions: T[]): Promise<T[]>;
 }
 
 export interface SolanaDonationParams {
@@ -24,6 +25,25 @@ export interface SolanaDonationParams {
 
 export interface SolanaDonationResponse {
   signature: string;
+}
+
+interface ProgramState {
+  feeWallet: PublicKey;
+}
+
+interface ProjectStats {
+  totalAmount: BN;
+  donationCount: number;
+  lastDonation: number;
+}
+
+interface ProgramAccounts {
+  programState: {
+    fetch: (pubkey: PublicKey) => Promise<ProgramState>;
+  };
+  projectStats: {
+    fetch: (pubkey: PublicKey) => Promise<ProjectStats>;
+  };
 }
 
 const programId = new PublicKey(process.env.NEXT_PUBLIC_SOLANA_PROGRAM_ID!);
@@ -119,7 +139,7 @@ export const donateSOL = async (
     );
   }
 
-  const phantomWallet = (window as any).solana as PhantomWallet;
+  const phantomWallet = (window as { solana?: PhantomWallet }).solana as PhantomWallet;
   if (!phantomWallet || !phantomWallet.isPhantom) {
     throw new Error("Phantom wallet not found or not installed");
   }
@@ -142,7 +162,7 @@ export const donateSOL = async (
     signAllTransactions: phantomWallet.signAllTransactions.bind(phantomWallet),
   };
 
-  const provider = new AnchorProvider(connection, walletAdapter as any, {
+  const provider = new AnchorProvider(connection, walletAdapter, {
     preflightCommitment: "confirmed",
     commitment: "confirmed",
   });
@@ -176,10 +196,10 @@ export const donateSOL = async (
     programId,
   );
 
-  let programState;
+  let programState: ProgramState;
   try {
     console.log("Fetching program state...");
-    programState = await (program.account as any).programState.fetch(
+    programState = await (program.account as ProgramAccounts).programState.fetch(
       programStateAccount,
     );
     console.log("Program state fetched successfully");
@@ -213,7 +233,7 @@ export const donateSOL = async (
         projectStats: projectStatsAccount,
         donorStats: donorStatsAccount,
         systemProgram: SystemProgram.programId,
-      } as any)
+      })
       .transaction(); // ← This bypasses the timeout
 
     console.log("🚀 Building donation transaction...");
@@ -305,7 +325,7 @@ export const donateSOL = async (
           `⏳ Verification attempt ${attempts} - transaction not yet confirmed`,
         );
         await new Promise((resolve) => setTimeout(resolve, 3000));
-      } catch (verifyError) {
+      } catch {
         console.log(`⏳ Verification attempt ${attempts} - still waiting...`);
         await new Promise((resolve) => setTimeout(resolve, 3000));
       }
@@ -328,7 +348,7 @@ export const donateSOL = async (
         console.log("✅ Transaction confirmed on final check!");
         return { signature: txSignature };
       }
-    } catch (finalError) {
+    } catch {
       console.log("❌ Final verification failed");
     }
 
@@ -370,7 +390,14 @@ export const getProjectStats = async (recipient: string) => {
   );
   const idl = await getProgramIdl();
 
-  const provider = new AnchorProvider(connection, {} as any, {});
+  // Create a dummy provider for read-only operations
+  const dummyWallet = {
+    publicKey: new PublicKey("11111111111111111111111111111111"),
+    signTransaction: async <T extends Transaction | import("@solana/web3.js").VersionedTransaction>(tx: T): Promise<T> => tx,
+    signAllTransactions: async <T extends Transaction | import("@solana/web3.js").VersionedTransaction>(txs: T[]): Promise<T[]> => txs,
+  };
+
+  const provider = new AnchorProvider(connection, dummyWallet, {});
   const program = new Program(idl, provider);
 
   const [projectStatsAccount] = PublicKey.findProgramAddressSync(
@@ -379,7 +406,7 @@ export const getProjectStats = async (recipient: string) => {
   );
 
   try {
-    const stats = await (program.account as any).projectStats.fetch(
+    const stats = await (program.account as ProgramAccounts).projectStats.fetch(
       projectStatsAccount,
     );
     return {
@@ -387,7 +414,7 @@ export const getProjectStats = async (recipient: string) => {
       donationCount: stats.donationCount,
       lastDonation: new Date(stats.lastDonation * 1000),
     };
-  } catch (error) {
+  } catch {
     console.log("No stats found for recipient, returning defaults");
     return {
       totalAmount: 0,
