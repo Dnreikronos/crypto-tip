@@ -124,8 +124,8 @@ export default function RecentSupporters() {
                   supporter.currency === "eth"
                     ? "text-cyan-400"
                     : supporter.currency === "btc"
-                    ? "text-yellow-400"
-                    : "text-green-400"
+                      ? "text-yellow-400"
+                      : "text-green-400"
                 }`}
                 whileHover={{ scale: 1.05 }}
                 animate={{

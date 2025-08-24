@@ -84,7 +84,7 @@ export default function CreateProjectPage() {
   const router = useRouter();
 
   const { startUpload, isUploading } = useUploadThing("imageUploader");
- 
+
   // const providers = useWalletProviders();
   //const metaMaskProvider = providers.find((p) => p.info.name === "MetaMask");
 

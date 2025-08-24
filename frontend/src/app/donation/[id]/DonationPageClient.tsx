@@ -34,7 +34,9 @@ declare global {
       publicKey?: {
         toString: () => string;
       };
-      signTransaction: (tx: import("@solana/web3.js").Transaction) => Promise<import("@solana/web3.js").Transaction>;
+      signTransaction: (
+        tx: import("@solana/web3.js").Transaction,
+      ) => Promise<import("@solana/web3.js").Transaction>;
     };
   }
 }
@@ -205,7 +207,9 @@ export default function DonationPageClient({
       // The AnchorProvider in `donateSOL` will handle wallet detection and connection.
       // We can add a simple check here to provide a user-friendly message if no wallet is installed.
 
-      const solanaWallet = (window as { solana?: { publicKey?: { toString: () => string } } }).solana;
+      const solanaWallet = (
+        window as { solana?: { publicKey?: { toString: () => string } } }
+      ).solana;
       if (!solanaWallet) {
         toast.error("Solana wallet not found", {
           description:

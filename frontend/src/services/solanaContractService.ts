@@ -12,8 +12,16 @@ interface PhantomWallet {
   publicKey: PublicKey | null;
   connect(): Promise<{ publicKey: PublicKey }>;
   disconnect(): Promise<void>;
-  signTransaction<T extends Transaction | import("@solana/web3.js").VersionedTransaction>(transaction: T): Promise<T>;
-  signAllTransactions<T extends Transaction | import("@solana/web3.js").VersionedTransaction>(transactions: T[]): Promise<T[]>;
+  signTransaction<
+    T extends Transaction | import("@solana/web3.js").VersionedTransaction,
+  >(
+    transaction: T,
+  ): Promise<T>;
+  signAllTransactions<
+    T extends Transaction | import("@solana/web3.js").VersionedTransaction,
+  >(
+    transactions: T[],
+  ): Promise<T[]>;
 }
 
 export interface SolanaDonationParams {
@@ -139,7 +147,8 @@ export const donateSOL = async (
     );
   }
 
-  const phantomWallet = (window as { solana?: PhantomWallet }).solana as PhantomWallet;
+  const phantomWallet = (window as { solana?: PhantomWallet })
+    .solana as PhantomWallet;
   if (!phantomWallet || !phantomWallet.isPhantom) {
     throw new Error("Phantom wallet not found or not installed");
   }
@@ -199,9 +208,9 @@ export const donateSOL = async (
   let programState: ProgramState;
   try {
     console.log("Fetching program state...");
-    programState = await (program.account as ProgramAccounts).programState.fetch(
-      programStateAccount,
-    );
+    programState = await (
+      program.account as ProgramAccounts
+    ).programState.fetch(programStateAccount);
     console.log("Program state fetched successfully");
   } catch (error: unknown) {
     console.error("Error fetching program state:", error);
@@ -393,8 +402,16 @@ export const getProjectStats = async (recipient: string) => {
   // Create a dummy provider for read-only operations
   const dummyWallet = {
     publicKey: new PublicKey("11111111111111111111111111111111"),
-    signTransaction: async <T extends Transaction | import("@solana/web3.js").VersionedTransaction>(tx: T): Promise<T> => tx,
-    signAllTransactions: async <T extends Transaction | import("@solana/web3.js").VersionedTransaction>(txs: T[]): Promise<T[]> => txs,
+    signTransaction: async <
+      T extends Transaction | import("@solana/web3.js").VersionedTransaction,
+    >(
+      tx: T,
+    ): Promise<T> => tx,
+    signAllTransactions: async <
+      T extends Transaction | import("@solana/web3.js").VersionedTransaction,
+    >(
+      txs: T[],
+    ): Promise<T[]> => txs,
   };
 
   const provider = new AnchorProvider(connection, dummyWallet, {});
