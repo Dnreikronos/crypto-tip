@@ -21,13 +21,10 @@ import {
 import ProfileCard from "@/components/ui/ProfileCard";
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
 import { ContractService } from "@/services/contractService";
-import { SolanaContractService } from "@/services/solanaContractService";
 import { createDonation } from "@/services/donationService";
 import { toast } from "sonner";
 import type { ProjectResponse } from "@/services/projectService";
 import { useCryptoPrice } from "@/hooks/useCryptoPrice";
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
-import BN from "bn.js";
 
 declare global {
   interface Window {
@@ -37,12 +34,10 @@ declare global {
       publicKey?: {
         toString: () => string;
       };
-      signTransaction: (tx: any) => Promise<any>;
+      signTransaction: (tx: import("@solana/web3.js").Transaction) => Promise<import("@solana/web3.js").Transaction>;
     };
   }
 }
-
-const RPC_URL = process.env.NEXT_PUBLIC_SOLANA_RPC_URL!;
 
 interface DonationPageClientProps {
   project: ProjectResponse | null;
@@ -209,7 +204,8 @@ export default function DonationPageClient({
     if (selectedCurrency === "SOL") {
       // The AnchorProvider in `donateSOL` will handle wallet detection and connection.
       // We can add a simple check here to provide a user-friendly message if no wallet is installed.
-      const solanaWallet = (window as any).solana;
+
+      const solanaWallet = (window as { solana?: { publicKey?: { toString: () => string } } }).solana;
       if (!solanaWallet) {
         toast.error("Solana wallet not found", {
           description:
@@ -255,13 +251,14 @@ export default function DonationPageClient({
         setShowThankYou(true);
         setTimeout(() => setShowThankYou(false), 3000);
         toast.success("Donation sent successfully!");
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("SOL donation error:", err);
         // Anchor provides more specific error messages (e.g., "User rejected the request.")
         // which will be caught and displayed here.
+        const errorMessage = err instanceof Error ? err.message : String(err);
         toast.error("Donation Failed", {
           description:
-            err.message ||
+            errorMessage ||
             "An unexpected error occurred. Please check the console.",
         });
       } finally {
