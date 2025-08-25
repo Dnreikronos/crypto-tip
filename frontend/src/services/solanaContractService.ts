@@ -176,7 +176,7 @@ export const donateSOL = async (
     commitment: "confirmed",
   });
 
-  // @ts-expect-error
+  // @ts-expect-error - Anchor version compatibility issue with Program constructor
   const program = new Program(idl, provider);
   console.log("Program instance created successfully");
 
@@ -416,7 +416,7 @@ export const getProjectStats = async (recipient: string) => {
   };
 
   const provider = new AnchorProvider(connection, dummyWallet, {});
-  // @ts-expect-error
+  // @ts-expect-error - Anchor version compatibility issue with Program constructor
   const program = new Program(idl, provider);
 
   const [projectStatsAccount] = PublicKey.findProgramAddressSync(
