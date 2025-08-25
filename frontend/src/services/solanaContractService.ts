@@ -209,6 +209,7 @@ export const donateSOL = async (
   let programState: ProgramState;
   try {
     console.log("Fetching program state...");
+    // @ts-expect-error - Anchor version compatibility issue with account namespace typing
     programState = await (
       program.account as ProgramAccounts
     ).programState.fetch(programStateAccount);
@@ -425,6 +426,7 @@ export const getProjectStats = async (recipient: string) => {
   );
 
   try {
+    // @ts-expect-error - Anchor version compatibility issue with account namespace typing
     const stats = await (program.account as ProgramAccounts).projectStats.fetch(
       projectStatsAccount,
     );
