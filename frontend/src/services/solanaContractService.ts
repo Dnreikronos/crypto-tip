@@ -176,7 +176,7 @@ export const donateSOL = async (
     commitment: "confirmed",
   });
 
-  // @ts-ignore
+  // @ts-expect-error
   const program = new Program(idl, provider);
   console.log("Program instance created successfully");
 
@@ -416,7 +416,7 @@ export const getProjectStats = async (recipient: string) => {
   };
 
   const provider = new AnchorProvider(connection, dummyWallet, {});
-  // @ts-ignore
+  // @ts-expect-error
   const program = new Program(idl, provider);
 
   const [projectStatsAccount] = PublicKey.findProgramAddressSync(
