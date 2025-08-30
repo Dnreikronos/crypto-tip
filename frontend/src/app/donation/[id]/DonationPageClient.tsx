@@ -119,7 +119,9 @@ export default function DonationPageClient({
   const [showThankYou, setShowThankYou] = useState(false);
 
   // Currency — "ETH" (default) or "SOL"
-  const [selectedCurrency, setSelectedCurrency] = useState<"ETH" | "SOL">("ETH");
+  const [selectedCurrency, setSelectedCurrency] = useState<"ETH" | "SOL">(
+    "ETH",
+  );
   const currencySymbol = selectedCurrency;
   const networkName = selectedCurrency === "ETH" ? "Ethereum" : "Solana";
 
@@ -212,7 +214,9 @@ export default function DonationPageClient({
 
         setIsProcessing(true);
 
-        const connection = new SolConnection("https://api.mainnet-beta.solana.com");
+        const connection = new SolConnection(
+          "https://api.mainnet-beta.solana.com",
+        );
         const fromPubkey = new PublicKey(solanaProvider.publicKey!.toString());
         const recipientPubkey = new PublicKey(project.wallet_addr);
         const lamports = Math.round(selectedValue * LAMPORTS_PER_SOL);
@@ -230,7 +234,9 @@ export default function DonationPageClient({
         transaction.recentBlockhash = latestBlockhash.blockhash;
 
         const signedTx = await solanaProvider.signTransaction(transaction);
-        const signature = await connection.sendRawTransaction(signedTx.serialize());
+        const signature = await connection.sendRawTransaction(
+          signedTx.serialize(),
+        );
         await connection.confirmTransaction(signature, "confirmed");
 
         await createDonation({
@@ -280,7 +286,8 @@ export default function DonationPageClient({
         });
       } catch {
         toast.error("Failed to switch to Ethereum Mainnet", {
-          description: "Please enable Ethereum Mainnet in MetaMask and try again.",
+          description:
+            "Please enable Ethereum Mainnet in MetaMask and try again.",
         });
         return;
       }
@@ -339,7 +346,8 @@ export default function DonationPageClient({
           });
         } else {
           toast.error("Failed to send donation", {
-            description: err.message || "An unexpected error occurred. Please try again.",
+            description:
+              err.message || "An unexpected error occurred. Please try again.",
           });
         }
       } else {
@@ -932,7 +940,9 @@ export default function DonationPageClient({
                       <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
                         <span>Minimum: 0.0001 {currencySymbol}</span>
                         {!isLoadingPrice && ethPrice && ethPrice > 0 ? (
-                          <span>1 {currencySymbol} = ${ethPrice.toFixed(2)}</span>
+                          <span>
+                            1 {currencySymbol} = ${ethPrice.toFixed(2)}
+                          </span>
                         ) : isLoadingPrice ? (
                           <span>Loading {currencySymbol} price...</span>
                         ) : (
