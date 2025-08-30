@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 "use client";
 
 import { useState } from "react";
@@ -26,21 +29,7 @@ import { ProjectPreview } from "./ProjectPreview";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCreateProject } from "@/hooks/useProject";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useWalletProviders } from "@/hooks/useWalletProviders";
-
-// Solana address validation function
-const isValidSolanaAddress = (address: string): boolean => {
-  // Check length (32-44 characters for Base58)
-  if (address.length < 32 || address.length > 44) {
-    return false;
-  }
-  
-  // Check if contains only valid Base58 characters
-  const base58Regex = /^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]+$/;
-  return base58Regex.test(address);
-};
-
+import { z, ZodIssueCode } from "zod";
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { useUploadThing } from "@/lib/uploadthing";
 import {
@@ -51,45 +40,40 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const projectSchema = z.object({
-  title: z
-    .string()
-    .min(3, { message: "Title must be at least 3 characters long" }),
-  description: z
-    .string()
-    .min(10, { message: "Description must be at least 10 characters long" }),
-  goal: z
-    .string()
-    .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
-      message: "Goal must be a positive number",
+const ethRE = /^0x[a-fA-F0-9]{40}$/;
+const solRE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+
+export const projectSchema = z
+  .object({
+    title: z.string().min(3),
+    description: z.string().min(10),
+    goal: z
+      .string()
+      .refine((v) => !isNaN(+v) && +v > 0, { message: "Goal must be > 0" }),
+    currency: z.enum(["ETH", "SOL"]),
+    wallet_addr: z.string().min(1, { message: "Wallet address is required" }),
+    project_link: z.string().url({ message: "Please enter a valid URL" }),
+    repo_link: z.string().url({ message: "Please enter a valid URL" }),
+    image_url: z.string().optional(),
+    accept_terms: z.boolean().refine((v) => v === true, {
+      message: "You must accept the terms and conditions",
     }),
-  currency: z.enum(["ETH", "SOL"]),
-  wallet_addr: z.string().min(1, { message: "Wallet address is required" }),
-  project_link: z.string().url({ message: "Please enter a valid URL" }),
-  repo_link: z.string().url({ message: "Please enter a valid URL" }),
-  image_url: z.string().optional(),
-  accept_terms: z.boolean().refine((val) => val === true, {
-    message: "You must accept the terms and conditions",
-  }),
-}).refine((data) => {
-  // Dynamic validation based on currency
-  if (data.currency === "SOL") {
-    if (data.wallet_addr.length < 32 || data.wallet_addr.length > 44) {
-      return false;
+  })
+  .superRefine((data, ctx) => {
+    const { currency, wallet_addr } = data;
+    const valid =
+      currency === "ETH" ? ethRE.test(wallet_addr) : solRE.test(wallet_addr);
+    if (!valid) {
+      ctx.addIssue({
+        code: ZodIssueCode.custom,
+        path: ["wallet_addr"],
+        message:
+          currency === "ETH"
+            ? "Invalid ETH address (must start with 0x and be 42 chars)"
+            : "Invalid SOL address (Base58, 32–44 chars)",
+      });
     }
-    return isValidSolanaAddress(data.wallet_addr);
-  } else {
-    if (data.wallet_addr.length < 42) {
-      return false;
-    }
-    return data.wallet_addr.startsWith("0x");
-  }
-}, (data) => ({
-  message: data.currency === "SOL" 
-    ? "Please enter a valid Solana wallet address (Base58 format, 32-44 characters)"
-    : "Please enter a valid Ethereum wallet address (must start with 0x)",
-  path: ["wallet_addr"]
-}));
+  });
 
 type FormValues = z.infer<typeof projectSchema>;
 
@@ -101,8 +85,6 @@ export default function CreateProjectPage() {
   const router = useRouter();
 
   const { startUpload, isUploading } = useUploadThing("imageUploader");
-  const providers = useWalletProviders();
-  const metaMaskProvider = providers.find((p) => p.info.name === "MetaMask");
 
   const form = useForm<FormValues>({
     resolver: zodResolver(projectSchema),
@@ -131,14 +113,12 @@ export default function CreateProjectPage() {
   const { mutate: createProjectMutation, isPending } = useCreateProject();
 
   async function onSubmit(values: FormValues) {
-    const { accept_terms: _, ...projectData } = values; // eslint-disable-line @typescript-eslint/no-unused-vars
+    const { accept_terms: _, ...projectData } = values;
 
     if (selectedImageFile) {
       try {
         toast.info("Uploading image...");
-
         const uploadResult = await startUpload([selectedImageFile]);
-
         if (uploadResult && uploadResult[0]?.url) {
           projectData.image_url = uploadResult[0].url;
           toast.success("Image uploaded successfully!");
@@ -182,31 +162,33 @@ export default function CreateProjectPage() {
   }
 
   const handleConnectWallet = async () => {
-    if (!metaMaskProvider) {
-      toast.error("MetaMask not found", {
-        description: "Please install MetaMask to connect your wallet.",
-      });
-      window.open("https://metamask.io/download/", "_blank");
-      return;
-    }
+    setIsConnectingWallet(true);
+    const currency = form.getValues("currency");
 
     try {
-      setIsConnectingWallet(true);
-      const accounts = (await metaMaskProvider.provider.request({
-        method: "eth_requestAccounts",
-      })) as string[] | undefined;
-
-      if (accounts?.[0]) {
-        form.setValue("wallet_addr", accounts[0]);
-        toast.success("Wallet Connected", {
-          description: "Your wallet address has been automatically filled.",
-        });
+      if (currency === "SOL") {
+        const sol = (window as any).solana;
+        if (!sol?.isPhantom && !sol?.isMetaMask) {
+          throw new Error("No Solana wallet found");
+        }
+        await sol.connect();
+        form.setValue("wallet_addr", sol.publicKey.toString());
+        toast.success("Solana wallet connected");
+        return;
       }
-    } catch (error) {
-      console.error("Failed to connect:", error);
-      toast.error("Connection Failed", {
-        description: "Unable to connect to MetaMask. Please try again.",
-      });
+
+      // ETH path
+      const eth = (window as any).ethereum;
+      if (!eth?.isMetaMask) {
+        throw new Error("MetaMask not found");
+      }
+      const accounts = (await eth.request({
+        method: "eth_requestAccounts",
+      })) as string[];
+      form.setValue("wallet_addr", accounts[0]);
+      toast.success("Ethereum wallet connected");
+    } catch (err: any) {
+      toast.error(err.message || "Connection failed");
     } finally {
       setIsConnectingWallet(false);
     }
@@ -416,7 +398,10 @@ export default function CreateProjectPage() {
                             </FormLabel>
                             <FormControl>
                               <div className="w-full">
-                                <Select value={field.value} onValueChange={field.onChange}>
+                                <Select
+                                  value={field.value}
+                                  onValueChange={field.onChange}
+                                >
                                   <SelectTrigger className="bg-gray-800/70 border-gray-700 text-white focus:border-cyan-500 transition-all duration-300">
                                     <SelectValue placeholder="Select Currency" />
                                   </SelectTrigger>
@@ -467,7 +452,11 @@ export default function CreateProjectPage() {
                               </div>
                             </FormControl>
                             <FormDescription className="text-gray-400">
-                              {`Set your funding goal in ${selectedCurrency === "SOL" ? "Solana (SOL)" : "Ethereum (ETH)"}.`}
+                              {`Set your funding goal in ${
+                                selectedCurrency === "SOL"
+                                  ? "Solana (SOL)"
+                                  : "Ethereum (ETH)"
+                              }.`}
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -480,8 +469,8 @@ export default function CreateProjectPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-gray-400">
-                              {selectedCurrency === "SOL" 
-                                ? "Solana Wallet Address" 
+                              {selectedCurrency === "SOL"
+                                ? "Solana Wallet Address"
                                 : "Ethereum Wallet Address"}
                             </FormLabel>
                             <FormControl>
@@ -491,9 +480,11 @@ export default function CreateProjectPage() {
                                   className="flex-1"
                                 >
                                   <Input
-                                    placeholder={selectedCurrency === "SOL" 
-                                      ? "e.g., 3SghvWBRMkg8LuE1hHXtPXV9TqT2De6eUvsvRo94oPBU"
-                                      : "0x... or connect your wallet"}
+                                    placeholder={
+                                      selectedCurrency === "SOL"
+                                        ? "e.g., 3SghvWBRMkg8LuE1hHXtPXV9TqT2De6eUvsvRo94oPBU"
+                                        : "0x... or connect your wallet"
+                                    }
                                     {...field}
                                     className="bg-gray-800/70 border-gray-700 text-white focus:border-cyan-500 transition-all duration-300"
                                   />
@@ -510,43 +501,43 @@ export default function CreateProjectPage() {
                                       variant="outline"
                                       className="bg-gray-800/70 border-gray-700 hover:border-cyan-500 hover:bg-gray-700/70 text-cyan-400 hover:text-cyan-300 transition-all duration-300 px-4 whitespace-nowrap"
                                     >
-                                    {isConnectingWallet ? (
-                                      <span className="flex items-center gap-2">
-                                        <svg
-                                          className="animate-spin h-4 w-4"
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          fill="none"
-                                          viewBox="0 0 24 24"
-                                        >
-                                          <circle
-                                            className="opacity-25"
-                                            cx="12"
-                                            cy="12"
-                                            r="10"
-                                            stroke="currentColor"
-                                            strokeWidth="4"
-                                          ></circle>
-                                          <path
-                                            className="opacity-75"
-                                            fill="currentColor"
-                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                          ></path>
-                                        </svg>
-                                        Connecting...
-                                      </span>
-                                    ) : (
-                                      <span className="flex items-center gap-2">
-                                        <Wallet className="h-4 w-4" />
-                                        Connect Wallet
-                                      </span>
-                                    )}
-                                  </Button>
-                                </motion.div>
+                                      {isConnectingWallet ? (
+                                        <span className="flex items-center gap-2">
+                                          <svg
+                                            className="animate-spin h-4 w-4"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                          >
+                                            <circle
+                                              className="opacity-25"
+                                              cx="12"
+                                              cy="12"
+                                              r="10"
+                                              stroke="currentColor"
+                                              strokeWidth="4"
+                                            ></circle>
+                                            <path
+                                              className="opacity-75"
+                                              fill="currentColor"
+                                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                            ></path>
+                                          </svg>
+                                          Connecting...
+                                        </span>
+                                      ) : (
+                                        <span className="flex items-center gap-2">
+                                          <Wallet className="h-4 w-4" />
+                                          Connect Wallet
+                                        </span>
+                                      )}
+                                    </Button>
+                                  </motion.div>
                                 )}
                               </div>
                             </FormControl>
                             <FormDescription className="text-gray-400">
-                              {selectedCurrency === "SOL" 
+                              {selectedCurrency === "SOL"
                                 ? "Enter your Solana wallet address (Base58 format, 32-44 characters)"
                                 : "Enter your Ethereum wallet address manually or connect your wallet to auto-fill."}
                             </FormDescription>
