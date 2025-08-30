@@ -3,11 +3,19 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-donation_program = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+donation_program = "BmNf7XjZZsy19oGcV4YaFvzRDmERo9PWhbUeabTvfzYE"
+
+[programs.testnet]
+donation_program = "BmNf7XjZZsy19oGcV4YaFvzRDmERo9PWhbUeabTvfzYE"
+
+[programs.devnet]
+donation_program = "BmNf7XjZZsy19oGcV4YaFvzRDmERo9PWhbUeabTvfzYE"
+
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
-wallet = "~/.config/solana/id.json" 
+cluster = "https://solana-devnet.g.alchemy.com/v2/yvIHkRX3MHdGAONF_Zwzy_IRwj7dfqjo"
+wallet = "~/.config/solana/id.json"
+program = "donation_program-keypair.json"

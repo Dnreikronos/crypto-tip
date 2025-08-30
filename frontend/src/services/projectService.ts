@@ -40,6 +40,8 @@ export interface ProjectInput {
   project_link?: string;
   repo_link?: string;
   image_url?: string;
+  /** Currency for funding goal (e.g., "ETH" or "SOL") */
+  currency?: "ETH" | "SOL";
 }
 
 export type ProjectResponse = z.infer<typeof projectSchema>;
