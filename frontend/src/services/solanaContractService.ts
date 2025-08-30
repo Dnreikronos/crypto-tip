@@ -176,7 +176,6 @@ export const donateSOL = async (
     commitment: "confirmed",
   });
 
-  // @ts-expect-error - Anchor version compatibility issue with Program constructor
   const program = new Program(idl, provider);
   console.log("Program instance created successfully");
 
@@ -210,7 +209,7 @@ export const donateSOL = async (
   try {
     console.log("Fetching program state...");
     programState = await (
-      program.account as ProgramAccounts
+      program.account as unknown as ProgramAccounts
     ).programState.fetch(programStateAccount);
     console.log("Program state fetched successfully");
   } catch (error: unknown) {
@@ -416,7 +415,6 @@ export const getProjectStats = async (recipient: string) => {
   };
 
   const provider = new AnchorProvider(connection, dummyWallet, {});
-  // @ts-expect-error - Anchor version compatibility issue with Program constructor
   const program = new Program(idl, provider);
 
   const [projectStatsAccount] = PublicKey.findProgramAddressSync(
@@ -425,9 +423,9 @@ export const getProjectStats = async (recipient: string) => {
   );
 
   try {
-    const stats = await (program.account as ProgramAccounts).projectStats.fetch(
-      projectStatsAccount,
-    );
+    const stats = await (
+      program.account as unknown as ProgramAccounts
+    ).projectStats.fetch(projectStatsAccount);
     return {
       totalAmount: stats.totalAmount.toNumber() / LAMPORTS_PER_SOL,
       donationCount: stats.donationCount,
