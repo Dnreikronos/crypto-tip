@@ -9,9 +9,9 @@ services:
       - .env
     depends_on:
       postgres:
-        condition: service_healthy   # wait until Postgres container is started
+        condition: service_healthy # wait until Postgres container is started
       redis:
-        condition: service_started   # wait until Redis container is started
+        condition: service_started # wait until Redis container is started
     networks:
       - app-network
 
@@ -28,7 +28,7 @@ services:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
-      retries: 5 
+      retries: 5
     networks:
       - app-network
 
@@ -97,4 +97,3 @@ volumes:
 networks:
   app-network:
     driver: bridge
-
