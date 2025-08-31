@@ -1,5 +1,5 @@
 import DonationPageClient from "./DonationPageClient";
-import { getProject } from "@/services/projectService";
+import { getProject } from "@/app/services/projectService";
 
 export default async function DonationPage({
   params,

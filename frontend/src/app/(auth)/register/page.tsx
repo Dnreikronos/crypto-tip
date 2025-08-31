@@ -7,7 +7,7 @@ import { Loader2, Lock, Mail, User, Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { z } from "zod";
-import Logo from "@/components/ui/Logo";
+import Logo from "@/app/components/ui/Logo";
 
 import {
   Card,
@@ -16,14 +16,14 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import AnimatedBackground from "@/components/ui/AnimatedBackground";
+} from "@/app/components/ui/card";
+import { Button } from "@/app/components/ui/button";
+import { Input } from "@/app/components/ui/input";
+import { Label } from "@/app/components/ui/label";
+import { Alert, AlertDescription } from "@/app/components/ui/alert";
+import AnimatedBackground from "@/app/components/ui/AnimatedBackground";
 
-import { registerUser } from "../../../lib/auth";
+import { registerUser } from "@/app/lib/auth";
 
 const registerSchema = z
   .object({

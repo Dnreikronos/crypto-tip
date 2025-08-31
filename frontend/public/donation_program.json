@@ -1,0 +1,387 @@
+{
+  "address": "BmNf7XjZZsy19oGcV4YaFvzRDmERo9PWhbUeabTvfzYE",
+  "metadata": {
+    "name": "donation_program",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "donate",
+      "discriminator": [121, 186, 218, 211, 73, 70, 196, 180],
+      "accounts": [
+        {
+          "name": "donor",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "recipient",
+          "writable": true
+        },
+        {
+          "name": "fee_wallet",
+          "writable": true
+        },
+        {
+          "name": "program_state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112, 114, 111, 103, 114, 97, 109, 95, 115, 116, 97, 116, 101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "project_stats",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112, 114, 111, 106, 101, 99, 116, 95, 115, 116, 97, 116, 115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "recipient"
+              }
+            ]
+          }
+        },
+        {
+          "name": "donor_stats",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [100, 111, 110, 111, 114, 95, 115, 116, 97, 116, 115]
+              },
+              {
+                "kind": "account",
+                "path": "donor"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "crypto_type",
+          "type": "string"
+        },
+        {
+          "name": "message",
+          "type": "string"
+        },
+        {
+          "name": "is_anonymous",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "initialize",
+      "discriminator": [175, 175, 109, 31, 13, 152, 155, 237],
+      "accounts": [
+        {
+          "name": "initializer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "program_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112, 114, 111, 103, 114, 97, 109, 95, 115, 116, 97, 116, 101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "transfer_ownership",
+      "discriminator": [65, 177, 215, 73, 53, 45, 99, 47],
+      "accounts": [
+        {
+          "name": "program_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112, 114, 111, 103, 114, 97, 109, 95, 115, 116, 97, 116, 101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "current_owner",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "new_owner",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "update_fee_wallet",
+      "discriminator": [236, 164, 201, 6, 176, 37, 80, 17],
+      "accounts": [
+        {
+          "name": "program_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112, 114, 111, 103, 114, 97, 109, 95, 115, 116, 97, 116, 101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "new_fee_wallet",
+          "type": "pubkey"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "DonorStats",
+      "discriminator": [133, 161, 41, 157, 237, 213, 27, 11]
+    },
+    {
+      "name": "ProgramState",
+      "discriminator": [77, 209, 137, 229, 149, 67, 167, 230]
+    },
+    {
+      "name": "ProjectStats",
+      "discriminator": [230, 131, 75, 44, 146, 52, 127, 219]
+    }
+  ],
+  "events": [
+    {
+      "name": "DonationEvent",
+      "discriminator": [43, 125, 2, 48, 193, 140, 25, 191]
+    },
+    {
+      "name": "FeeWalletUpdatedEvent",
+      "discriminator": [51, 252, 242, 32, 168, 158, 104, 210]
+    },
+    {
+      "name": "OwnershipTransferredEvent",
+      "discriminator": [64, 151, 32, 57, 187, 155, 242, 84]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidAmount",
+      "msg": "Invalid donation amount"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidRecipient",
+      "msg": "Invalid recipient address"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidOwner",
+      "msg": "Invalid owner address"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidFeeWallet",
+      "msg": "Invalid fee wallet"
+    }
+  ],
+  "types": [
+    {
+      "name": "DonationEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "donor",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "recipient",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "fee",
+            "type": "u64"
+          },
+          {
+            "name": "crypto_type",
+            "type": "string"
+          },
+          {
+            "name": "message",
+            "type": "string"
+          },
+          {
+            "name": "is_anonymous",
+            "type": "bool"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DonorStats",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "total_donated",
+            "type": "u64"
+          },
+          {
+            "name": "donation_count",
+            "type": "u32"
+          },
+          {
+            "name": "last_donation",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FeeWalletUpdatedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "old_fee_wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "new_fee_wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "updated_by",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "OwnershipTransferredEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "old_owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "new_owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProgramState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "fee_wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "fee_percentage",
+            "type": "u16"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProjectStats",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "total_amount",
+            "type": "u64"
+          },
+          {
+            "name": "donation_count",
+            "type": "u32"
+          },
+          {
+            "name": "last_donation",
+            "type": "i64"
+          }
+        ]
+      }
+    }
+  ]
+}
