@@ -1,4 +1,4 @@
-import AnimatedBackground from "@/components/ui/AnimatedBackground";
+import AnimatedBackground from "@/app/components/ui/AnimatedBackground";
 import ProjectsContentModern from "./ProjectsContentModern";
 
 export default function ProjectsPage() {

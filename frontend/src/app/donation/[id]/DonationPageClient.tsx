@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { donateSOL } from "@/services/solanaContractService";
+import { donateSOL } from "../../services/solanaContractService";
 import {
   Heart,
   Coffee,
@@ -18,13 +18,13 @@ import {
   Copy,
   CheckCheck,
 } from "lucide-react";
-import ProfileCard from "@/components/ui/ProfileCard";
-import AnimatedBackground from "@/components/ui/AnimatedBackground";
-import { ContractService } from "@/services/contractService";
-import { createDonation } from "@/services/donationService";
+import ProfileCard from "@/app/components/ui/ProfileCard";
+import AnimatedBackground from "@/app/components/ui/AnimatedBackground";
+import { ContractService } from "@/app/services/contractService";
+import { createDonation } from "@/app/services/donationService";
 import { toast } from "sonner";
-import type { ProjectResponse } from "@/services/projectService";
-import { useCryptoPrice } from "@/hooks/useCryptoPrice";
+import type { ProjectResponse } from "@/app/services/projectService";
+import { useCryptoPrice } from "@/app/_hooks/useCryptoPrice";
 
 declare global {
   interface Window {

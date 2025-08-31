@@ -1,13 +1,13 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { ProjectsTable } from "@/components/ui/ProjectsTable";
-import TableSkeleton from "@/components/ui/TableSkeleton";
-import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/app/components/ui/PageHeader";
+import { ProjectsTable } from "@/app/(dashboard)/my-projects/_components/ProjectsTable";
+import TableSkeleton from "@/app/components/ui/TableSkeleton";
+import { Button } from "@/app/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
-import { getProjects } from "@/services/projectService";
+import { getProjects } from "@/app/services/projectService";
 import { z } from "zod";
 
 // Validation schemas

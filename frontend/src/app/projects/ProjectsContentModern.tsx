@@ -10,14 +10,14 @@ import {
   SortField,
   SortOrder,
   ProjectStatus,
-} from "@/components/ui/ProjectFilters";
-import { ProjectsGrid } from "@/components/ui/ProjectsGrid";
-import { ProjectsTable } from "@/components/ui/ProjectsTable";
-import { EmptyStateModern } from "@/components/ui/EmptyStateModern";
-import { ProjectsGridSkeleton } from "@/components/ui/ProjectsGridSkeleton";
-import { Button } from "@/components/ui/button";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { getProjects } from "@/services/projectService";
+} from "@/app/(dashboard)/my-projects/_components/ProjectFilters";
+import { ProjectsGrid } from "@/app/components/ui/ProjectsGrid";
+import { ProjectsTable } from "@/app/(dashboard)/my-projects/_components/ProjectsTable";
+import { EmptyStateModern } from "@/app/components/ui/EmptyStateModern";
+import { ProjectsGridSkeleton } from "@/app/components/ui/ProjectsGridSkeleton";
+import { Button } from "@/app/components/ui/button";
+import { PageHeader } from "@/app/components/ui/PageHeader";
+import { getProjects } from "@/app/services/projectService";
 import { z } from "zod";
 
 // Validation schemas
