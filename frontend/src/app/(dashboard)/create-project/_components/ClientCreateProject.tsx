@@ -4,13 +4,10 @@ import dynamic from "next/dynamic";
 import { Suspense, useEffect } from "react";
 import { Skeleton } from "@/app/components/ui/skeleton";
 
-const CreateProjectPage = dynamic(
-  () => import("./CreateProject"),
-  {
-    ssr: false,
-    loading: () => <PageSkeleton />,
-  },
-);
+const CreateProjectPage = dynamic(() => import("./CreateProject"), {
+  ssr: false,
+  loading: () => <PageSkeleton />,
+});
 
 export default function ClientCreateProject() {
   return (

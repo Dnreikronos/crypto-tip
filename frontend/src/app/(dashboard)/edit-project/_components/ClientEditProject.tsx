@@ -4,13 +4,10 @@ import dynamic from "next/dynamic";
 import { Suspense, useEffect } from "react";
 import { Skeleton } from "@/app/components/ui/skeleton";
 
-const EditProjectPage = dynamic(
-  () => import("./EditProject"),
-  {
-    ssr: false,
-    loading: () => <PageSkeleton />,
-  },
-);
+const EditProjectPage = dynamic(() => import("./EditProject"), {
+  ssr: false,
+  loading: () => <PageSkeleton />,
+});
 
 export default function ClientEditProject() {
   return (

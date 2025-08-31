@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { useProject, useUpdateProject } from "@/app/(dashboard)/my-projects/_hooks/useProject";
+import {
+  useProject,
+  useUpdateProject,
+} from "@/app/(dashboard)/my-projects/_hooks/useProject";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
