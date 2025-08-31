@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { donateSOL } from "@/services/solanaContractService";
+import { donateSOL } from "../../services/solanaContractService";
 import {
   Heart,
   Coffee,
